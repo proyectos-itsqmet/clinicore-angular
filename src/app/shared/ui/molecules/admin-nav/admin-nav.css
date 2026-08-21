@@ -1,0 +1,160 @@
+/**
+ * design/panel-admin/ — the accordion nav of the admin panel.
+ *
+ * Colour lives here rather than in utilities because every state recolours
+ * THREE things at once: the row's background, its label, and its icon. The icon
+ * is the reason: `app-icon` draws with `stroke="currentColor"` and its host is
+ * `display: contents`, so setting `color` on the `<app-icon>` element is enough
+ * and the whole state fits in two declarations instead of three class bindings.
+ *
+ * Selecting `app-icon` from here works and is not a leak: the element belongs to
+ * admin-nav.html, so Angular's emulated encapsulation stamps it with this
+ * component's attribute. What it CANNOT reach is the `<svg>` inside — and it
+ * does not need to, that is what `currentColor` is for.
+ */
+:host {
+  display: contents;
+}
+
+/* ============================================================
+ * FIRST-LEVEL ROW — group button or direct link, same shape
+ * ============================================================ */
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-tile-sm);
+  background-color: transparent;
+  color: var(--color-ink-2);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 140ms var(--ease-brand),
+    color 140ms var(--ease-brand);
+}
+
+.nav-row app-icon {
+  color: var(--color-ink-3);
+  flex-shrink: 0;
+  transition: color 140ms var(--ease-brand);
+}
+
+.nav-label {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+/* Hover only where a pointer can actually hover — the same gate `card.css`
+   uses, and for the same reason: on touch the state sticks. */
+@media (hover: hover) and (pointer: fine) {
+  .nav-row:hover {
+    background-color: var(--color-field);
+  }
+}
+
+/* Group expanded, and direct link on its own page. Both read as "this is the
+   branch you are in", so they share the treatment. */
+.nav-row-open,
+.nav-row-active {
+  background-color: var(--color-field);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.nav-row-open app-icon,
+.nav-row-active app-icon {
+  color: var(--color-blue-text);
+}
+
+.nav-chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  transition: transform 180ms var(--ease-brand);
+}
+
+.nav-chevron-open {
+  transform: rotate(90deg);
+}
+
+/* ============================================================
+ * LEAF — one destination inside an open group
+ * ============================================================ */
+.nav-leaf {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 36px;
+  /* Square on the left so the active bar sits flush against the edge; rounded
+     on the right like every other row. */
+  border-radius: 0 10px 10px 0;
+  background-color: transparent;
+  text-decoration: none;
+  transition: background-color 140ms var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-leaf:hover {
+    background-color: var(--color-field);
+  }
+}
+
+/* Always present, transparent when it is not the current page. Adding it only
+   on activation would shift the row 3px sideways — a small jump that reads as
+   sloppy the moment you navigate quickly. */
+.nav-leaf-bar {
+  width: 3px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+  transition: background-color 140ms var(--ease-brand);
+}
+
+.nav-leaf-label {
+  /* 39px from the bar puts the label on the same optical line as the parent's
+     text, which starts after a 12px padding plus a 19px icon plus an 11px gap
+     minus the bar's own 3px. Change the icon size and this moves with it. */
+  padding-left: 39px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-ink-3);
+  transition: color 140ms var(--ease-brand);
+}
+
+.nav-leaf-active {
+  background-color: var(--color-tint);
+}
+
+.nav-leaf-active .nav-leaf-bar {
+  background-color: var(--color-blue);
+}
+
+.nav-leaf-active .nav-leaf-label {
+  color: var(--color-blue-text);
+  font-weight: 600;
+}
+
+/* `shared/tokens/base.css`'s reduced-motion block covers the boards' looping
+   and entrance animations, not these transitions, so the damping lives here —
+   the same shape `segmented.css` and `card.css` use. */
+@media (prefers-reduced-motion: reduce) {
+  .nav-row,
+  .nav-row app-icon,
+  .nav-chevron,
+  .nav-leaf,
+  .nav-leaf-bar,
+  .nav-leaf-label {
+    transition-duration: 1ms;
+  }
+}

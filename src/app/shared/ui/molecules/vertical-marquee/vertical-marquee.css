@@ -1,0 +1,78 @@
+/**
+ * The vertical sibling of `app-marquee`'s `.mq` / `.mq-row`, authored for
+ * `design/pantalla-turnos/`. The `vq-roll` keyframe and the reduced-motion kill
+ * both live globally in `shared/tokens/base.css`, targeting `.vq-strip` by
+ * name, for the same reason every other keyframe in this system does:
+ * `@keyframes` cannot be scoped per component and must exist exactly once.
+ * Only the applying rules belong here.
+ *
+ * The mask gradient uses `var(--color-ink)` instead of a literal black, exactly
+ * as `marquee.css` does and for the same reason: a `mask-image` gradient masks
+ * by ALPHA, not hue — the "opaque" stop only has to be fully opaque, any opaque
+ * color masks identically — so reusing an existing token satisfies "no hex
+ * literal outside theme.css" without changing a single rendered pixel.
+ */
+:host {
+  display: contents;
+}
+
+.vq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vq-gap);
+  overflow: hidden;
+  /* `flex: 1 1 0%` fills the remaining space of a flex column; `min-height: 0`
+     is what lets it shrink below its content so `overflow: hidden` actually
+     clips instead of the strip pushing the container open. Without the second
+     line the loop scrolls out of view and nothing is hidden. */
+  flex: 1 1 0%;
+  min-height: 0;
+  mask-image: linear-gradient(180deg, transparent, var(--color-ink) 9%, var(--color-ink) 91%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, var(--color-ink) 9%, var(--color-ink) 91%, transparent);
+}
+
+.vq-strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vq-gap);
+  flex-shrink: 0;
+  animation: vq-roll var(--vq-duration) linear infinite;
+}
+
+/* Static mode: the list already fits the window, so there is nothing to scroll
+   and nothing to fade. Fading the ends of a fully visible list reads as a
+   rendering bug, not as a soft edge. */
+.vq-static {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.vq-static .vq-strip {
+  animation: none;
+}
+
+/**
+ * Reduced motion. `shared/tokens/base.css` already kills the `vq-roll`
+ * animation by listing `.vq-strip`; these are the applying rules that make the
+ * frozen result CORRECT instead of merely still — hiding the duplicate copy
+ * (which is `aria-hidden` filler, pointless once nothing moves) and dropping
+ * the edge fade, so what remains reads as a plain static list of the most
+ * recent calls.
+ *
+ * And that IS the right answer, not a degradation: someone who set this
+ * preference asked for no motion, and the frozen window happens to show the
+ * NEWEST rows — the ones that answer "¿ya me pasaron?". The tempting
+ * workaround, stepping the list by JS every few seconds so the older rows still
+ * get their turn, is motion too: it would defeat the very preference it claims
+ * to accommodate.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .vq {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .vq-strip[aria-hidden='true'] {
+    display: none;
+  }
+}

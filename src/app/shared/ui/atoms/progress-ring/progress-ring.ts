@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-/** design/Main.dc.html `.ring circle.p`: stroke-dasharray 653, r 104 — coupled, do not change one without the other. */
+/** design/Main.dc.html `.ring circle.p` (`.counter-ring` here, see progress-ring.css): stroke-dasharray 653, r 104 — coupled, do not change one without the other. */
 const CIRCUMFERENCE = 653;
 
 export type ProgressRingColor = 'blue' | 'ok';
@@ -12,7 +12,7 @@ export type ProgressRingColor = 'blue' | 'ok';
  * the stroke color change per instance.
  *
  * The `@keyframes draw` definition and the reduced-motion fallback
- * (both selector-compatible with `.ring circle.p`) live globally in
+ * (both selector-compatible with `.counter-ring circle.p`) live globally in
  * shared/tokens/base.css. The applying rule — dasharray, starting
  * offset, the 1.7s timing and the `--d` delay — lives in this
  * component's own progress-ring.css, per that file's convention. This

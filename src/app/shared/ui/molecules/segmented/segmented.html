@@ -1,26 +1,43 @@
-<div
-  class="seg relative inline-grid gap-0 rounded-pill border border-line bg-tint p-1"
-  [style.grid-template-columns]="gridTemplateColumns()"
->
-  <span
-    aria-hidden="true"
-    class="seg-thumb absolute inset-y-1 left-1 rounded-pill bg-surface shadow-[0_2px_8px_rgb(12_43_75_/_0.16)]"
-    [style.width]="thumbWidth()"
-    [style.transform]="thumbTransform()"
-  ></span>
-  @for (option of options(); track option; let i = $index) {
-    <button
-      #tabButton
-      type="button"
-      [attr.aria-pressed]="selectedIndex() === i"
-      [class]="
-        'relative z-[1] min-h-11 rounded-pill px-[22px] font-sans text-[15px] font-bold ' +
-        (selectedIndex() === i ? 'text-ink' : 'text-ink-2')
-      "
-      (click)="select(i)"
-      (keydown)="onKeydown($event, i)"
-    >
-      {{ option }}
-    </button>
-  }
+<!-- `w-full md:w-auto` lives on the scroller, not on the consumer's wrapper:
+     the control owns its own overflow behaviour so every consumer gets it for
+     free, and `app-segmented`'s host is `display: contents`, which makes THIS
+     div the flex item the parent row lays out. -->
+<div class="seg-scroll w-full md:w-auto">
+  <div
+    class="seg relative grid gap-0 rounded-pill border border-line bg-tint p-1"
+    [style.--seg-count]="options().length"
+  >
+    <span
+      aria-hidden="true"
+      class="seg-thumb absolute inset-y-1 left-1 rounded-pill bg-surface shadow-[0_2px_8px_rgb(12_43_75_/_0.16)]"
+      [style.transform]="thumbTransform()"
+    ></span>
+    @for (option of options(); track option; let i = $index) {
+      <!-- `truncate` is the load-bearing class, not decoration. Labels are API
+           data: `min-w-0` + `overflow: hidden` let a grid item shrink below its
+           min-content size (a grid item's automatic minimum size is 0 only when
+           overflow is not `visible`), so a pathologically long label ellipsises
+           inside its track instead of spilling out of the pill. `nowrap` (also
+           from `truncate`) is what stops it wrapping to two lines inside the
+           fixed 116px mobile track. `title` keeps the full string reachable for
+           sighted users; the accessible name is the intact text node either
+           way, so screen readers never see the ellipsis.
+           No horizontal padding below `md:` — Mobile.dc.html gives the button
+           none, the 116px track is the padding. -->
+      <button
+        #tabButton
+        type="button"
+        [attr.aria-pressed]="selectedIndex() === i"
+        [attr.title]="option"
+        [class]="
+          'relative z-[1] min-h-11 min-w-0 truncate rounded-pill font-sans text-[14px] font-bold md:px-[22px] md:text-[15px] ' +
+          (selectedIndex() === i ? 'text-ink' : 'text-ink-2')
+        "
+        (click)="select(i)"
+        (keydown)="onKeydown($event, i)"
+      >
+        {{ option }}
+      </button>
+    }
+  </div>
 </div>

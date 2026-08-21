@@ -39,7 +39,12 @@
           <app-skeleton variant="text" [lines]="2" width="100%" height="14px" />
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[18px]" aria-busy="true">
+      <!-- Same `auto-fit` track list as the loaded branch below — see the note
+           there. It has to match, or the grid would re-flow on load. -->
+      <div
+        class="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fit,minmax(320px,1fr))] md:gap-[18px]"
+        aria-busy="true"
+      >
         @for (i of skeletonItems; track i) {
           <div class="grid">
             <app-location-card [location]="emptyLocation" image="" [loading]="true" />
@@ -54,7 +59,16 @@
         </span>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[18px]">
+      <!-- `auto-fit`, not a fixed `md:grid-cols-3`. The fixed three columns were a
+           bet against the data: `jsons/landing/locations.json` ships TWO sedes
+           (`items` 2 — the `gallery` 5 is a separate photo array, not a card each),
+           so the third column was always empty and the section rendered two cards
+           and a ~440px hole. `auto-fit` builds as many 320px-or-wider tracks as
+           fit, then COLLAPSES the ones no item landed in and lets the survivors
+           absorb the freed space — two sedes fill the row, a third would join it,
+           a fourth would wrap. The count now follows the endpoint instead of the
+           endpoint having to match the layout. -->
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-[repeat(auto-fit,minmax(320px,1fr))] md:gap-[18px]">
         @for (entry of items(); track entry.item.id) {
           <div class="grid">
             <app-location-card [location]="entry.item" [image]="entry.image" />

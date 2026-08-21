@@ -1,24 +1,89 @@
 /**
- * design/Main.dc.html `.seg-thumb` (transform 300ms) and its tab labels'
- * color transition (200ms). `shared/tokens/base.css`'s reduced-motion
- * block doesn't cover `.seg-thumb` (only the boards' looping/entrance
- * animations), so the fallback for this transition lives here instead.
+ * design/Main.dc.html `.seg` / `.seg-thumb` (desktop, lines 118-120) and
+ * design/Mobile.dc.html `.segscroll` / `.seg` (mobile, lines 82-86). The two
+ * boards ship DIFFERENT geometry for this control and both are reproduced
+ * here. This component used to ship only the desktop numbers at every
+ * breakpoint, which is exactly what made it overflow its container.
+ *
+ * MOBILE (Mobile.dc.html): fixed 116px tracks, 14px labels, NO button padding,
+ * inside a horizontal scroller with a hidden scrollbar. The board's own three
+ * labels come to 358px — wider than a 390px viewport's 350px content box — so
+ * the board SCROLLS the control rather than squeezing it. That is the right
+ * call and not a detail to drop: the labels are API data
+ * (`Specialties.groups[].label`), so no fixed box can be trusted to fit them.
+ *
+ * DESKTOP (Main.dc.html): equal `1fr` tracks, 22px button padding, 15px
+ * labels, and NO width constraint at all — the board's `.seg` is a plain flex
+ * item beside a `max-width: 620px` heading column inside a 1240px wrap, so it
+ * sizes to its own content (~442px for these three labels) with 130px to
+ * spare. `min-width` holds the resting size at the mobile track width so a
+ * short-label control still matches the skeleton it replaces.
+ *
+ * `--seg-count` is written by the component from `options().length`. It drives
+ * the track count, the thumb width and that `min-width` off ONE number, so the
+ * thumb can never drift out of sync with the track it is meant to sit on —
+ * which is why the thumb's width is not a component `computed` any more.
+ *
+ * `shared/tokens/base.css`'s reduced-motion block doesn't cover `.seg-thumb`
+ * (only the boards' looping/entrance animations), so the fallback for these
+ * two transitions lives here instead.
  */
 :host {
   display: contents;
 }
 
+/* Mobile.dc.html `.segscroll` — the scrollbar is hidden because the control is
+   a 3-item toggle, not a gallery: the overflow is a safety valve for long
+   labels, not a scroll affordance we want to advertise. */
+.seg-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.seg-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.seg {
+  grid-template-columns: repeat(var(--seg-count), 116px);
+  width: max-content;
+}
+
 .seg-thumb {
+  width: 116px;
   transition: transform 300ms var(--ease-brand);
 }
 
-.seg [role='tab'] {
+/* Was `.seg [role='tab']`, which matched NOTHING: this control dropped the ARIA
+   tab pattern for `aria-pressed` toggle buttons (see the component's own note)
+   and the selector was never updated, so the label colour has been snapping
+   instead of transitioning ever since. */
+.seg button {
   transition: color 200ms linear;
+}
+
+/* Tailwind's own `md:` breakpoint, written as a raw media query because these
+   are `grid-template-columns` / `width` / `min-width` declarations the utility
+   layer cannot express. Keep in sync with `md:` if the theme ever moves it. */
+@media (width >= 48rem) {
+  .seg-scroll {
+    overflow-x: visible;
+  }
+
+  .seg {
+    grid-template-columns: repeat(var(--seg-count), minmax(0, 1fr));
+    width: auto;
+    min-width: calc(var(--seg-count) * 116px + 10px);
+  }
+
+  .seg-thumb {
+    width: calc((100% - 8px) / var(--seg-count));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .seg-thumb,
-  .seg [role='tab'] {
+  .seg button {
     transition-duration: 1ms;
   }
 }

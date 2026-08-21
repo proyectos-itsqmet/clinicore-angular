@@ -5,6 +5,10 @@
  *
  * The `ping` keyframes and the reduced-motion override already exist
  * globally in shared/tokens/base.css, targeting `.dot::after` by name.
+ *
+ * `width` / `height` are NOT declared here: the component writes them inline
+ * from its `size` input, defaulting to the board's 9px. Declaring them here
+ * too would just be a value the inline style always overrides.
  */
 :host {
   display: contents;
@@ -12,8 +16,6 @@
 
 .dot {
   position: relative;
-  width: 9px;
-  height: 9px;
   border-radius: 9999px;
   background-color: var(--color-live);
   flex-shrink: 0;
@@ -26,4 +28,15 @@
   border-radius: 9999px;
   background-color: var(--color-live);
   animation: ping 2s ease-out infinite;
+}
+
+/* Stale: the feed stopped. The pulse is REMOVED, not just recolored — a dot
+   that keeps breathing while nothing arrives is a lie, and stillness is the
+   half of this state that reads from across a room. */
+.dot-stale {
+  background-color: var(--color-gold-deep);
+}
+
+.dot-stale::after {
+  display: none;
 }

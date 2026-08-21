@@ -1,0 +1,158 @@
+<!--
+  Every length is `rem`, no exceptions: `html.signage` (shared/tokens/base.css)
+  decides what a rem is worth from `min()` of both viewport axes, so the whole
+  screen scales to any 16:9 panel with no scroll and no number to retouch.
+  A single `px` here breaks that on 4K.
+
+  Radii are `rounded-[1.5rem]` / `rounded-br-[0.5rem]` and NOT the system's
+  `rounded-card` / `rounded-br-card-nub`: same signature corner, same values at
+  base size, but expressed in the unit that scales — the tokens behind those
+  utilities are fixed px. See the component's doc.
+
+  No background is declared on the screen root. `html.signage body` owns the
+  field color so the letterbox area and the design can never end up two
+  different colors.
+
+  Class bindings are written as ONE `[class]` string concatenation rather than a
+  static `class` plus a binding, which is the shape `segmented.html` already
+  uses: mixing the two makes Angular's class merge decide the winner between
+  two equal-specificity Tailwind utilities, and it is not worth finding out
+  which one wins.
+-->
+@if (data(); as screen) {
+  <div class="flex h-[67.5rem] w-[120rem] flex-col gap-[1.75rem] overflow-hidden px-[3.5rem] py-[2.5rem]">
+    <!-- ============ CABECERA ============ -->
+    <div class="flex h-[7.5rem] shrink-0 items-center justify-between gap-[2.5rem]">
+      <div class="flex items-center gap-[1.5rem]">
+        <!-- Marca sin asset todavía. El recuadro punteado dice "acá falta el
+             logo" en vez de fingir uno, igual que los [CORCHETES] del contrato. -->
+        <div
+          class="flex h-[6.5rem] w-[6.5rem] shrink-0 items-center justify-center rounded-[1.5rem] border-[0.125rem] border-dashed border-blue-soft/45"
+        >
+          <span class="font-sans text-[0.9375rem] font-bold tracking-[.1em] text-blue-soft">[LOGO]</span>
+        </div>
+        <div class="flex flex-col gap-[0.375rem]">
+          <span class="font-display text-[2.875rem] font-extrabold leading-[1.1] tracking-[-.016em] text-surface">{{
+            screen.site.brand
+          }}</span>
+          <span class="font-sans text-[1.5rem] font-medium leading-[1.3] text-blue-soft">{{
+            screen.site.location
+          }}</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-[2.75rem]">
+        <!-- El punto pierde el pulso cuando el feed se cae: un punto que sigue
+             latiendo mientras no llega nada es una mentira, y la quietud es la
+             mitad de este estado que se lee a cuatro metros. -->
+        <div class="flex items-center gap-[0.875rem]">
+          <app-live-dot size="1.125rem" [tone]="stale() ? 'stale' : 'live'" />
+          @if (stale()) {
+            <app-kicker tone="warn" size="1.375rem">Sin conexión</app-kicker>
+          } @else {
+            <app-kicker tone="accent" size="1.375rem">En vivo</app-kicker>
+          }
+        </div>
+        <!-- Reloj del propio kiosco, no del servidor: la sala muestra la hora
+             local y el contrato no carga con un campo que envejece en tránsito. -->
+        <div class="flex flex-col items-end gap-[0.25rem]">
+          <app-figure size="3.375rem" tone="surface">{{ now() | date: 'HH:mm' }}</app-figure>
+          <span class="font-sans text-[1.375rem] font-medium leading-[1.3] text-blue-soft">{{
+            now() | date: "EEEE d 'de' MMMM"
+          }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CUERPO ============ -->
+    <div class="grid min-h-0 grow grid-cols-[38.75rem_minmax(0,1fr)] gap-[1.75rem]">
+      <!-- ---- COLA: cromo oscuro arriba, contenido claro abajo ---- -->
+      <div class="flex min-h-0 flex-col gap-[0.875rem]">
+        <div
+          class="grid h-[4.25rem] shrink-0 grid-cols-[minmax(0,1fr)_12.5rem] items-center rounded-[1.5rem] bg-navy px-[1.75rem]"
+        >
+          <app-kicker tone="soft" size="1.375rem">Últimos llamados</app-kicker>
+          <span class="text-right"><app-kicker tone="soft" size="1.375rem">Cons.</app-kicker></span>
+        </div>
+
+        <app-vertical-marquee gap="0.75rem" [durationSeconds]="34" [animate]="animateQueue()">
+          <ng-template>
+            @for (row of rows(); track row.ticket) {
+              <div
+                [class]="
+                  'grid h-[6rem] shrink-0 grid-cols-[minmax(0,1fr)_12.5rem] items-center gap-[1rem] rounded-[1.5rem] rounded-br-[0.5rem] px-[1.75rem] ' +
+                  (row.current ? 'bg-gold' : 'bg-tint')
+                "
+              >
+                <app-figure size="3.5rem" [tone]="row.current ? 'gold-ink' : 'ink'">{{ row.ticket }}</app-figure>
+                <span class="text-right">
+                  <app-figure size="3.5rem" [tone]="row.current ? 'gold-ink' : 'ink-3'">{{
+                    row.room
+                  }}</app-figure>
+                </span>
+              </div>
+            }
+          </ng-template>
+        </app-vertical-marquee>
+      </div>
+
+      <!-- ---- EL HÉROE: la única superficie totalmente blanca, y la más
+           grande. Gana la atención por luminancia y por área a la vez.
+           `aria-live` porque esto ES una región viva: si alguien pone un lector
+           de pantalla cerca, el llamado nuevo tiene que anunciarse. ---- -->
+      <div
+        class="flex min-h-0 flex-col items-center justify-center gap-[1.875rem] rounded-[2rem] bg-surface px-[3.5rem] py-[2.5rem]"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <app-kicker tone="accent" size="1.625rem">Turno en atención</app-kicker>
+        <!-- `app-figure` trae el tratamiento de cifra del sistema: Nunito 800 y
+             `tabular-nums`, que no es un detalle — sin eso el número cambia de
+             ancho al cambiar de dígito y la pantalla tiembla en cada llamado.
+             El `tracking` va en este wrapper porque `letter-spacing` se hereda
+             y el átomo no lo declara. El `leading-[.88]` del board sí se pierde:
+             el átomo fija `leading-none`, y no vale la pena agregarle un input
+             de line-height por 29px de caja en una columna centrada. -->
+        <span class="tracking-[-.02em]">
+          <app-figure size="15rem" tone="blue">{{ screen.current.ticket }}</app-figure>
+        </span>
+        <div class="h-[0.1875rem] w-[26.25rem] rounded-pill bg-line"></div>
+        <div class="flex flex-col items-center gap-[0.625rem]">
+          <span class="font-display text-[5.5rem] font-extrabold leading-none text-ink">{{
+            screen.current.roomLabel
+          }}</span>
+          <span class="font-sans text-[2.125rem] font-medium leading-[1.3] text-ink-3">{{
+            screen.current.specialty
+          }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CINTA INSTITUCIONAL ============ -->
+    <!-- Estática, y en cromo oscuro. Dos movimientos continuos compitiendo en
+         una sala de espera es peor diseño, no más: el ojo no sabe dónde mirar y
+         el único movimiento que importa es la cola. Y una cinta clara sería un
+         tercer bloque brillante peleándole la atención al héroe. -->
+    <div class="flex h-[5.25rem] shrink-0 items-center justify-center rounded-[1.5rem] bg-navy px-[2.5rem]">
+      <span class="text-center font-sans text-[1.75rem] font-medium leading-[1.3] text-blue-soft">{{
+        screen.ticker
+      }}</span>
+    </div>
+  </div>
+} @else if (failedCold()) {
+  <!-- Falló antes de tener un solo payload, así que no hay nada viejo que
+       seguir mostrando. Lo único honesto es decirlo y decir qué hacer. -->
+  <div class="flex h-[67.5rem] w-[120rem] flex-col items-center justify-center gap-[1.5rem] px-[3.5rem]">
+    <app-kicker tone="warn" size="1.625rem">Sin conexión</app-kicker>
+    <span class="text-center font-display text-[4rem] font-extrabold leading-[1.1] text-surface"
+      >No podemos mostrar los turnos</span
+    >
+    <span class="text-center font-sans text-[2rem] font-medium leading-[1.4] text-blue-soft"
+      >Avisa en recepción. La pantalla lo intenta de nuevo cada 5 segundos.</span
+    >
+  </div>
+} @else {
+  <div class="flex h-[67.5rem] w-[120rem] items-center justify-center" aria-busy="true">
+    <span class="font-display text-[3rem] font-extrabold text-blue-soft">Conectando…</span>
+  </div>
+}

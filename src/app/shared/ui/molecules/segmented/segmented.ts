@@ -2,9 +2,15 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, input, output
 
 /**
  * app-segmented — the segmented control with a sliding pill (design/
- * Main.dc.html `.seg` / `.seg-thumb`, the Especialidades tab switch). The
- * thumb's width and position are both expressed as percentages of its own
- * track, so any number of `options` slides correctly, not just three.
+ * Main.dc.html `.seg` / `.seg-thumb` on desktop, design/Mobile.dc.html
+ * `.segscroll` / `.seg` on mobile, the Especialidades group switch). Any
+ * number of `options` slides correctly, not just three.
+ *
+ * The control is responsible for its OWN width. It fills its container below
+ * `md:` and sizes to its content above, and it can never be wider than the box
+ * it is given — long labels either scroll (mobile) or ellipsise, never spill.
+ * That is deliberate: `options` is API data, so a consumer that hard-codes a
+ * width for it is guessing. See segmented.css for the full geometry note.
  *
  * Controlled component: `selectedIndex` is an input, changes are reported
  * through `selectedIndexChange` (bindable as `[(selectedIndex)]`) rather
@@ -39,8 +45,18 @@ export class Segmented {
 
   protected readonly tabButtons = viewChildren<ElementRef<HTMLButtonElement>>('tabButton');
 
-  protected readonly gridTemplateColumns = computed(() => `repeat(${this.options().length}, minmax(0, 1fr))`);
-  protected readonly thumbWidth = computed(() => `calc((100% - 8px) / ${this.options().length})`);
+  /**
+   * The ONLY geometry left in TypeScript. The track count, the thumb's width
+   * and the desktop `min-width` all derive from the `--seg-count` custom
+   * property in segmented.css, because the two boards size the tracks
+   * differently (116px fixed on mobile, `1fr` on desktop) and a `computed()`
+   * cannot see the breakpoint.
+   *
+   * `100%` here is 100% of the THUMB's own width, not the track's — which is
+   * why this one expression is breakpoint-agnostic and survives that split:
+   * the CSS always sets the thumb to exactly one track wide, so `i * 100%`
+   * lands on track `i` whether a track is 116px or a resolved `1fr`.
+   */
   protected readonly thumbTransform = computed(() => `translateX(calc(${this.selectedIndex()} * 100%))`);
 
   protected select(index: number): void {

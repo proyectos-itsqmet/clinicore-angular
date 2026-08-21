@@ -42,6 +42,77 @@ img {
 }
 
 /* ============================================================
+ * SIGNAGE — la pantalla de sala de espera
+ *
+ * `/sala/:sedeId` (`app-waiting-room-screen`) es la unica superficie del
+ * proyecto que se dibuja a una relacion de aspecto fija y sin scroll: es
+ * un TV, no una pagina. Su diseno mide 120rem x 67.5rem (1920/16 y
+ * 1080/16) y la raiz define cuanto vale 1rem.
+ *
+ * `min()` de los dos ejes es LO que importa. Escalar solo por ancho
+ * (`100vw / 120`) es el error clasico: en un panel 16:10 la altura
+ * desborda y vuelve el scroll — arreglas un eje y rompes el otro. Con el
+ * minimo, el diseno escala por el eje que limita y no desborda ninguno.
+ *
+ * Y el tamano de la caja sale de la MISMA expresion, sin una segunda
+ * formula:
+ *   120rem x (100vw / 120)  = 100vw           <- limita el ancho
+ *   120    x (100vh / 67.5) = 100vh x 16/9    <- limita la altura
+ * Es exactamente la caja 16:9 mas grande que entra en el viewport. El
+ * sobrante en pantallas que no son 16:9 lo pinta el `body` con el mismo
+ * color de campo, asi que lee como respiro y no como barras negras.
+ *
+ * Y HAY UN REGALO: la tecnica de dos copias de `app-vertical-marquee`
+ * exige que la tira sea al menos tan alta como su ventana. Con px duros
+ * ese umbral dependia del viewport — mas alto, mas filas visibles, y el
+ * loop se rompia en la sede que compro el monitor grande. En rem-space
+ * la geometria NO CAMBIA nunca, asi que el umbral es un numero fijo.
+ *
+ * POR QUE VIVE ACA, Y CONDICIONADO POR CLASE: no hay forma de escribir
+ * `html { ... }` desde el stylesheet de un componente — la encapsulacion
+ * emulada de Angular lo convierte en `html[_ngcontent-x]`, que no matchea
+ * nada. Y sin condicionar, este font-size le cambiaria la base del `rem`
+ * a la landing entera y le rompe la tipografia completa. Entonces la
+ * regla es global, pero la clase la pone y la saca el componente en su
+ * propio ciclo de vida.
+ *
+ * `100dvh` va DESPUES de `100vh` como progressive enhancement: en un
+ * navegador de kiosco con barras dinamicas, `vh` miente.
+ * ============================================================ */
+html.signage {
+  font-size: min(100vw / 120, 100vh / 67.5);
+  font-size: min(100vw / 120, 100dvh / 67.5);
+  overflow: hidden;
+}
+
+html.signage body {
+  /* El unico lugar donde se declara el color de campo de la pantalla. El
+     `.screen` del componente NO lo declara: lo hereda pintando transparente
+     encima, para que el area de letterbox y el diseno no puedan quedar de
+     dos colores distintos. */
+  background-color: var(--color-navy-deep);
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+/* Ninguna caja intermedia puede participar del layout: `body` es un grid que
+   centra la pantalla, y cualquier cosa en el medio la descentra. El
+   `<router-outlet>` es el caso traicionero — queda vacio pero es `inline`, y
+   un inline vacio puede reservar una linea de texto entera arriba del
+   contenido. El componente renderizado es HERMANO del outlet, no hijo, asi
+   que apagarlo no apaga la pantalla. */
+html.signage app-root {
+  display: contents;
+}
+
+html.signage router-outlet {
+  display: none;
+}
+
+/* ============================================================
  * FOCUS
  * Non-negotiable per the project LEY: every interactive target
  * gets a 3px outline with 3px offset. `.on-dark` is the contract
@@ -131,13 +202,41 @@ button:focus-visible {
   to { transform: translateX(100%); }
 }
 
+/* New — the waiting-room display's called-turns loop
+ * (`app-vertical-marquee`, design/pantalla-turnos/). The vertical sibling
+ * of `sc-l` / `sc-r`, and NOT of `qshift`: `qshift` is a discrete
+ * three-step jump for five decorative items in the landing bento, this is
+ * a continuous seam-free loop for a real queue on a TV.
+ *
+ * `-100%` is the height of the ANIMATED STRIP, not of its container, which
+ * is what lets one keyframe serve any number of rows. The extra
+ * `var(--vq-gap)` is the space between the two stacked copies: strip
+ * height + one gap lands copy 2 exactly where copy 1 was.
+ *
+ * Note the difference from `sc-l` / `sc-r` right above, which bake their
+ * `32px` in and therefore force `app-marquee` to document its gap as
+ * "not an input". Reading the gap off the element instead means
+ * `app-vertical-marquee` can expose it, and the three places it has to
+ * match (container gap, strip gap, this offset) cannot drift apart. */
+@keyframes vq-roll {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(-100% - var(--vq-gap))); }
+}
+
 /* ============================================================
  * REDUCED MOTION
  * Every animation in the system, off, no exceptions. Selectors
  * mirror the class contract from the design boards so components
  * that reuse those class names (.kb, .beam, .dot, [data-rise],
- * .mq-row, .ring circle.p, .odo-strip, .qroll, .fab::after, .tick)
- * get this for free — plus `.shimmer` for the skeleton atom.
+ * .mq-row, .odo-strip, .qroll, .fab::after, .tick) get this for
+ * free — plus `.shimmer` for the skeleton atom.
+ *
+ * ONE selector deliberately does NOT mirror the boards: the counter
+ * ring is `.counter-ring`, not the boards' `.ring`, because `ring` is
+ * a Tailwind utility and a bare `ring` class compiles to a 1px
+ * `currentcolor` box-shadow. See progress-ring.css for the full note.
+ * Both files must be renamed together — this selector and the
+ * component's own are the only coupling between them.
  * ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   .kb,
@@ -145,9 +244,10 @@ button:focus-visible {
   .beam::before,
   .dot::after,
   .mq-row,
-  .ring circle.p,
+  .counter-ring circle.p,
   .odo-strip,
   .qroll,
+  .vq-strip,
   .fab::after,
   .tick,
   .shimmer {
@@ -159,7 +259,7 @@ button:focus-visible {
     transform: none;
   }
 
-  .ring circle.p {
+  .counter-ring circle.p {
     stroke-dashoffset: var(--off);
   }
 

@@ -1,7 +1,7 @@
 import localeEsEc from '@angular/common/locales/es-EC';
 import { registerLocaleData } from '@angular/common';
 import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 
 import { routes } from './app.routes';
@@ -19,7 +19,12 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     { provide: LOCALE_ID, useValue: 'es-EC' },
-    provideRouter(routes),
+    // `withComponentInputBinding()` hace que los parametros de ruta lleguen a
+    // los `input()` del componente por nombre, en vez de tener que inyectar
+    // `ActivatedRoute` y leer el snapshot. Lo usa `app-waiting-room-display`
+    // para su `:sedeId`. Es aditivo: la landing no declara inputs, asi que
+    // nada de lo que ya existe cambia de comportamiento.
+    provideRouter(routes, withComponentInputBinding()),
     // `provideClientHydration()` enables the HTTP transfer cache by default:
     // any `httpResource`/`HttpClient` GET made during the server render is
     // captured and replayed on the client, so hydration does not re-fetch.

@@ -1,0 +1,18 @@
+<div
+  class="vq"
+  [class.vq-static]="!animate()"
+  [style.--vq-gap]="gap()"
+  [style.--vq-duration.s]="durationSeconds()"
+>
+  <div class="vq-strip">
+    <ng-container [ngTemplateOutlet]="row() ?? null" />
+  </div>
+  <!-- The second copy is what makes the loop seamless, and it exists ONLY when
+       the strip is taller than the window (see invariant 2 in the component's
+       doc). Rendering it while static would double a fully visible list. -->
+  @if (animate()) {
+    <div class="vq-strip" aria-hidden="true">
+      <ng-container [ngTemplateOutlet]="row() ?? null" />
+    </div>
+  }
+</div>

@@ -30,7 +30,7 @@ const EMPTY_LOCATION: LocationItem = {
  * with `items` by index (wrapping if there are more sedes than photos).
  *
  * Layout: a plain, *not* asymmetric grid (`grid-cols-2` on mobile,
- * `grid-cols-3` from `md:`), even though the brief asks for the board's
+ * `auto-fit` tracks of 320px-or-wider from `md:`), even though the brief asks for the board's
  * asymmetric mosaic (one tall tile + smaller ones). `app-location-card`'s
  * photo is a fixed `h-[203px]`, with no input to stretch it — giving the
  * first tile a taller grid row (`row-span-2`) would just leave dead empty
