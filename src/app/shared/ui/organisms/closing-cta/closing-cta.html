@@ -1,0 +1,116 @@
+<section class="on-dark relative overflow-hidden bg-navy-deep px-5 py-12 md:px-20 md:py-[84px]">
+  @if (loading()) {
+    <div class="relative mx-auto flex max-w-[1368px] flex-col gap-6 md:grid md:grid-cols-[1fr_372px] md:items-center md:gap-16" aria-busy="true">
+      <div class="flex flex-col gap-4 md:gap-5">
+        <!-- Every gap here mirrors the loaded branch exactly (`gap-6 md:gap-16` on the
+             wrapper, `gap-4 md:gap-5` on this column, `mt-1.5 ... md:gap-3` on the CTA
+             row) — a skeleton that reserves the right heights at the wrong gaps still
+             moves the page. Loaded column: 359.88px at mobile, 304.69px at md:, both
+             measured in headless Chrome with the real webfonts.
+
+             20px kicker: `.text-kicker` is 13px and theme.css declares NO
+             `--text-kicker--line-height`, so the utility emits font-size only, nothing
+             declares a line-height on the element, and preflight's unitless
+             `html { line-height: 1.5 }` inherits and re-resolves — 13 x 1.5 = 19.50px.
+
+             The headline is the one heading in the landing that IS responsive, so a
+             single bar cannot stand in for it. `text-[32px]` and `md:text-[46px]` are
+             arbitrary Tailwind font sizes (font-size only, no line-height of their
+             own) and `leading-[1.1]` multiplies whichever one is in effect:
+             32 x 1.1 = 35.20px below md:, 46 x 1.1 = 50.60px at md:. It wraps to TWO
+             lines at BOTH breakpoints — 70.38px in the 350px mobile column and 101.19px
+             in the 844px md: text column — so each branch is a two-line bar: `lines`
+             stacks at a fixed 8px, hence 2 x 31 + 8 = 70 and 2 x 47 + 8 = 102.
+             The scoping class sits on plain wrappers because `app-skeleton`'s host is
+             `display: contents`.
+
+             Lead: `.text-lead` is 20px x 1.5, so 3 lines = 90.00px inside `max-w-[46ch]`
+             at mobile and 2 lines = 60.00px at md: — 3 x 25 + 2 x 8 = 91 and
+             2 x 26 + 8 = 60.00.
+
+             CTAs: two 58px buttons, stacked at mobile (58 + 10 + 58 + `mt-1.5` = 132.00)
+             and side by side at md: (58 + 6 = 64.00) — so the row has to carry the same
+             `flex-col md:flex-row` switch the loaded one does.
+
+             Panel: the loaded coverage panel measures 237.88px at every breakpoint (a
+             19.50px kicker, four `text-meta` rows, a `text-cap` note). The kicker is 13px,
+             not 12px: `app-kicker`'s host is `display: contents`, and the span it renders
+             sets `font-size` itself via `text-kicker`, so a size class on the custom
+             element never reaches the text. -->
+        <app-skeleton variant="text" width="140px" height="20px" />
+        <div class="md:hidden">
+          <app-skeleton variant="text" [lines]="2" width="90%" height="31px" />
+        </div>
+        <div class="hidden md:block">
+          <app-skeleton variant="text" [lines]="2" width="90%" height="47px" />
+        </div>
+        <div class="md:hidden">
+          <app-skeleton variant="text" [lines]="3" height="25px" />
+        </div>
+        <div class="hidden md:block">
+          <app-skeleton variant="text" [lines]="2" height="26px" />
+        </div>
+        <div class="mt-1.5 flex flex-col gap-2.5 md:flex-row md:items-center md:gap-3">
+          <app-skeleton variant="pill" width="180px" height="58px" />
+          <app-skeleton variant="pill" width="150px" height="58px" />
+        </div>
+      </div>
+      <app-skeleton variant="block" width="100%" height="238px" radius="24px 24px 8px 24px" />
+    </div>
+  } @else {
+    <img
+      [src]="coverage().backgroundImage | assetUrl"
+      alt=""
+      class="absolute inset-0 h-full w-full object-cover object-[58%_38%] md:object-[60%_40%]"
+    />
+    <span
+      class="absolute inset-0 hidden bg-[linear-gradient(92deg,rgb(12_43_75_/_.95)_0%,rgb(12_43_75_/_.86)_46%,rgb(12_43_75_/_.5)_100%)] md:block"
+    ></span>
+    <span
+      class="absolute inset-0 bg-[linear-gradient(176deg,rgb(12_43_75_/_.9)_0%,rgb(12_43_75_/_.95)_100%)] md:hidden"
+    ></span>
+
+    <div class="relative mx-auto flex max-w-[1368px] flex-col gap-6 md:grid md:grid-cols-[1fr_372px] md:items-center md:gap-16">
+      <div class="flex flex-col gap-4 md:gap-5">
+        <app-kicker tone="accent">{{ coverage().header.kicker }}</app-kicker>
+        <h2 class="font-display text-[32px] font-extrabold leading-[1.1] tracking-[-.018em] text-surface md:text-[46px]">
+          {{ coverage().header.title }}
+        </h2>
+        <p class="text-lead max-w-[46ch] text-tint">{{ coverage().header.lead }}</p>
+        <div class="mt-1.5 flex flex-col gap-2.5 md:flex-row md:items-center md:gap-3">
+          <app-button variant="primary" size="lg" [href]="coverage().ctas.primary.href">
+            {{ coverage().ctas.primary.label }}
+            <app-icon name="arrow" [size]="18" />
+          </app-button>
+          <app-button variant="glass" size="lg" [href]="coverage().ctas.phone.href">
+            <app-icon name="phone" [size]="18" class="text-live" />
+            {{ coverage().ctas.phone.label }}
+          </app-button>
+        </div>
+      </div>
+
+      <div
+        class="flex flex-col gap-3.5 rounded-[24px_24px_8px_24px] border border-surface/24 bg-surface/10 p-6 backdrop-blur-[14px]"
+      >
+        <app-kicker tone="soft">{{ coverage().panelTitle }}</app-kicker>
+        <div class="flex flex-col gap-2.5">
+          @for (row of coverage().rows; track row.id) {
+            <span class="flex justify-between gap-3">
+              <span class="text-meta text-tint">{{ row.label }}</span>
+              <span class="text-meta font-bold text-live">{{
+                row.price.amount | currency: row.price.currency : 'code' : '1.0-0' : 'es-EC'
+              }}</span>
+            </span>
+          }
+          <span class="flex justify-between gap-3 border-t border-surface/20 pt-2.5">
+            <span class="text-meta font-bold text-surface">{{ coverage().noPlanRow.label }}</span>
+            <span class="text-meta font-bold text-surface">{{
+              coverage().noPlanRow.price.amount | currency: coverage().noPlanRow.price.currency : 'code' : '1.0-0' : 'es-EC'
+            }}</span>
+          </span>
+        </div>
+        <span class="text-cap text-blue-soft">{{ coverage().note }}</span>
+      </div>
+    </div>
+  }
+</section>

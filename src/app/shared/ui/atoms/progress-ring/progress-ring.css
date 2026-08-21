@@ -1,0 +1,19 @@
+/**
+ * design/Main.dc.html `.ring circle.p` (M7 — counter rings): the
+ * `@keyframes draw` itself, and the reduced-motion override that snaps
+ * it to its finished offset, both live globally in
+ * shared/tokens/base.css already — every ring shares that one keyframe.
+ * Only the applying class (dasharray, starting offset, and the
+ * animation shorthand referencing the shared keyframe and the
+ * per-instance `--d` delay) belongs here, per that file's own
+ * convention.
+ *
+ * 653 is the circumference of the r="104" circle drawn in the
+ * template (2 * PI * 104) — coupled to that radius, do not change one
+ * without the other.
+ */
+.ring circle.p {
+  stroke-dasharray: 653;
+  stroke-dashoffset: 653;
+  animation: draw 1.7s linear var(--d) forwards;
+}

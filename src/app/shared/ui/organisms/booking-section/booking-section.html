@@ -1,0 +1,235 @@
+<section class="bg-field px-5 py-12 md:px-0 md:py-[88px]" [attr.aria-busy]="loading() ? true : null">
+  <div class="mx-auto flex w-full max-w-[1240px] flex-col gap-5 md:gap-[30px]">
+    <div class="flex flex-col gap-3.5 md:flex-row md:items-end md:justify-between md:gap-12">
+      <div class="flex max-w-[640px] flex-col gap-3.5">
+        @if (loading()) {
+          <!-- Every bar here hangs off a wrapper with a definite width: this column is a
+               shrink-to-fit flex item at md: (`md:flex-row md:justify-between`), where a
+               percentage width contributes 0 to max-content, so a `min(380px, 75%)` bar
+               would collapse the whole column to the kicker's 140px. The heights are the
+               real used line boxes, measured in headless Chrome with the real webfonts:
+               `.text-kicker` is 13px and theme.css declares NO
+               `--text-kicker--line-height`, so the utility emits font-size only, nothing
+               declares a line-height on the element, and preflight's unitless
+               `html { line-height: 1.5 }` inherits and re-resolves — a 19.50px line box
+               (13 x 1.5), hence the 20px bar. `--text-h2` 44px x 1.12 gives 49.28px (44px
+               at every breakpoint — there is no responsive override of text-h2), and
+               `--text-body` 17px x 1.62 gives 27.54px per line, which the `text-[17px]`
+               next to it cannot change: an arbitrary font-size emits no line-height of its
+               own, so text-body's survives. The heading fits one line inside the 611px
+               desktop column (49.27px) but wraps to two below md: (98.53px), hence the
+               mobile-only second bar; the lead is `md:block`, hence its desktop-only pair,
+               where 2 x 24 + `gap-[7px]` = 55px against its measured 55.06px. -->
+          <app-skeleton variant="text" width="140px" height="20px" />
+
+          <div class="flex w-full flex-col md:w-[611px]">
+            <app-skeleton variant="text" width="100%" height="49px" />
+            <span class="md:hidden">
+              <app-skeleton variant="text" width="76%" height="49px" />
+            </span>
+          </div>
+
+          <div class="hidden w-full flex-col gap-[7px] md:flex md:w-[611px]">
+            <app-skeleton variant="text" width="100%" height="24px" />
+            <app-skeleton variant="text" width="82%" height="24px" />
+          </div>
+        } @else {
+          <app-kicker>{{ availability().header.kicker }}</app-kicker>
+          <h2 class="text-h2 font-display text-ink">{{ availability().header.title }}</h2>
+          <p class="hidden text-body text-[17px] text-ink-2 md:block" style="max-width: 56ch">
+            {{ availability().header.lead }}
+          </p>
+        }
+      </div>
+      @if (loading()) {
+        <app-skeleton variant="pill" width="200px" height="44px" />
+      } @else {
+        <app-pill tone="plain">
+          <app-live-dot />
+          <span>{{ availability().badge }}</span>
+        </app-pill>
+      }
+    </div>
+
+    <div
+      class="flex flex-col gap-[22px] rounded-panel-sm border border-line bg-surface p-5 shadow-lift-1 md:grid md:grid-cols-[minmax(0,1fr)_356px] md:gap-11 md:rounded-panel-lg md:p-9 md:py-[34px]"
+    >
+      <div class="flex flex-col gap-[22px] md:gap-[26px]">
+        <div class="flex flex-col gap-2.5">
+          <app-kicker>1 · Médico</app-kicker>
+          <div class="grid grid-cols-1 gap-[7px] md:flex md:flex-row md:flex-wrap md:gap-2.5">
+            @if (loading()) {
+              <!-- The definite width lives on a wrapper, not on `app-skeleton`, whose host is
+                   `display: contents`: at md: this container is a `flex-row`, so the flex item
+                   is the atom's own root div with `width: auto`, and its only child being a
+                   percentage-wide bar contributes 0 to max-content — the item resolves to 0px
+                   and paints nothing under the "1 · Médico" kicker. 168px is the loaded chip's
+                   measured width (15px/600 Figtree label + 2x16px padding + 2x1.5px border).
+                   Below md: the container is a single-column grid, which already supplies a
+                   definite width, so `w-full` is enough there. -->
+              @for (i of skeletonDoctors; track i) {
+                <span class="w-full md:w-[168px]">
+                  <app-skeleton variant="pill" width="100%" height="46px" />
+                </span>
+              }
+            } @else {
+              @for (doctor of availability().doctors; track doctor.id; let i = $index) {
+                <app-chip [selected]="doctorIndex() === i" (click)="pickDoctor(i)">{{ doctor.name }}</app-chip>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <app-kicker>2 · Día</app-kicker>
+          <div class="grid grid-cols-4 gap-[7px] md:grid-cols-7 md:gap-2">
+            @if (loading()) {
+              @for (i of skeletonDays; track i) {
+                <app-skeleton variant="block" width="100%" height="68px" radius="18px" />
+              }
+            } @else {
+              @for (cell of dayCells(); track cell.day.date; let i = $index) {
+                <button
+                  type="button"
+                  (click)="pickDay(i)"
+                  [attr.aria-pressed]="dayIndex() === i"
+                  [class]="
+                    'flex min-h-[62px] flex-col items-center justify-center gap-0.5 rounded-2xl border-[1.5px] py-[9px] transition-colors duration-150 ease-brand md:min-h-[68px] md:gap-[3px] md:rounded-[18px] md:py-[11px] ' +
+                    (dayIndex() === i ? 'border-blue bg-blue' : 'border-line bg-surface')
+                  "
+                >
+                  <span [class]="'text-[11px] font-medium font-sans md:text-[12px] ' + (dayIndex() === i ? 'text-surface' : 'text-ink-3')">{{
+                    cell.weekday
+                  }}</span>
+                  <app-figure size="clamp(18px, 4vw, 20px)" [tone]="dayIndex() === i ? 'surface' : 'ink'">{{
+                    cell.dayNumber
+                  }}</app-figure>
+                </button>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <app-kicker>3 · Hora</app-kicker>
+          <div class="grid grid-cols-4 gap-[7px] md:grid-cols-6 md:gap-2">
+            @if (loading()) {
+              @for (i of skeletonSlots; track i) {
+                <app-skeleton variant="pill" width="100%" height="46px" />
+              }
+            } @else {
+              @for (slot of availability().slots; track $index; let i = $index) {
+                @if (slot.status === 'booked') {
+                  <app-chip [disabled]="true">{{ slot.time }}</app-chip>
+                } @else {
+                  <app-chip [selected]="slotIndex() === i" (click)="pickSlot(i, slot.status)">{{ slot.time }}</app-chip>
+                }
+              }
+            }
+          </div>
+          <!-- Guarded like every other caption in this template: the empty fixture's
+               `slotsLegend` is '', which leaves an inline span with no line box at all
+               and grows the panel ~16px when the real legend lands. -->
+          @if (loading()) {
+            <app-skeleton variant="text" width="220px" height="14px" />
+          } @else {
+            <span class="text-cap font-sans text-ink-3">{{ availability().slotsLegend }}</span>
+          }
+        </div>
+      </div>
+
+      <div
+        class="flex flex-col gap-3.5 rounded-[20px] rounded-br-[8px] border border-line bg-field p-[18px] md:gap-[18px] md:rounded-card md:rounded-br-card-nub md:p-[26px]"
+      >
+        @if (loading()) {
+          <!-- The summary panel stacks UNDER the picker below md:, so everything it
+               under-reserves lands on the page as a jump; at md: it is the grid's second
+               track and only pushes its own card. Loaded panel: 378.66px at mobile
+               (270px content box) and 395.06px at md: (302px), measured in headless
+               Chrome with the real webfonts. Per child:
+
+                 kicker    19.50px  `.text-kicker` is 13px with NO
+                                    `--text-kicker--line-height` token, so the utility
+                                    emits font-size only and preflight's unitless
+                                    `html { line-height: 1.5 }` inherits and re-resolves:
+                                    13 x 1.5. A 12px bar was 7.5px short of it.
+                 rows      80.90px  three `text-meta` rows (14 x 1.45 = 20.30) at
+                                    `gap-2.5`. `lines` stacks at a fixed 8px, so
+                                    3 x 22 + 2 x 8 = 82 is as close as it gets.
+                 hairline   1.00px
+                 price    131.27px  at mobile / 115.67px at md: — `app-price-row` is a
+                                    molecule and not ours to change, so its geometry is
+                                    reserved from this side: a 20.30px name row, the plan
+                                    row, and a two-line 36.38px `text-cap` note, all at
+                                    `gap-2.5`. The plan row is the part that moves — its
+                                    label wraps beside the 39px `text-[26px]` figure at
+                                    mobile (54.59px) but fits on one line at md: (38.99px),
+                                    so only that bar is split per breakpoint.
+                 CTA       52.00px  `app-button` at its default `md` size.
+
+               Totals: 380px at mobile, 396px at md:, against 378.66 / 395.06. -->
+          <app-skeleton variant="text" width="90px" height="20px" />
+          <app-skeleton variant="text" [lines]="3" height="22px" />
+          <app-skeleton variant="text" width="100%" height="1px" />
+          <div class="flex flex-col gap-2.5">
+            <app-skeleton variant="text" width="100%" height="20px" />
+            <div class="md:hidden">
+              <app-skeleton variant="text" width="100%" height="55px" />
+            </div>
+            <div class="hidden md:block">
+              <app-skeleton variant="text" width="100%" height="39px" />
+            </div>
+            <app-skeleton variant="text" width="100%" height="36px" />
+          </div>
+          <app-skeleton variant="pill" width="100%" height="52px" />
+        } @else {
+          <app-kicker>Resumen</app-kicker>
+          <div class="flex flex-col gap-2.5">
+            <span class="flex items-baseline justify-between gap-3">
+              <span class="text-meta text-ink-3">Médico</span>
+              <span class="text-meta font-bold text-ink">{{ doctorLabel() }}</span>
+            </span>
+            <span class="flex items-baseline justify-between gap-3">
+              <span class="text-meta text-ink-3">Día</span>
+              <span class="text-meta font-bold text-ink">{{ dayLabel() }}</span>
+            </span>
+            <span class="flex items-baseline justify-between gap-3">
+              <span class="text-meta text-ink-3">Hora</span>
+              <span [class]="'text-meta font-bold ' + (slotIndex() === null ? 'text-ink-3' : 'text-ink')">{{
+                timeLabel()
+              }}</span>
+            </span>
+          </div>
+          <span class="h-px w-full bg-line"></span>
+          <app-price-row [service]="availability().service" [note]="availability().priceDisclaimer" />
+
+          @if (!confirmed()) {
+            <app-button variant="primary" [fullWidth]="true" [disabled]="!canConfirm()" (click)="confirm()">
+              Confirmar cita
+            </app-button>
+          } @else {
+            <div class="flex min-h-[54px] w-full items-center gap-2.5 rounded-pill bg-ok px-5 md:min-h-[52px]">
+              <svg
+                class="h-[21px] w-[21px] shrink-0 text-surface md:h-[22px] md:w-[22px]"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  class="tick"
+                  d="m5 12.5 4.5 4.5L19 7.5"
+                  stroke="currentColor"
+                  stroke-width="2.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span class="font-sans text-[15px] font-bold text-surface md:text-[16px]">Reservado · {{ timeLabel() }}</span>
+            </div>
+            <span class="hidden text-cap font-sans text-ink-3 md:block">{{ availability().confirmationNote }}</span>
+          }
+        }
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,207 @@
+<footer class="bg-surface px-5 pb-10 pt-10 md:px-20 md:pb-[34px] md:pt-16">
+  <div class="mx-auto flex max-w-[1368px] flex-col gap-8 md:gap-11">
+    @if (loading()) {
+      <!-- Column template and gap are copied verbatim from the loaded grid below —
+           four equal columns at a 32px gap would move every column boundary the
+           moment `site`/`locations` resolve. The two link columns repeat the loaded
+           `grid-cols-2 md:contents` wrapper as well: below md: they sit SIDE BY SIDE
+           inside a single grid child and only dissolve into the four-column grid at
+           md:, so emitting them as two independent grid children would stack them at
+           mobile and add a whole column of height to the swap. -->
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-[1.5fr_1fr_1fr_1.3fr] md:gap-10" aria-busy="true">
+        <!-- Brand column, mirrored element by element instead of one flat block: the
+             26px logo row (the loaded svg is 26px tall and the wordmark's line box is
+             smaller), the `max-w-[30ch]` description at three wrapped lines (its
+             `text-body` line-height survives the `text-[14px]` override, so 14 x 1.62
+             = 22.7px a line), and the 95px medical-director box (2px border + 28px
+             `py-3.5` + 8px of `gap-1` + 20.3px `text-meta` + 2 x 18.2px `text-cap`). -->
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-2.5">
+            <app-skeleton variant="block" width="26px" height="26px" radius="10px" />
+            <app-skeleton variant="text" width="150px" height="20px" />
+          </div>
+          <div class="max-w-[30ch]">
+            <app-skeleton variant="text" [lines]="3" height="17px" />
+          </div>
+          <app-skeleton variant="block" width="100%" height="95px" radius="16px" />
+        </div>
+
+        <!-- Both link columns: a 26px heading bar plus one 44px row per anchor at the
+             loaded `gap-3`. The heading is `text-[17px]`, an ARBITRARY Tailwind font
+             size — it emits `font-size` only, no line-height — so the preflight's
+             `html { line-height: 1.5 }` is what applies: 17 x 1.5 = 25.5px. Each row
+             is a 44px `grid items-center` box holding a 20px text bar, matching the
+             loaded anchor's deliberate `inline-flex min-h-11` hit target over a
+             20.3px `text-meta` line. The box has to be a grid: a class on
+             `app-skeleton` never reaches the bar (`display: contents` host), and a
+             percentage width inside a shrink-to-fit flex row resolves to zero. -->
+        <div class="grid grid-cols-2 gap-8 md:contents">
+          <div class="flex flex-col gap-3">
+            <app-skeleton variant="text" width="130px" height="26px" />
+            @for (row of skeletonLinkRows; track row) {
+              <div class="grid min-h-11 items-center">
+                <app-skeleton variant="text" width="80%" height="20px" />
+              </div>
+            }
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <app-skeleton variant="text" width="90px" height="26px" />
+            @for (row of skeletonLinkRows; track row) {
+              <div class="grid min-h-11 items-center">
+                <app-skeleton variant="text" width="80%" height="20px" />
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Sede boxes are 117px each: 2px border + 28px `py-3.5` + 12px of `gap-1`
+             + a 20.3px `text-meta` name + three 18.2px `text-cap` lines. -->
+        <div class="flex flex-col gap-3">
+          <app-skeleton variant="text" width="64px" height="26px" />
+          <app-skeleton-grid
+            [count]="2"
+            [columns]="1"
+            gap="12px"
+            variant="block"
+            width="100%"
+            height="117px"
+            radius="16px"
+          />
+        </div>
+      </div>
+
+      <!-- Own `aria-busy` owner: `app-skeleton` is unconditionally `aria-hidden`, so a
+           standalone one outside a busy container leaves this whole region silent.
+           The strip reproduces the loaded one's box too — 1px `border-t` plus 24px
+           `pt-6` — because that border and padding are what the two flat text lines
+           this used to be never accounted for. Disclaimer and copyright both wrap, so
+           each gets a breakpoint-scoped pair; the scoping class goes on a plain wrapper
+           because `app-skeleton`'s host is `display: contents`.
+           Both texts are `text-cap`, a 13 x 1.4 = 18.20px line box, so every bar below
+           is exactly one real line and the bar COUNT is the line count — no faked bar
+           heights standing in for a wrong count. They sit in GAPLESS wrappers (the
+           shape `booking-section.html` already ships for its two-line heading) because
+           consecutive line boxes are contiguous; the atom's own `lines` input would
+           insert its 8px `gap-2` between every pair, which is what previously forced
+           the 11px/12px bars. `site().legal.disclaimer` is 298 characters: SIX lines
+           in the 350px mobile column (109.13px) and TWO at every desktop width — at
+           1280px, the `px-20` content box of a 1440 viewport, it already overflows one
+           line, and 1280 is wider than the `max-w-[1368px]` cap minus that padding, so
+           it never collapses to one. `legal.copyright` is 115 characters: two lines at
+           mobile (36.38px), one at md:, where the row height is set by the 44px legal
+           links anyway. Totals: 239px reserved against 240.51px real at mobile
+           (it over-reserved by 31.5px), 121px against 121.38px at md: (it was one
+           disclaimer line, 18px, short). -->
+      <div class="flex flex-col gap-3.5 border-t border-line pt-6 md:gap-4" aria-busy="true">
+        <div class="md:hidden">
+          <app-skeleton variant="text" width="100%" height="18px" />
+          <app-skeleton variant="text" width="100%" height="18px" />
+          <app-skeleton variant="text" width="100%" height="18px" />
+          <app-skeleton variant="text" width="100%" height="18px" />
+          <app-skeleton variant="text" width="100%" height="18px" />
+          <app-skeleton variant="text" width="38%" height="18px" />
+        </div>
+        <div class="hidden md:block">
+          <app-skeleton variant="text" width="100%" height="18px" />
+          <app-skeleton variant="text" width="42%" height="18px" />
+        </div>
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-8">
+          <!-- Three bars, not two: `legal.copyright` measures 54.56px at 390px — three
+               18.20px `text-cap` lines, because the ACESS permit and typology placeholders
+               push it past two. Two bars reserved 36px and the strip jumped 18.5px. -->
+          <div class="md:hidden">
+            <app-skeleton variant="text" width="100%" height="18px" />
+            <app-skeleton variant="text" width="100%" height="18px" />
+            <app-skeleton variant="text" width="62%" height="18px" />
+          </div>
+          <div class="hidden md:block md:w-[520px]">
+            <app-skeleton variant="text" width="100%" height="18px" />
+          </div>
+          <div class="flex flex-wrap items-center gap-5">
+            @for (row of skeletonLegalLinks; track row) {
+              <div class="grid min-h-11 w-[72px] items-center">
+                <app-skeleton variant="text" width="100%" height="18px" />
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-[1.5fr_1fr_1fr_1.3fr] md:gap-10">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-2.5">
+            <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <rect width="32" height="32" rx="10" fill="var(--color-blue)" />
+              <path d="M16 8.5v15M8.5 16h15" stroke="var(--color-surface)" stroke-width="3.4" stroke-linecap="round" />
+            </svg>
+            <span class="font-display text-[17px] font-extrabold tracking-[-.014em] text-ink md:text-[19px]">{{
+              site().brand.name
+            }}</span>
+          </div>
+          <p class="text-body max-w-[30ch] text-[14px] md:text-[15px]">{{ site().footer.description }}</p>
+          <div class="flex flex-col gap-1 rounded-2xl border border-line bg-field px-4 py-3.5">
+            <span class="text-cap font-bold uppercase tracking-[.1em] text-ink-3">{{
+              site().footer.medicalDirector.label
+            }}</span>
+            <span class="text-meta font-bold text-ink">{{ site().footer.medicalDirector.name }}</span>
+            <span class="text-cap text-ink-3">{{ site().footer.medicalDirector.registrationNumber }}</span>
+          </div>
+        </div>
+
+        <!-- Each link column is its own `<nav>` named by its heading, so the two
+             visually identical lists are distinguishable by landmark and by heading.
+             The landmarks sit on the columns themselves, not on this wrapper: the
+             wrapper is `md:contents` (it dissolves so its two children become direct
+             items of the footer's 4-column grid) and a landmark must not depend on
+             `display: contents` being exposed. `min-h-11` on every anchor is the 44px
+             hit-target floor — the bare `text-meta` line box was 20.3px. -->
+        <div class="grid grid-cols-2 gap-8 md:contents">
+          <nav class="flex flex-col gap-3" aria-labelledby="site-footer-specialties">
+            <h2 id="site-footer-specialties" class="font-display text-[17px] font-bold text-ink">Especialidades</h2>
+            @for (link of site().footer.specialtyLinks; track link.id) {
+              <a [href]="link.href" class="inline-flex min-h-11 items-center text-meta text-ink-2 no-underline">{{
+                link.label
+              }}</a>
+            }
+          </nav>
+
+          <nav class="flex flex-col gap-3" aria-labelledby="site-footer-patients">
+            <h2 id="site-footer-patients" class="font-display text-[17px] font-bold text-ink">Pacientes</h2>
+            @for (link of site().footer.patientLinks; track link.id) {
+              <a [href]="link.href" class="inline-flex min-h-11 items-center text-meta text-ink-2 no-underline">{{
+                link.label
+              }}</a>
+            }
+          </nav>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <h2 class="font-display text-[17px] font-bold text-ink">Sedes</h2>
+          @for (location of locations(); track location.id) {
+            <div class="flex flex-col gap-1 rounded-2xl border border-line bg-field px-4 py-3.5">
+              <span class="text-meta font-bold text-ink">{{ location.name }}</span>
+              <span class="text-cap text-ink-3">{{ location.address }}</span>
+              <span class="text-cap text-ink-3">{{ location.phone }} · {{ location.schedule }}</span>
+              <span class="text-cap font-semibold text-gold-ink">{{ location.emergencyService }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3.5 border-t border-line pt-6 md:gap-4">
+        <p class="text-cap text-ink-3">{{ site().legal.disclaimer }}</p>
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-8">
+          <span class="text-cap text-ink-3">{{ site().legal.copyright }}</span>
+          <div class="flex flex-wrap items-center gap-5">
+            @for (link of site().footer.legalLinks; track link.id) {
+              <a [href]="link.href" class="inline-flex min-h-11 items-center text-cap text-ink-2 no-underline">{{
+                link.label
+              }}</a>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</footer>

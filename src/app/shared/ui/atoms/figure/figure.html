@@ -1,0 +1,4 @@
+<span [class]="'inline-flex items-baseline gap-[1px] font-display font-extrabold tabular-nums leading-none ' + toneClass()">
+  <span [style.font-size]="size()"><ng-content /></span>
+  <span [style.font-size]="suffixSize()"><ng-content select="[appFigureSuffix]" /></span>
+</span>

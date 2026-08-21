@@ -1,0 +1,58 @@
+/**
+ * design/Main.dc.html `.mq` / `.mq-row` / `.mq-a` / `.mq-b`. The edge mask
+ * needs both the standard and `-webkit-` prefixed property, which Tailwind
+ * arbitrary values can't emit together, so it lives here. The `sc-l` /
+ * `sc-r` keyframes and the reduced-motion override are already global in
+ * shared/tokens/base.css, targeting `.mq-row` by name.
+ *
+ * The gradient's middle stop uses `var(--color-ink)` instead of a literal
+ * `#000`/black. A `mask-image` gradient masks by alpha, not hue — the
+ * "black" stop only has to be *fully opaque*, any opaque color masks
+ * identically — so reusing an existing token satisfies "no hex literal
+ * outside theme.css" without changing the rendered result at all (no new
+ * mask-only token needed, and nothing to move into base.css: this rule is
+ * geometry glue specific to `.mq`, not a reusable system class like
+ * `sc-l`/`sc-r`).
+ */
+:host {
+  display: contents;
+}
+
+.mq {
+  display: flex;
+  overflow: hidden;
+  gap: 32px;
+  mask-image: linear-gradient(90deg, transparent, var(--color-ink) 7%, var(--color-ink) 93%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, var(--color-ink) 7%, var(--color-ink) 93%, transparent);
+}
+
+.mq-row {
+  display: flex;
+  flex-shrink: 0;
+  gap: 32px;
+  min-width: 100%;
+  animation-duration: var(--marquee-duration);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.mq-row-left {
+  animation-name: sc-l;
+}
+
+.mq-row-right {
+  animation-name: sc-r;
+}
+
+/* WCAG 2.2.2 (Pause, Stop, Hide): both ribbons run indefinitely, well past the
+ * 5s threshold, and hover was the only way to stop them — unreachable by
+ * keyboard. `:focus-within` covers keyboard traversal; today the rows hold only
+ * non-focusable spans, so it is future-proofing for the moment a link lands in
+ * one. Still OPEN on touch, where `:hover` either never fires or sticks: the
+ * honest fix there is a real pause control, not a blanket
+ * `@media (hover: none) { animation-play-state: paused }`, which would silently
+ * delete the ribbon motion both mobile boards draw. Flagged, not papered over. */
+.mq:hover .mq-row,
+.mq:focus-within .mq-row {
+  animation-play-state: paused;
+}

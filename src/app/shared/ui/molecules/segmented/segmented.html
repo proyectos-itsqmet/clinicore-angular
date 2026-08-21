@@ -1,0 +1,26 @@
+<div
+  class="seg relative inline-grid gap-0 rounded-pill border border-line bg-tint p-1"
+  [style.grid-template-columns]="gridTemplateColumns()"
+>
+  <span
+    aria-hidden="true"
+    class="seg-thumb absolute inset-y-1 left-1 rounded-pill bg-surface shadow-[0_2px_8px_rgb(12_43_75_/_0.16)]"
+    [style.width]="thumbWidth()"
+    [style.transform]="thumbTransform()"
+  ></span>
+  @for (option of options(); track option; let i = $index) {
+    <button
+      #tabButton
+      type="button"
+      [attr.aria-pressed]="selectedIndex() === i"
+      [class]="
+        'relative z-[1] min-h-11 rounded-pill px-[22px] font-sans text-[15px] font-bold ' +
+        (selectedIndex() === i ? 'text-ink' : 'text-ink-2')
+      "
+      (click)="select(i)"
+      (keydown)="onKeydown($event, i)"
+    >
+      {{ option }}
+    </button>
+  }
+</div>

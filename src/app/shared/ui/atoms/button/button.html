@@ -1,0 +1,29 @@
+<!--
+  The label span is declared ONCE and stamped into whichever root element wins.
+  Angular allocates one projection slot per TEXTUAL `<ng-content>` occurrence,
+  and a wildcard slot resolves to the LAST `*` declared. With the span
+  duplicated across the `@if`/`@else` pair the slot table was `["*", "*"]`, so
+  all projected content went to slot 1 — the `<button>` branch — and every
+  `href`-flavoured button rendered as a link with no accessible name.
+  Keep exactly ONE textual occurrence of `ng-content` in this file.
+-->
+<ng-template #label>
+  <span class="beam-label inline-flex items-center gap-2.5">
+    <ng-content />
+  </span>
+</ng-template>
+
+@if (href(); as link) {
+  <a
+    [href]="disabled() ? null : link"
+    [class]="rootClasses()"
+    [attr.aria-disabled]="disabled() ? 'true' : null"
+    [attr.tabindex]="disabled() ? -1 : null"
+  >
+    <ng-container [ngTemplateOutlet]="label" />
+  </a>
+} @else {
+  <button [type]="type()" [class]="rootClasses()" [disabled]="disabled()">
+    <ng-container [ngTemplateOutlet]="label" />
+  </button>
+}

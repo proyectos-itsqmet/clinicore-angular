@@ -1,0 +1,97 @@
+<section class="bg-field px-5 pb-12 pt-12 md:px-20 md:pb-[76px] md:pt-[88px]" aria-labelledby="reviews-section-heading">
+  <!-- `Reviews` has no `header` field (unlike every other section's model), so there
+       is no contract copy to feed `app-section-heading` with — and the boards draw no
+       visible title here either. An `sr-only` h2 keeps the section in the heading
+       outline and names the region, without inventing a visible headline the design
+       never had. If `header` is ever added to the contract, swap this for the real
+       `app-section-heading` the siblings use. -->
+  <h2 id="reviews-section-heading" class="sr-only">Reseñas de pacientes</h2>
+  <div class="mx-auto flex max-w-[1368px] flex-col gap-4 md:gap-[28px]">
+    @if (loading()) {
+      <div aria-busy="true">
+        <app-skeleton variant="block" width="100%" height="76px" radius="24px 24px 8px 24px" />
+      </div>
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-[18px]" aria-busy="true">
+        @for (i of skeletonItems; track i) {
+          <app-review-card [review]="emptyReview" [loading]="true" />
+        }
+      </div>
+      <!-- Hand-rolled strip rather than `app-skeleton-grid`, which has no responsive
+           `columns` input: `[columns]="5"` emits `repeat(5, minmax(0,1fr))` at every
+           width, so at 375px each 140px pill sat on a 73px stride and the run ended
+           ~79px past the viewport — a horizontal scrollbar that existed only while
+           reviews loaded (the loaded state's clipping lives on `.mq { overflow: hidden }`
+           in marquee.css, which this branch never reaches). `overflow-hidden` here is
+           that missing clip; `shrink-0` goes on a wrapper span, never on
+           `<app-skeleton>` (its host is `display: contents`, so the flex item is the
+           atom's own root div). Count is a literal matching reviews.json quotes=5. -->
+      <div class="flex gap-8 overflow-hidden" aria-busy="true">
+        @for (i of quoteSkeletonItems; track i) {
+          <span class="shrink-0"><app-skeleton variant="pill" width="140px" height="44px" /></span>
+        }
+      </div>
+    } @else {
+      <!-- `on-dark` is load-bearing, not decoration: base.css switches
+           `a:focus-visible`'s outline to `--color-live` inside it. On this navy
+           surface the default `--color-blue` ring measures 2.22:1 (below WCAG
+           1.4.11's 3:1); `--color-live` measures 5.71:1. The "Ver todas" anchor
+           below is the focusable child that depends on it. -->
+      <div
+        class="on-dark flex flex-col items-start gap-3 rounded-[24px_24px_8px_24px] bg-navy px-5 py-4.5 md:flex-row md:items-center md:justify-between md:gap-8 md:px-8"
+      >
+        <div class="flex flex-wrap items-center gap-3 md:gap-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M21.6 12.2c0-.7-.06-1.2-.18-1.8H12v3.4h5.5c-.11.9-.71 2.3-1.53 3.2l-.01.09 2.2 1.7.15.02c1.4-1.3 2.2-3.2 2.2-5.5"
+              fill="#4285F4"
+            />
+            <path
+              d="M12 21.6c2.6 0 4.8-.86 6.4-2.3l-3.05-2.36c-.82.57-1.9.97-3.35.97-2.5 0-4.7-1.66-5.4-3.96l-.11.01-2.3 1.77-.04.1A9.6 9.6 0 0 0 12 21.6"
+              fill="#34A853"
+            />
+            <path
+              d="M6.6 13.95a5.9 5.9 0 0 1-.32-1.9c0-.66.12-1.3.31-1.9l-.005-.13-2.33-1.8-.076.036A9.6 9.6 0 0 0 2.4 12.05c0 1.55.375 3.01 1.04 4.3z"
+              fill="#FBBC05"
+            />
+            <path
+              d="M12 6.2c1.77 0 2.97.76 3.65 1.4l2.67-2.6C16.79 3.5 14.6 2.4 12 2.4A9.6 9.6 0 0 0 3.44 7.75l2.4 1.86C6.55 7.3 8.75 6.2 12 6.2"
+              fill="#EA4335"
+            />
+          </svg>
+          <app-figure size="30px" tone="surface" class="md:hidden">{{ reviews().aggregate.rating | number: '1.1-1' : 'es-EC' }}</app-figure>
+          <app-figure size="40px" tone="surface" class="hidden md:inline-flex">{{
+            reviews().aggregate.rating | number: '1.1-1' : 'es-EC'
+          }}</app-figure>
+          <app-star-rating [value]="reviews().aggregate.rating" [size]="16" />
+          <span class="text-cap text-blue-soft md:text-meta"
+            >{{ reviews().aggregate.totalCount }} reseñas en {{ reviews().aggregate.source }}</span
+          >
+        </div>
+        @if (allReviewsHref(); as href) {
+          <a
+            [href]="href"
+            class="hidden min-h-11 items-center gap-2 rounded-pill border border-surface/30 bg-surface/14 px-[18px] font-sans text-[15px] font-semibold text-surface no-underline md:inline-flex"
+            >Ver todas</a
+          >
+        }
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-[18px]">
+        @for (review of reviews().items; track review.id) {
+          <app-review-card [review]="review" [source]="reviews().aggregate.source" />
+        }
+      </div>
+
+      <app-marquee direction="right" [durationSeconds]="61" class="mt-1.5">
+        <ng-template>
+          @for (quote of reviews().quotes; track quote.id) {
+            <span
+              class="inline-flex shrink-0 min-h-11 items-center gap-2 rounded-pill border border-line bg-surface px-[18px] font-sans text-[15px] font-semibold text-ink-2"
+              >«{{ quote.text }}»</span
+            >
+          }
+        </ng-template>
+      </app-marquee>
+    }
+  </div>
+</section>

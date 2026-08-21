@@ -1,0 +1,61 @@
+# Atoms
+
+The smallest pieces of the design system with meaning of their own. None of
+them know a clinic, an appointment, or the landing page exist — every atom
+receives its appearance and its content through `input()` / projected
+content. This is the layer the mobile app and the admin panel import as-is.
+
+Geometry, colors and motion come from `shared/tokens/theme.css` and
+`shared/tokens/base.css`, extracted from `design/Main.dc.html`,
+`design/Mobile.dc.html` and `design/Palette.dc.html`.
+
+| Atom | Inputs | Variants / tones | Used for |
+| --- | --- | --- | --- |
+| `app-button` | `variant`, `size`, `href?`, `disabled`, `fullWidth`, `type` | variant: `primary` (spinning beam) · `whatsapp` · `glass` · `ghost` · `emergency` — size: `md` (52px) · `lg` (58px) | Every CTA: "Agenda tu cita", WhatsApp contact, nav "Llamar", "Emergencia 24/7" |
+| `app-pill` | `tone` | `tint` (default) · `glass` · `ok` · `gold` · `plain` | Specialty counts, prices, dates, review quotes, nav status pills. Project `<app-icon>` before the text for an icon prefix |
+| `app-chip` | `selected`, `disabled` | — (radius morphs 16px ↔ pill on `selected`) | Doctor / day / time-slot pickers in the booking widget |
+| `app-icon` | `name` (required), `size` (20), `strokeWidth` (2), `label?` | `calendar` · `document` · `capsule` · `phone` · `check` · `arrow` · `whatsapp` · `shield` · `star` · `plus` · `menu` · `clock` · `location` · `user` | Every inline glyph in the system. Decorative (`aria-hidden`) unless `label` is set |
+| `app-skeleton` | `variant`, `width`, `height?`, `lines`, `radius?` | `text` · `block` · `circle` · `pill` | Loading placeholder for any endpoint-fed organism. Always `aria-hidden`; **the loading container must set `aria-busy="true"`** |
+| `app-progress-ring` | `percent`, `size` (124), `color`, `delayMs` | color: `blue` · `ok` | The stats-row counters ("médicos disponibles", "% satisfacción", ...). Project an `<app-figure>` for the centered number |
+| `app-star-rating` | `value` (required), `max` (5), `size` (20) | — | Review scores. `role="img"` + spoken `aria-label`, fills fractional stars via gradient |
+| `app-live-dot` | — | — | The pulsing "en vivo" indicator, always paired with a text label that carries the meaning |
+| `app-figure` | `size` ('40px'), `tone` | `ink` (default) · `gold` · `ok` · `surface` | Any display number: cupos, turno counters, ring centers, prices. Project a suffix element with `appFigureSuffix` for a smaller trailing unit |
+| `app-kicker` | `tone` | `muted` (default) · `gold` · `accent` · `soft` | The uppercase eyebrow label above section headings |
+| `app-section-heading` | `kicker?`, `kickerTone`, `heading` (required), `note?` | — | The kicker + h2 + optional right-aligned note pattern repeated at the top of nearly every section |
+
+## Decisions not in the spec
+
+- **`app-button` variants `ghost` and `glass`**: the boards don't show a
+  literal button in either style. `glass` reuses the design's own `.glass`
+  recipe (translucent `surface` fill + blur, for dark/photo backgrounds).
+  `ghost` is a transparent, blue-bordered secondary button for light
+  backgrounds. Both are reasonable extrapolations from the palette, not
+  copies of an exact instance.
+- **`app-button` `type` input**: not requested, added so the atom is usable
+  inside real forms without the caller fighting the default `submit`
+  behavior of a bare `<button>`.
+- **`app-chip` disabled color**: the "unavailable" struck-through chip in
+  the board uses `#F3F0EC`, a color that is not one of the approved tokens.
+  Substituted `field` (`#FAF7F3`) instead of inventing a new hex.
+- **`app-icon` — `clock`, `location`, `user`**: not drawn anywhere in
+  `Main.dc.html` / `Mobile.dc.html`, only listed in the brief. Drawn to match
+  the same visual language as the rest (24x24, 2px stroke, round caps).
+- **`app-icon` `shield`**: the only shield in the boards has a checkmark
+  baked into the same instance (a "verified" composition). Extracted as a
+  plain shield outline so it composes with the separate `check` icon
+  instead of being a fixed compound icon.
+- **Color reuse instead of raw white**: "white text on a filled button" is
+  expressed as `text-surface` (surface = `#FFFFFF`) rather than reaching for
+  Tailwind's built-in `white`, so every literal color in the system still
+  resolves through a named project token.
+- **`app-chip` transition**: the board times `background-color`, `color`,
+  `border-color` and `border-radius` independently (180ms / 180ms / 180ms /
+  300ms). Simplified to one `transition-all duration-300`, since Tailwind
+  utility classes can't express four independent durations without arbitrary
+  soup, and the radius morph is the transition that matters visually.
+
+## Not requested, not built
+
+Nothing in the brief was skipped. If a future atom needs a color or radius
+that isn't already a token in `shared/tokens/theme.css`, that's a gap to
+flag, not a value to invent inline.

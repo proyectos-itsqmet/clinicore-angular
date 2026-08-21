@@ -1,0 +1,52 @@
+/**
+ * design/Main.dc.html `.card`, `.card .ph img` and the
+ * `@media (hover: hover) and (pointer: fine)` gate that keeps the lift from
+ * sticking on touch devices. Tailwind's `hover:` variant alone can't express
+ * that gate, so the interactive treatment lives here, byte-for-byte from the
+ * source board.
+ */
+:host {
+  display: contents;
+}
+
+.card {
+  transition:
+    transform 210ms var(--ease-brand),
+    box-shadow 210ms var(--ease-brand);
+}
+
+.card-media {
+  display: block;
+  flex-shrink: 0;
+  transition: transform 380ms var(--ease-brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card.interactive:hover,
+  .card.interactive:focus-within {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lift-2);
+  }
+
+  .card.interactive:hover .card-media,
+  .card.interactive:focus-within .card-media {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card-media {
+    transition-duration: 1ms;
+  }
+
+  .card.interactive:hover,
+  .card.interactive:focus-within {
+    transform: none;
+  }
+
+  .card.interactive:hover .card-media,
+  .card.interactive:focus-within .card-media {
+    transform: none;
+  }
+}

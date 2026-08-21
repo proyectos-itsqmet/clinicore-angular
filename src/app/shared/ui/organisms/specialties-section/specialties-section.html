@@ -1,0 +1,67 @@
+<section class="bg-cream px-5 py-12 md:px-0 md:py-[88px]" [attr.aria-busy]="loading() ? true : null">
+  <div class="mx-auto flex w-full max-w-[1240px] flex-col gap-5 md:gap-[34px]">
+    <div class="flex flex-col gap-3.5 md:flex-row md:items-end md:justify-between md:gap-12">
+      <div class="flex max-w-[620px] flex-col gap-3.5">
+        @if (loading()) {
+          <!-- 20px kicker / 49px heading lines, both measured off the real line boxes:
+               `text-kicker` declares no line-height, so the preflight's
+               `html { line-height: 1.5 }` gives 13 x 1.5 = 19.5px, and `text-h2` is
+               44 x 1.12 = 49.28px at every breakpoint (there is no responsive
+               override of the token). "¿Qué necesitas atender hoy?" is TWO of those
+               lines in the 350px mobile box (a 390px viewport minus `px-5`) and ONE
+               in the 620px md: column, so the second bar is `md:hidden` — 98.53px
+               reserved at mobile, 49.28px at md:. The pair sits in a GAPLESS
+               `flex-col`, the shape `booking-section.html` already ships, because
+               consecutive line boxes are contiguous; the atom's own `lines` input
+               would insert its 8px `gap-2` between them.
+               Every width lives on a plain wrapper, not on the atom
+               (`display: contents` host) and not as a bare percentage: this column is
+               a flex item of a `md:flex-row` row, so at md: it is shrink-to-fit and a
+               `%`-only bar contributes 0 to max-content — the column would collapse
+               to the kicker's 130px. -->
+          <app-skeleton variant="text" width="130px" height="20px" />
+          <div class="flex w-full flex-col md:w-[600px]">
+            <app-skeleton variant="text" width="100%" height="49px" />
+            <span class="block md:hidden">
+              <app-skeleton variant="text" width="68%" height="49px" />
+            </span>
+          </div>
+        } @else {
+          <app-kicker tone="gold">{{ specialties().header.kicker }}</app-kicker>
+          <h2 class="text-h2 font-display text-ink">{{ specialties().header.title }}</h2>
+        }
+      </div>
+      <div class="w-full md:w-[320px]">
+        @if (loading()) {
+          <app-skeleton variant="pill" width="100%" height="52px" />
+        } @else {
+          <app-segmented
+            [options]="groupLabels()"
+            [selectedIndex]="selectedGroupIndex()"
+            (selectedIndexChange)="selectedGroupIndex.set($event)"
+          />
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3.5 md:grid-cols-3 md:gap-5" [attr.aria-busy]="loading() ? true : null">
+      @if (loading()) {
+        @for (i of skeletonItems; track i) {
+          <app-specialty-card [specialty]="emptySpecialty" [loading]="true" />
+        }
+      } @else {
+        @for (specialty of activeSpecialties(); track specialty.id) {
+          <app-specialty-card [specialty]="specialty" [loading]="false" />
+        }
+      }
+    </div>
+
+    <span class="text-cap font-sans text-ink-3">
+      <span class="md:hidden">Lista de ejemplo — reemplaza por las especialidades reales de tu clínica.</span>
+      <span class="hidden md:inline"
+        >Lista de ejemplo — reemplaza especialidades, cantidades de médicos y valores por los reales de tu
+        clínica.</span
+      >
+    </span>
+  </div>
+</section>

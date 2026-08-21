@@ -1,0 +1,184 @@
+<section class="bg-surface px-5 py-12 md:px-20 md:py-[88px]">
+  <div class="mx-auto flex max-w-[1368px] flex-col gap-6 md:grid md:grid-cols-[1fr_400px] md:items-start md:gap-[60px]">
+    @if (loading()) {
+      <div class="flex flex-col gap-6 md:gap-[26px]" aria-busy="true">
+        <!-- Kicker + h2, matching `app-section-heading`'s own stack the way every
+             sibling organism reserves it. Heights are the real line boxes, not the font
+             sizes: `--text-kicker` is 13px and declares NO line-height token, so the
+             `text-kicker` utility emits `font-size` only and the line box comes from
+             the preflight's unitless `html { line-height: 1.5 }` — 13 x 1.5 = 19.50px,
+             hence a 20px bar (nothing in the ancestor chain sets `leading-*`).
+             `--text-h2` is 44px at 1.12 with no responsive override anywhere, so
+             49.28px per line at every breakpoint — and "Antes de agendar." takes TWO of
+             those lines in the 350px mobile box (a 390px viewport minus `px-5`) against
+             ONE in the 820px md: column, so the second bar is `md:hidden`: 98.53px
+             reserved at mobile, 49.28px at md:. The pair sits in a GAPLESS `flex-col`,
+             the shape `booking-section.html` already ships, because consecutive line
+             boxes are contiguous; the atom's own `lines` input would insert its 8px
+             `gap-2` between them. `min(360px, 100%)` keeps the md: bar near the real
+             title advance instead of spanning the whole 820px column.
+             The 14px gap is `app-section-heading`'s. -->
+        <div class="flex flex-col gap-3.5">
+          <app-skeleton variant="text" width="150px" height="20px" />
+          <div class="flex flex-col">
+            <app-skeleton variant="text" width="min(360px, 100%)" height="49px" />
+            <span class="block md:hidden">
+              <app-skeleton variant="text" width="54%" height="49px" />
+            </span>
+          </div>
+        </div>
+        <!-- The first FAQ row arrives already open (`[defaultOpen]="$first"`), so it is
+             reserved apart from the four collapsed ones. Both counts are literals
+             matching jsons/landing/faq.json's 5 items — the bound array is the empty
+             fixture while loading, so iterating it would paint nothing.
+             Every height is the real `app-faq-item` box, per breakpoint, derived from
+             the molecule itself and NOT from `min-h-16`, which never binds: the button
+             is `px-6 py-5` (40px) around max(the 32px `h-8` toggle, the question's
+             18px x 1.24 = 22.32px lines) and `app-card` adds its 1px border top and
+             bottom. A collapsed row is therefore 32 + 40 + 2 = 74.00px at md:, and
+             86.63px in the 350px mobile column where the question wraps to two lines
+             (2 x 22.32 + 40 + 2). The open row adds the answer, whose `text-body` at
+             `text-[16px]` is 16 x 1.62 = 25.92px a line, plus `pb-[22px]`: two lines
+             at md: (74 + 51.84 + 22 = 147.84px) and four at mobile
+             (86.63 + 103.68 + 22 = 212.31px). Totals: 600px reserved against 598.77
+             real at mobile, 492px against 491.81 at md:.
+             The list gap mirrors the loaded `gap-2.5 md:gap-3` — it was a flat `gap-3`,
+             which stretched the mobile column by another 8px — and the radius mirrors
+             `app-card`'s signature 24/24/8/24 nub instead of a uniform corner. -->
+        <div class="flex flex-col gap-2.5 md:hidden">
+          <app-skeleton-grid
+            [count]="1"
+            [columns]="1"
+            variant="block"
+            width="100%"
+            height="212px"
+            radius="24px 24px 8px 24px"
+          />
+          <app-skeleton-grid
+            [count]="4"
+            [columns]="1"
+            gap="10px"
+            variant="block"
+            width="100%"
+            height="87px"
+            radius="24px 24px 8px 24px"
+          />
+        </div>
+        <div class="hidden flex-col gap-3 md:flex">
+          <app-skeleton-grid
+            [count]="1"
+            [columns]="1"
+            variant="block"
+            width="100%"
+            height="148px"
+            radius="24px 24px 8px 24px"
+          />
+          <app-skeleton-grid
+            [count]="4"
+            [columns]="1"
+            gap="12px"
+            variant="block"
+            width="100%"
+            height="74px"
+            radius="24px 24px 8px 24px"
+          />
+        </div>
+      </div>
+      <!-- Mirrors the loaded panel's box exactly — `gap-4 md:gap-[18px]` and
+           `p-5 md:p-[26px]` — because the old `p-[26px]` alone was 12px too tall at
+           mobile. The rows were never the whole panel either: it also carries a
+           kicker + 19px title header block above them and the "Confirma cada
+           requisito..." note below, ~90px the panel used to swallow on load. Bar
+           heights are real line boxes: the kicker is 19.50px — `--text-kicker` is 13px
+           and declares no line-height token, so the utility emits `font-size` only and
+           the preflight's unitless `html { line-height: 1.5 }` is what resolves, 13 x
+           1.5 — hence a 20px bar; title 19px x 1.24 = 23.56px; note 2 x 13px x 1.4 =
+           36.4px (two 14px bars plus the atom's own 8px gap — 61 characters do not fit
+           one 348px line). -->
+      <div
+        class="flex flex-col gap-4 rounded-[24px_24px_8px_24px] bg-field p-5 md:gap-[18px] md:p-[26px]"
+        aria-busy="true"
+      >
+        <div class="flex flex-col gap-2">
+          <app-skeleton variant="text" width="130px" height="20px" />
+          <app-skeleton variant="text" width="70%" height="24px" />
+        </div>
+        <app-skeleton-grid [count]="4" [columns]="1" gap="8px" variant="block" width="100%" height="52px" radius="16px" />
+        <app-skeleton variant="text" [lines]="2" width="100%" height="14px" />
+      </div>
+    } @else {
+      <div class="flex flex-col gap-6 md:gap-[26px]">
+        <app-section-heading [kicker]="faq().header.kicker" [heading]="faq().header.title" />
+        <div class="flex flex-col gap-2.5 md:gap-3">
+          @for (item of faq().items; track item.id) {
+            <app-faq-item [item]="item" [defaultOpen]="$first" />
+          }
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4 rounded-[24px_24px_8px_24px] bg-field p-5 md:gap-[18px] md:p-[26px]">
+        <div class="flex flex-col gap-2">
+          <!-- No `text-[12px]` here: `app-kicker`'s host is `display: contents`, and the
+               span it renders sets `font-size` itself via `text-kicker`, so a font size
+               on the host could only ever be inherited — and is overridden. It rendered
+               at 13px (a 19.50px line box) all along; the class was dead. -->
+          <app-kicker tone="muted">{{ publicInsurance().header.kicker }}</app-kicker>
+          <span class="font-display text-[19px] font-bold leading-[1.24] tracking-[-.008em] text-ink">{{
+            publicInsurance().header.title
+          }}</span>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          @for (item of publicInsurance().items; track item.id; let i = $index) {
+            <div class="overflow-hidden rounded-2xl border border-line bg-surface">
+              <button
+                type="button"
+                class="flex min-h-[52px] w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+                [attr.aria-expanded]="openInsuranceIndex() === i"
+                [attr.aria-controls]="'public-insurance-panel-' + i"
+                (click)="toggleInsurance(i)"
+              >
+                <span class="text-meta font-bold text-ink">{{ item.name }}</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  class="shrink-0"
+                  aria-hidden="true"
+                >
+                  <path d="M3.5 10h13" stroke="var(--color-blue-text)" stroke-width="2.2" stroke-linecap="round" />
+                  <path
+                    class="plusv origin-center transition-transform duration-[240ms] ease-brand"
+                    [class.scale-y-0]="openInsuranceIndex() === i"
+                    d="M10 3.5v13"
+                    stroke="var(--color-blue-text)"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
+              <div
+                [id]="'public-insurance-panel-' + i"
+                [class]="
+                  'acc grid transition-[grid-template-rows] duration-[260ms] ease-brand ' +
+                  (openInsuranceIndex() === i ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')
+                "
+              >
+                <!-- `inert` while collapsed: the 0fr grid row plus `overflow: hidden`
+                     clips pixels but leaves the text in the accessibility tree and in
+                     tab order, which contradicts the button's `aria-expanded="false"`.
+                     `inert` removes both without touching the height transition. -->
+                <div class="min-h-0 overflow-hidden" [attr.inert]="openInsuranceIndex() === i ? null : ''">
+                  <p class="text-cap px-4 pb-4">{{ item.requirements }}</p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <span class="text-cap text-ink-3">Confirma cada requisito con administración antes de publicar.</span>
+      </div>
+    }
+  </div>
+</section>

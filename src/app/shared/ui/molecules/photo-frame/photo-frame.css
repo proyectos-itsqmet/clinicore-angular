@@ -1,0 +1,14 @@
+/**
+ * design/Main.dc.html `.kb` (M1 — hero Ken Burns). The `kb` `@keyframes`
+ * and its reduced-motion override already exist globally in
+ * shared/tokens/base.css, targeting a `.kb` class by name — this reuses
+ * that exact class name so both apply without redeclaring either.
+ */
+:host {
+  display: contents;
+}
+
+.kb {
+  animation: kb 14s var(--ease-brand) infinite alternate;
+  transform-origin: var(--kb-origin, 50% 50%);
+}

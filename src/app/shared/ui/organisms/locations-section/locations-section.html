@@ -1,0 +1,66 @@
+<section class="bg-surface px-5 py-12 md:px-20 md:py-[88px]">
+  <div class="mx-auto flex max-w-[1368px] flex-col gap-5 md:gap-[34px]">
+    @if (loading()) {
+      <!-- Bar heights are the real line boxes, not the font sizes. `--text-kicker` is
+           13px and declares NO line-height token, so Tailwind's `text-kicker` utility
+           emits `font-size` only and the line box comes from the preflight's unitless
+           `html { line-height: 1.5 }`: 13 x 1.5 = 19.50px, hence a 20px bar (nothing
+           in the ancestor chain sets `leading-*`). `--text-h2` is 44px at 1.12 with no
+           responsive override anywhere, so 49.28px per line at every breakpoint —
+           "Dónde te vamos a atender." takes TWO of those lines in the 350px mobile box
+           (a 390px viewport minus `px-5`) and ONE in the 660px md: box, so the heading
+           is reserved once per breakpoint: 98.53px at mobile, 49.28px at md:. The two
+           mobile bars sit in a GAPLESS wrapper, the shape `booking-section.html`
+           already ships, because consecutive line boxes are contiguous; the atom's
+           own `lines` input would insert its 8px `gap-2` between them. Each
+           breakpoint class goes on that plain wrapper, never on `<app-skeleton>`
+           (its host is `display: contents`).
+           The outer gap-6 mirrors the loaded heading row's own mobile `gap-6`. -->
+      <div class="flex max-w-[660px] flex-col gap-6" aria-busy="true">
+        <div class="flex flex-col gap-3.5">
+          <app-skeleton variant="text" width="170px" height="20px" />
+          <div class="flex flex-col">
+            <span class="hidden md:block">
+              <app-skeleton variant="text" width="80%" height="49px" />
+            </span>
+            <div class="md:hidden">
+              <app-skeleton variant="text" width="100%" height="49px" />
+              <app-skeleton variant="text" width="58%" height="49px" />
+            </div>
+          </div>
+        </div>
+        <!-- Mobile-only: at `md:` the reference-photo caption sits BESIDE the heading
+             (`md:flex-row`) and costs no vertical space, but below `md:` the row is
+             `flex-col gap-6` and the caption adds two `text-cap` lines under it — ~60px
+             the photo grid used to jump by when locations resolved. `md:hidden` goes on
+             this wrapper, never on `<app-skeleton>` (its host is `display: contents`).
+             Two 14px bars + the atom's own 8px gap = 36px, matching 2 x 13px/1.4. -->
+        <div class="w-[300px] max-w-full md:hidden">
+          <app-skeleton variant="text" [lines]="2" width="100%" height="14px" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[18px]" aria-busy="true">
+        @for (i of skeletonItems; track i) {
+          <div class="grid">
+            <app-location-card [location]="emptyLocation" image="" [loading]="true" />
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+        <app-section-heading [kicker]="locations().header.kicker" [heading]="locations().header.title" />
+        <span class="max-w-[300px] text-cap text-ink-3">
+          Fotografía de referencia. Se reemplazará por la sesión fotográfica de la clínica.
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-[18px]">
+        @for (entry of items(); track entry.item.id) {
+          <div class="grid">
+            <app-location-card [location]="entry.item" [image]="entry.image" />
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

@@ -1,0 +1,26 @@
+# Organisms
+
+Organisms are full, presentational page sections. Unlike atoms and
+molecules, they may import types from `core/models` — they represent a
+product section, not a domain-agnostic primitive — but they stay
+presentational: `input.required()` typed from a model, `loading = input(false)`
+rendering that organism's own skeleton, events rising through `output()`.
+No organism injects a service, calls HTTP, or reads a route; that is
+`features/landing`'s job.
+
+| Organism | Inputs | Outputs | Used for |
+| --- | --- | --- | --- |
+| `app-specialties-section` | `specialties: Specialties`, `loading` | — | The "¿Qué necesitas atender hoy?" segmented tabs + `app-specialty-card` grid (design section 5). The active tab is local view state (a signal), never emitted |
+| `app-booking-section` | `availability: BookingAvailability`, `loading` | `booked: BookingSelection` | The agenda demo (design section 6): pick doctor → day → time, see the plan price via `app-price-row`, confirm to draw the `.tick` checkmark and flip to the green "Reservado" pill. All selection state is local signals; `booked` fires only on confirm |
+| `app-how-it-works` | `data: HowItWorks`, `loading` | — | The three-step `app-step-card` grid (design section 7) |
+| `app-doctors-section` | `doctors: Doctors`, `loading` | — | The "Nuestros médicos" `app-doctor-card` grid + "ver los N especialistas" link (design section 8). Desktop: 4-column grid. Mobile: horizontal scroll-snap carousel |
+| `app-site-header` | `site: Site`, `loading` | — | The floating glass nav over the hero photograph (design section 1): logo, primary links, phone pill, "Agenda tu cita" CTA. Collapses to logo + menu button under `md:`; the dropdown panel is local view state (a signal), never emitted. `position: absolute` — see its own doc comment for the exact 156px hero-padding dependency it creates |
+| `app-hero-section` | `hero: Hero`, `loading` | — | The Ken Burns photograph, text column and availability panel (design section 2), 822px desktop / 780px mobile. Every payload-fed part has its own skeleton branch — text column, the 300x373.5px desktop inset frame, and both availability panels (the desktop card and the mobile bar): one request carries the whole `Hero`, so the copy that `Hero`'s doc comment calls static is empty mid-load too. The two photographs are the exception — an empty filename renders no `<img>` at all, rather than an `src=""` the browser would resolve against the document URL |
+| `app-quick-access-rail` | `quickAccess: QuickAccess`, `loading` | — | The four-tile task rail below the hero (design section 3): 4 columns desktop, 2 columns mobile, the fourth tile always the red `tel:` emergency tile. Real `padding-top` (64px / 36px), never a negative margin pulled up over the hero |
+| `app-stats-band` | `stats: Stats`, `insurers: Insurers`, `loading` | — | The four ring counters (design section 4, via `app-stat-card`) with the sample-data disclaimer under the grid — static copy, on neither model — plus the "Convenios con seguros" `app-marquee` ribbon |
+| `app-medical-record-bento` | `record: MedicalRecord`, `loading` | — | The "Historia clínica" bento grid (design section 9): a live waiting-room screen tile (gold turn number with its 5s odometer roll, scrolling upcoming-turns queue) plus four benefit tiles, three with a side photo and one icon-only in the current fixture. Both photo bindings come out of `record` — `liveScreen.image` for the screen tile's backdrop and `benefits[].image` for the side photos — and this organism applies `\| assetUrl` to each `<img>` itself, per the ownership rule in `../molecules/README.md` |
+| `app-locations-section` | `locations: Locations`, `loading` | — | "Nuestras instalaciones" (design section 10) as an `app-location-card` grid, photos paired from `Locations.gallery` by index. Not the board's asymmetric mosaic — see its own doc comment for why |
+| `app-reviews-section` | `reviews: Reviews`, `allReviewsHref?`, `loading` | — | The Google rating aggregate bar, the `app-review-card` grid, and the reviews-quotes `app-marquee` (design section 11), `direction="right"` at 61s — not a multiple of the convenios marquee's 38s, so they never resync |
+| `app-faq-section` | `faq: Faq`, `publicInsurance: PublicInsurance`, `loading` | — | The FAQ accordion (`app-faq-item`) beside the IESS / ISSFA / ISSPOL / MSP requirements panel (design section 12); the panel's own compact accordion rows are authored locally since `PublicInsuranceItem` doesn't match `FaqItem`'s shape |
+| `app-closing-cta` | `coverage: Coverage`, `loading` | — | The closing "Agenda en línea" band (design section 13): headline, primary + phone CTAs, and the coverage panel (`Coverage.rows` vs. `noPlanRow`) rendered directly rather than through `app-price-row` — shape mismatch, see its own doc comment. The band photo is `Coverage.backgroundImage`, resolved with `\| assetUrl` on this organism's own `<img>` |
+| `app-site-footer` | `site: Site`, `locations: LocationItem[]` (default `[]`), `loading` | — | Brand identity, medical-director disclosure, specialty/patient link columns, sede boxes and the LOPDP/ACESS/RUC/legal-links strip (design section 14). Renders every `locations` entry and the legal-links row at every width, not just the board's mobile-trimmed subset |

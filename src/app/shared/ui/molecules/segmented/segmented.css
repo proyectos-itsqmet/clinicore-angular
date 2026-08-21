@@ -1,0 +1,24 @@
+/**
+ * design/Main.dc.html `.seg-thumb` (transform 300ms) and its tab labels'
+ * color transition (200ms). `shared/tokens/base.css`'s reduced-motion
+ * block doesn't cover `.seg-thumb` (only the boards' looping/entrance
+ * animations), so the fallback for this transition lives here instead.
+ */
+:host {
+  display: contents;
+}
+
+.seg-thumb {
+  transition: transform 300ms var(--ease-brand);
+}
+
+.seg [role='tab'] {
+  transition: color 200ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg-thumb,
+  .seg [role='tab'] {
+    transition-duration: 1ms;
+  }
+}

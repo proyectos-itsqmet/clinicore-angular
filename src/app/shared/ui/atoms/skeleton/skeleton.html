@@ -1,0 +1,15 @@
+<div class="flex flex-col gap-2">
+  @for (line of lineArray(); track $index) {
+    <div
+      class="relative overflow-hidden bg-line/50"
+      [style.width]="variant() === 'circle' ? resolvedHeight() : width()"
+      [style.height]="resolvedHeight()"
+      [style.border-radius]="resolvedRadius()"
+    >
+      <div
+        class="shimmer absolute inset-0 -translate-x-full animate-[shimmer_1.6s_ease-in-out_infinite]
+          bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--color-surface)_55%,transparent),transparent)]"
+      ></div>
+    </div>
+  }
+</div>

@@ -1,0 +1,151 @@
+/**
+ * Design system tokens — Tailwind v4 `@theme` layer.
+ *
+ * THIS IS THE ONLY FILE IN THE ENTIRE REPOSITORY WHERE A LITERAL COLOR
+ * MAY APPEAR. Every other file (atoms, molecules, organisms, features)
+ * must reach these values through the Tailwind utilities they generate
+ * (`bg-field`, `text-ink-2`, `shadow-lift-1`, `ease-brand`, ...).
+ *
+ * Source of truth: design/Palette.dc.html (roles + measured contrast
+ * ratios) and design/Main.dc.html (the same :root block, verified byte
+ * for byte against Palette.dc.html — both files agree on every value).
+ *
+ * Values are grouped by ROLE, exactly like the "Sistema de color"
+ * section of Palette.dc.html ("agrupado por rol, nunca por matiz") —
+ * do not re-sort this file alphabetically or by hue.
+ */
+
+@theme {
+  /* ============================================================
+   * SURFACES (Palette.dc.html: "Superficies")
+   * ============================================================ */
+  --color-field: #FAF7F3;    /* page background */
+  --color-surface: #FFFFFF;  /* card background */
+  --color-cream: #FFF1E0;    /* warm section band (e.g. Especialidades) */
+  --color-tint: #EAF2FC;     /* cool fill for icon tiles and chips */
+  --color-line: #E4DCD2;     /* card borders, hairlines */
+
+  /* ============================================================
+   * INK (Palette.dc.html: "Tinta")
+   * ============================================================ */
+  --color-ink: #13243F;    /* primary text, headings */
+  --color-ink-2: #41587A;  /* body copy (lead, body) */
+  --color-ink-3: #526785;  /* metadata, secondary text */
+
+  /* ============================================================
+   * ANCHOR (Palette.dc.html: "Anclaje")
+   * ============================================================ */
+  --color-navy: #123E68;       /* dark institutional backgrounds */
+  --color-navy-deep: #0C2B4B;  /* hero background, scrim */
+
+  /* ============================================================
+   * ACTION (Palette.dc.html: "Acción")
+   * ============================================================ */
+  --color-blue: #0071CE;        /* primary CTA fill, white label on top */
+  --color-blue-text: #0064B8;   /* links and icons on light backgrounds */
+  --color-blue-bright: #1799DC; /* fills, ring progress arcs */
+  --color-blue-soft: #A8CBF0;   /* soft chips and states */
+
+  /* ============================================================
+   * WARM (Palette.dc.html: "Cálido")
+   * ============================================================ */
+  --color-gold: #FFC600;      /* live turn number, kickers, "cupos" figure */
+  --color-gold-ink: #7A5A06;  /* ink on top of gold or cream in kickers */
+  --color-gold-deep: #E0A800; /* gold on dark backgrounds */
+
+  /* ============================================================
+   * SIGNALS (Palette.dc.html: "Señales")
+   * ============================================================ */
+  --color-emergency: #CC0B39;  /* 24/7 emergency button and card */
+  --color-wa: #25D366;         /* WhatsApp button */
+  --color-star: #FFC600;       /* review stars fill — same value as gold, distinct role */
+  --color-star-ring: #A87F00;  /* review star outline: gold-on-white is 1.6:1 (FAIL), this ring measures 3.68:1 */
+  --color-ok: #0E7C55;         /* confirmations, correct state */
+  --color-live: #34D399;       /* live dot, pulse */
+
+  /* ============================================================
+   * CHROME
+   * One-off UI-chrome color from design/Main.dc.html that isn't
+   * part of a named palette role (it's not in Palette.dc.html's
+   * swatch groups) but still must not leak out as a literal hex.
+   * ============================================================ */
+  --color-selection: #FFF0B8; /* ::selection background */
+
+  /* ============================================================
+   * TYPE FAMILIES
+   * ============================================================ */
+  --font-display: 'Nunito', 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+  --font-sans: 'Figtree', 'Helvetica Neue', Helvetica, 'Segoe UI', system-ui, sans-serif;
+
+  /* ============================================================
+   * TYPE SCALE (Palette.dc.html "Tipografía" specimens — exact
+   * size / line-height / letter-spacing / weight triples). Not
+   * explicitly named in the brief but part of "todos los tokens
+   * de la LEY"; exposed here as `--text-*` pairs so atoms reach
+   * the scale as `text-h1`, `text-lead`, etc. instead of arbitrary
+   * values.
+   * ============================================================ */
+  --text-h1: 66px;
+  --text-h1--line-height: 1.04;
+  --text-h1--letter-spacing: -.022em;
+  --text-h1--font-weight: 800;
+
+  --text-h2: 44px;
+  --text-h2--line-height: 1.12;
+  --text-h2--letter-spacing: -.016em;
+  --text-h2--font-weight: 800;
+
+  --text-h3: 22px;
+  --text-h3--line-height: 1.24;
+  --text-h3--letter-spacing: -.008em;
+  --text-h3--font-weight: 700;
+
+  --text-lead: 20px;
+  --text-lead--line-height: 1.5;
+  --text-lead--letter-spacing: -.004em;
+  --text-lead--font-weight: 500;
+
+  --text-body: 17px;
+  --text-body--line-height: 1.62;
+  --text-body--font-weight: 400;
+
+  --text-meta: 14px;
+  --text-meta--line-height: 1.45;
+  --text-meta--font-weight: 500;
+
+  --text-cap: 13px;
+  --text-cap--line-height: 1.4;
+  --text-cap--font-weight: 400;
+
+  --text-kicker: 13px;
+  --text-kicker--letter-spacing: .14em;
+  --text-kicker--font-weight: 700;
+
+  /* ============================================================
+   * RADII
+   * "tarjeta 24 con esquina firma asimétrica 24/24/8/24" · "panel
+   * de foto 28-32" · "píldora 999" · "tile de icono 12-16".
+   * Corners are composed by consumers (e.g. `rounded-card
+   * rounded-br-card-nub`) since Tailwind has no single-token
+   * asymmetric radius utility.
+   * ============================================================ */
+  --radius-card: 24px;        /* card radius, and the 3 matching corners of the signature shape */
+  --radius-card-nub: 8px;     /* the 4th corner of the signature shape (bottom-right) */
+  --radius-panel-sm: 28px;    /* smaller photo/feature panel, low end of the 28-32 range */
+  --radius-panel-lg: 32px;    /* larger standalone panel (e.g. booking widget), high end of the range */
+  --radius-pill: 9999px;      /* pills, buttons, chips-as-pill */
+  --radius-tile-sm: 12px;     /* icon tile, low end of the 12-16 range */
+  --radius-tile-lg: 16px;     /* icon tile, high end of the 12-16 range */
+
+  /* ============================================================
+   * SHADOWS
+   * ============================================================ */
+  --shadow-lift-1: 0 2px 6px rgb(12 43 75 / .07), 0 14px 28px -8px rgb(12 43 75 / .14);
+  --shadow-lift-2: 0 6px 14px rgb(12 43 75 / .10), 0 28px 52px -12px rgb(12 43 75 / .22);
+  --shadow-cta: 0 6px 18px rgb(0 113 206 / .34);
+
+  /* ============================================================
+   * MOTION
+   * ============================================================ */
+  --ease-brand: cubic-bezier(.22, .61, .36, 1);
+}

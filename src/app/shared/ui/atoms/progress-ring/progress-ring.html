@@ -1,0 +1,25 @@
+<span
+  class="ring relative inline-grid place-items-center"
+  [style.width.px]="size()"
+  [style.height.px]="size()"
+>
+  <svg viewBox="0 0 240 240" class="absolute inset-0 h-full w-full -rotate-90">
+    <circle cx="120" cy="120" r="104" fill="none" stroke-width="12" class="stroke-tint" />
+    <circle
+      class="p"
+      cx="120"
+      cy="120"
+      r="104"
+      fill="none"
+      stroke-width="12"
+      stroke-linecap="round"
+      [class.stroke-blue-bright]="color() === 'blue'"
+      [class.stroke-ok]="color() === 'ok'"
+      [style.--off]="offset()"
+      [style.--d.ms]="delayMs()"
+    />
+  </svg>
+  <span class="relative z-[1]">
+    <ng-content />
+  </span>
+</span>

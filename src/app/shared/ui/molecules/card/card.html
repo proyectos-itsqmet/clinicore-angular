@@ -1,0 +1,30 @@
+<!--
+  Both branches render the SAME inner markup, so it is declared once here and
+  stamped into whichever root element wins. This is not a style choice: Angular
+  allocates one projection slot per TEXTUAL `<ng-content>` occurrence in the
+  template and binds each projectable node to the FIRST matching non-wildcard
+  slot (the wildcard resolving to the LAST `*`). Duplicating these two
+  `ng-content`s across the `@if`/`@else` pair therefore produced four slots —
+  `[[["","cardMedia",""]], "*", [["","cardMedia",""]], "*"]` — with the media
+  landing in slot 0 and the default content in slot 3, i.e. in the slots of the
+  branch that was NOT rendering. Every `<a>`-flavoured card came out empty.
+  Keep exactly ONE textual occurrence of each `ng-content` in this file.
+-->
+<ng-template #inner>
+  <div class="card-media">
+    <ng-content select="[cardMedia]" />
+  </div>
+  <div [class]="contentClasses()" [style.padding]="padding()">
+    <ng-content />
+  </div>
+</ng-template>
+
+@if (href(); as link) {
+  <a [href]="link" [class]="rootClasses()">
+    <ng-container [ngTemplateOutlet]="inner" />
+  </a>
+} @else {
+  <div [class]="rootClasses()">
+    <ng-container [ngTemplateOutlet]="inner" />
+  </div>
+}

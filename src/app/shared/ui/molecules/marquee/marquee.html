@@ -1,0 +1,8 @@
+<div class="mq" [style.--marquee-duration.s]="durationSeconds()">
+  <div [class]="'mq-row ' + rowDirectionClass()">
+    <ng-container [ngTemplateOutlet]="row() ?? null" />
+  </div>
+  <div [class]="'mq-row ' + rowDirectionClass()" aria-hidden="true">
+    <ng-container [ngTemplateOutlet]="row() ?? null" />
+  </div>
+</div>

@@ -1,0 +1,35 @@
+@if (loading()) {
+  <app-card padding="22px">
+    <div class="flex min-h-[94px] flex-col justify-between gap-3.5" aria-busy="true">
+      <app-skeleton variant="block" width="44px" height="44px" radius="14px" />
+      <div class="flex flex-col gap-2">
+        <app-skeleton variant="text" width="70%" />
+        <app-skeleton variant="text" width="50%" />
+      </div>
+    </div>
+  </app-card>
+} @else {
+  <app-card [href]="item().href" padding="22px" [tone]="isEmergency() ? 'emergency' : 'surface'">
+    <div class="flex min-h-[94px] flex-col justify-between gap-3.5">
+      <span
+        [class]="
+          'grid h-11 w-11 place-items-center rounded-[14px] ' + (isEmergency() ? 'bg-surface/20' : 'bg-tint')
+        "
+      >
+        <app-icon [name]="icon()" [size]="22" [class]="isEmergency() ? 'text-surface' : 'text-blue-text'" />
+      </span>
+      <span class="flex flex-col gap-1">
+        <span
+          [class]="
+            'font-display text-[19px] font-bold leading-[1.24] tracking-[-.008em] ' +
+            (isEmergency() ? 'text-surface' : 'text-ink')
+          "
+          >{{ item().title }}</span
+        >
+        <span class="text-meta font-sans" [class]="isEmergency() ? 'text-surface' : 'text-ink-3'">{{
+          item().subtitle
+        }}</span>
+      </span>
+    </div>
+  </app-card>
+}

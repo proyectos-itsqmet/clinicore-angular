@@ -1,0 +1,37 @@
+@if (loading()) {
+  <app-card>
+    <div cardMedia>
+      <app-skeleton variant="block" width="100%" height="300px" radius="0" />
+    </div>
+    <div class="flex flex-col gap-2.5" style="padding: 20px" aria-busy="true">
+      <app-skeleton variant="text" width="65%" height="19px" />
+      <app-skeleton variant="text" width="45%" />
+      <app-skeleton variant="pill" width="140px" />
+    </div>
+  </app-card>
+} @else {
+  <app-card>
+    <img
+      cardMedia
+      [src]="doctor().image | assetUrl"
+      [alt]="portraitAlt()"
+      class="h-[300px] w-full bg-tint object-cover"
+    />
+    <div class="flex flex-col gap-2.5" style="padding: 20px">
+      <div class="flex flex-col gap-[3px]">
+        <span class="font-display text-[19px] font-bold leading-[1.24] tracking-[-.008em] text-ink">{{
+          doctor().name
+        }}</span>
+        <span class="text-meta font-sans text-ink-3">{{ doctor().specialty }}</span>
+        <span class="text-cap font-sans text-ink-3"
+          >{{ registrationLabel() }} {{ doctor().registrationNumber }}</span
+        >
+      </div>
+      <span class="flex flex-wrap gap-1.5">
+        @for (slot of doctor().upcomingSlots; track slot.date + slot.time) {
+          <app-pill tone="tint">{{ slot.date }} · {{ slot.time }}</app-pill>
+        }
+      </span>
+    </div>
+  </app-card>
+}

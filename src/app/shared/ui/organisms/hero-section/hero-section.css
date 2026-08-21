@@ -1,0 +1,51 @@
+/**
+ * design/Main.dc.html section 2's two scrims + Mobile.dc.html's single
+ * scrim. Each stop is expressed with `color-mix()` against a theme
+ * token instead of a literal rgb()/hex, so every value still traces
+ * back to `shared/tokens/theme.css` (the project LEY forbids literal
+ * colors anywhere else). Kept as real CSS rather than a Tailwind
+ * arbitrary `bg-[...]` class because four color-mix() stops per
+ * gradient made the utility class unreadably long.
+ */
+:host {
+  display: block;
+}
+
+.hero-scrim-diagonal {
+  background-image: linear-gradient(
+    96deg,
+    color-mix(in srgb, var(--color-navy-deep) 93%, transparent) 0%,
+    color-mix(in srgb, var(--color-navy-deep) 82%, transparent) 38%,
+    color-mix(in srgb, var(--color-navy-deep) 42%, transparent) 66%,
+    color-mix(in srgb, var(--color-navy-deep) 18%, transparent) 100%
+  );
+}
+
+.hero-scrim-vertical {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-navy-deep) 45%, transparent) 0%,
+    transparent 26%,
+    transparent 68%,
+    color-mix(in srgb, var(--color-field) 12%, transparent) 100%
+  );
+}
+
+.hero-scrim-mobile {
+  background-image: linear-gradient(
+    178deg,
+    color-mix(in srgb, var(--color-navy-deep) 74%, transparent) 0%,
+    color-mix(in srgb, var(--color-navy-deep) 58%, transparent) 34%,
+    color-mix(in srgb, var(--color-navy-deep) 88%, transparent) 74%,
+    color-mix(in srgb, var(--color-navy-deep) 96%, transparent) 100%
+  );
+}
+
+/* Reuses the same class name + global `kb` keyframes as
+ * `app-photo-frame` (see its .css) — Angular's per-component style
+ * encapsulation scopes this copy independently, so redeclaring it
+ * here is the established pattern, not duplication of intent. */
+.kb {
+  animation: kb 14s var(--ease-brand) infinite alternate;
+  transform-origin: var(--kb-origin, 50% 50%);
+}

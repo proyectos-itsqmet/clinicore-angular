@@ -1,0 +1,203 @@
+/**
+ * Design system — global base layer.
+ *
+ * Everything here is either a reset Tailwind utilities can't express,
+ * or a `@keyframes` / accessibility override that must exist exactly
+ * once, globally, instead of being repeated inside every component.
+ *
+ * Animation names, durations and easing are copied byte-for-byte from
+ * design/Main.dc.html's <style> block — do not rename or retime them,
+ * the boards were built against these exact values.
+ *
+ * No literal colors here: every color reaches this file through the
+ * --color-* custom properties declared by shared/tokens/theme.css.
+ */
+
+/* ============================================================
+ * RESET
+ * ============================================================ */
+body {
+  background-color: var(--color-field);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p {
+  margin: 0;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background-color: var(--color-selection);
+  color: var(--color-ink);
+}
+
+/* ============================================================
+ * FOCUS
+ * Non-negotiable per the project LEY: every interactive target
+ * gets a 3px outline with 3px offset. `.on-dark` is the contract
+ * a component wraps around itself when it sits on a dark surface
+ * (navy, navy-deep, emergency, ...) so the outline stays visible.
+ * ============================================================ */
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 3px;
+}
+
+.on-dark a:focus-visible,
+.on-dark button:focus-visible {
+  outline-color: var(--color-live);
+}
+
+/* ============================================================
+ * KEYFRAMES
+ * Applying classes (`.kb`, `.beam::before`, `.dot::after`, ...)
+ * live with the component that draws them; only the keyframe
+ * definitions are global, since @keyframes can't be scoped per
+ * component and must exist exactly once.
+ * ============================================================ */
+
+/* M1 — hero Ken Burns */
+@keyframes kb {
+  from { transform: scale(1); }
+  to { transform: scale(1.09); }
+}
+
+/* M2 — the document's only entrance, restricted to the hero */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+
+/* M3 — border beam spin on every primary CTA */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* M4 — live dot pulse */
+@keyframes ping {
+  from { transform: scale(1); opacity: .85; }
+  to { transform: scale(2.2); opacity: 0; }
+}
+
+/* M5 / M6 — counter-rotating marquees (convenios / reseñas) */
+@keyframes sc-l {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-100% - 32px)); }
+}
+@keyframes sc-r {
+  from { transform: translateX(calc(-100% - 32px)); }
+  to { transform: translateX(0); }
+}
+
+/* M7 — counter rings */
+@keyframes draw {
+  to { stroke-dashoffset: var(--off); }
+}
+
+/* M8 — turno odometer */
+@keyframes roll {
+  0%, 32% { transform: translateY(0); }
+  34%, 66% { transform: translateY(-1.05em); }
+  68%, 100% { transform: translateY(-2.1em); }
+}
+@keyframes qshift {
+  0%, 32% { transform: translateY(0); }
+  34%, 66% { transform: translateY(-38px); }
+  68%, 100% { transform: translateY(-76px); }
+}
+
+/* M10 — confirmation check draw */
+@keyframes tickdraw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* New — skeleton shimmer. The app-skeleton atom applies the
+ * `shimmer` class to whichever layer sweeps; not present in the
+ * design boards because they predate the endpoints it stands in
+ * for. */
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+/* ============================================================
+ * REDUCED MOTION
+ * Every animation in the system, off, no exceptions. Selectors
+ * mirror the class contract from the design boards so components
+ * that reuse those class names (.kb, .beam, .dot, [data-rise],
+ * .mq-row, .ring circle.p, .odo-strip, .qroll, .fab::after, .tick)
+ * get this for free — plus `.shimmer` for the skeleton atom.
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .kb,
+  [data-rise],
+  .beam::before,
+  .dot::after,
+  .mq-row,
+  .ring circle.p,
+  .odo-strip,
+  .qroll,
+  .fab::after,
+  .tick,
+  .shimmer {
+    animation: none !important;
+  }
+
+  [data-rise] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .ring circle.p {
+    stroke-dashoffset: var(--off);
+  }
+
+  .tick {
+    stroke-dashoffset: 0;
+  }
+
+  /* Transitions, not animations: the accordion's grid-template-rows roll
+   * (`.acc`) and the "+"-to-"−" stroke collapse (`.plusv`). Both class
+   * names are shared by `app-faq-item` and `app-faq-section`, neither of
+   * which ships a component stylesheet where a local override could
+   * live, so the damping belongs here next to the animation kills. */
+  .acc,
+  .plusv {
+    transition-duration: 1ms;
+  }
+}
+
+/* ============================================================
+ * FORCED COLORS
+ * Backup borders so component shapes stay legible under Windows
+ * High Contrast / forced-colors mode, where our surface and line
+ * tokens are ignored by the user agent.
+ * ============================================================ */
+@media (forced-colors: active) {
+  .card,
+  .chip,
+  .seg,
+  .glass {
+    border: 1px solid CanvasText;
+  }
+
+  .seg-thumb {
+    background-color: Highlight;
+  }
+
+  .dot,
+  .fab {
+    forced-color-adjust: none;
+  }
+}

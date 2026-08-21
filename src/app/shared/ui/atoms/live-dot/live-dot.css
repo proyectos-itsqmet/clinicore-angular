@@ -1,0 +1,29 @@
+/**
+ * design/Main.dc.html `.dot` / `.dot::after`. The ::after pulse ring
+ * needs a pseudo-element, which Tailwind utilities can't add without
+ * turning into unreadable arbitrary-variant soup, so it lives here.
+ *
+ * The `ping` keyframes and the reduced-motion override already exist
+ * globally in shared/tokens/base.css, targeting `.dot::after` by name.
+ */
+:host {
+  display: contents;
+}
+
+.dot {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background-color: var(--color-live);
+  flex-shrink: 0;
+}
+
+.dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: var(--color-live);
+  animation: ping 2s ease-out infinite;
+}

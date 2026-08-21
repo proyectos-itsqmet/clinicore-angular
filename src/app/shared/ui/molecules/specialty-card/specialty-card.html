@@ -1,0 +1,31 @@
+@if (loading()) {
+  <app-card>
+    <div cardMedia>
+      <app-skeleton variant="block" width="100%" height="176px" radius="0" />
+    </div>
+    <div class="flex flex-col gap-2.5" style="padding: 20px 22px 22px" aria-busy="true">
+      <app-skeleton variant="text" width="60%" height="20px" />
+      <app-skeleton variant="text" [lines]="2" />
+      <app-skeleton variant="pill" width="120px" />
+    </div>
+  </app-card>
+} @else {
+  <app-card>
+    <img cardMedia [src]="specialty().image | assetUrl" alt="" class="h-[176px] w-full object-cover" />
+    <div class="flex flex-col gap-2.5" style="padding: 20px 22px 22px">
+      <span class="font-display text-h3 text-ink">{{ specialty().name }}</span>
+      <span class="text-body text-[16px] text-ink-2">{{ specialty().description }}</span>
+      <span class="mt-1 flex flex-wrap items-center gap-2">
+        @if (specialty().doctorCount; as count) {
+          <app-pill tone="tint">{{ count }} {{ doctorCountLabel() }}</app-pill>
+        }
+        @if (specialty().priceFrom; as price) {
+          <app-pill tone="plain">desde {{ price.currency }} {{ price.amount }}</app-pill>
+        }
+        @for (tag of specialty().tags; track tag) {
+          <app-pill tone="tint">{{ tag }}</app-pill>
+        }
+      </span>
+    </div>
+  </app-card>
+}

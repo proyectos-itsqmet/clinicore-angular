@@ -1,0 +1,41 @@
+<section class="bg-surface px-5 py-12 md:px-0 md:py-[88px]">
+  <div class="mx-auto flex w-full max-w-[1240px] flex-col gap-5 md:gap-10" [attr.aria-busy]="loading() ? true : null">
+    @if (loading()) {
+      <!-- 20px kicker / 49px heading lines, both measured off the real line boxes:
+           `text-kicker` declares no line-height, so the preflight's
+           `html { line-height: 1.5 }` gives 13 x 1.5 = 19.5px, and `text-h2` is
+           44 x 1.12 = 49.28px at every breakpoint (there is no responsive override
+           of the token). "Tres pasos y estás dentro." is TWO of those lines in the
+           350px mobile box (a 390px viewport minus `px-5`) and ONE at md: — at the
+           620px column and at the section's full 1240px alike — so the second bar is
+           `md:hidden`: 98.53px reserved at mobile, 49.28px at md:. The pair sits in a
+           GAPLESS `flex-col`, the shape `booking-section.html` already ships, because
+           consecutive line boxes are contiguous; the atom's own `lines` input would
+           insert its 8px `gap-2` between them.
+           Unlike the specialties/doctors headers this wrapper is a flex item of a
+           flex COLUMN, so it stretches to a definite width at every breakpoint and
+           the `min(360px, 100%)` and `%` bars resolve normally. -->
+      <div class="flex max-w-[620px] flex-col gap-3.5">
+        <app-skeleton variant="text" width="140px" height="20px" />
+        <div class="flex flex-col">
+          <app-skeleton variant="text" width="min(360px, 100%)" height="49px" />
+          <span class="block md:hidden">
+            <app-skeleton variant="text" width="55%" height="49px" />
+          </span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-3.5 md:grid-cols-3 md:gap-[22px]">
+        @for (i of skeletonItems; track i) {
+          <app-step-card [step]="emptyStep" [loading]="true" />
+        }
+      </div>
+    } @else {
+      <app-section-heading [kicker]="data().header.kicker" [heading]="data().header.title" />
+      <div class="grid grid-cols-1 gap-3.5 md:grid-cols-3 md:gap-[22px]">
+        @for (step of data().steps; track step.id) {
+          <app-step-card [step]="step" [loading]="false" />
+        }
+      </div>
+    }
+  </div>
+</section>

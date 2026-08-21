@@ -1,0 +1,104 @@
+<a
+  href="#main-content"
+  class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-pill focus:bg-blue focus:px-5 focus:py-3 focus:text-[15px] focus:font-bold focus:text-surface"
+>
+  Saltar al contenido
+</a>
+
+@if (siteError()) {
+  <app-error-state message="No pudimos cargar el encabezado del sitio." (retry)="reloadSite()" minHeight="94px" />
+} @else {
+  <app-site-header [site]="site()" [loading]="siteLoading()" />
+}
+
+<main id="main-content">
+  @if (heroError()) {
+    <app-error-state message="No pudimos cargar la portada." (retry)="reloadHero()" minHeight="480px" />
+  } @else {
+    <app-hero-section [hero]="hero()" [loading]="heroLoading()" />
+  }
+
+  @if (quickAccessError()) {
+    <app-error-state message="No pudimos cargar los accesos rápidos." (retry)="reloadQuickAccess()" />
+  } @else {
+    <app-quick-access-rail [quickAccess]="quickAccess()" [loading]="quickAccessLoading()" />
+  }
+
+  @if (statsBandError()) {
+    <app-error-state message="No pudimos cargar las cifras y convenios." (retry)="reloadStatsBand()" />
+  } @else {
+    <app-stats-band [stats]="stats()" [insurers]="insurers()" [loading]="statsBandLoading()" />
+  }
+
+  <div id="especialidades">
+    @if (specialtiesError()) {
+      <app-error-state message="No pudimos cargar las especialidades." (retry)="reloadSpecialties()" />
+    } @else {
+      <app-specialties-section [specialties]="specialties()" [loading]="specialtiesLoading()" />
+    }
+  </div>
+
+  <div id="agenda">
+    @if (bookingError()) {
+      <app-error-state message="No pudimos cargar la agenda." (retry)="reloadBooking()" />
+    } @else {
+      <app-booking-section
+        [availability]="bookingAvailability()"
+        [loading]="bookingLoading()"
+        (booked)="onBooked($event)"
+      />
+    }
+  </div>
+
+  @if (howItWorksError()) {
+    <app-error-state message="No pudimos cargar el paso a paso." (retry)="reloadHowItWorks()" />
+  } @else {
+    <app-how-it-works [data]="howItWorks()" [loading]="howItWorksLoading()" />
+  }
+
+  <div id="medicos">
+    @if (doctorsError()) {
+      <app-error-state message="No pudimos cargar el equipo médico." (retry)="reloadDoctors()" />
+    } @else {
+      <app-doctors-section [doctors]="doctors()" [loading]="doctorsLoading()" />
+    }
+  </div>
+
+  @if (medicalRecordError()) {
+    <app-error-state message="No pudimos cargar la historia clínica." (retry)="reloadMedicalRecord()" />
+  } @else {
+    <app-medical-record-bento [record]="medicalRecord()" [loading]="medicalRecordLoading()" />
+  }
+
+  <div id="sedes">
+    @if (locationsError()) {
+      <app-error-state message="No pudimos cargar las sedes." (retry)="reloadLocations()" />
+    } @else {
+      <app-locations-section [locations]="locations()" [loading]="locationsLoading()" />
+    }
+  </div>
+
+  @if (reviewsError()) {
+    <app-error-state message="No pudimos cargar las reseñas." (retry)="reloadReviews()" />
+  } @else {
+    <app-reviews-section [reviews]="reviews()" [loading]="reviewsLoading()" />
+  }
+
+  @if (faqSectionError()) {
+    <app-error-state message="No pudimos cargar las preguntas frecuentes." (retry)="reloadFaqSection()" />
+  } @else {
+    <app-faq-section [faq]="faq()" [publicInsurance]="publicInsurance()" [loading]="faqSectionLoading()" />
+  }
+
+  @if (coverageError()) {
+    <app-error-state message="No pudimos cargar la cobertura." (retry)="reloadCoverage()" minHeight="360px" />
+  } @else {
+    <app-closing-cta [coverage]="coverage()" [loading]="coverageLoading()" />
+  }
+</main>
+
+@if (siteError() || locationsError()) {
+  <app-error-state message="No pudimos cargar el pie de página." (retry)="reloadFooter()" />
+} @else {
+  <app-site-footer [site]="site()" [locations]="locations().items" [loading]="siteLoading() || locationsLoading()" />
+}

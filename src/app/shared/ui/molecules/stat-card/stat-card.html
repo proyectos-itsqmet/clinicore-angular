@@ -1,0 +1,27 @@
+<!-- `aria-busy` goes on the inner column, NOT on `<app-card>`: Card's host is
+     `display: contents` (card.css), so that element is removed from the box tree and is
+     an unreliable ARIA host. The project law wants `aria-busy` on a real ancestor box. -->
+<app-card padding="26px 20px">
+  <div class="flex flex-col items-center gap-3 text-center" [attr.aria-busy]="loading() ? 'true' : null">
+    @if (loading()) {
+      <app-skeleton variant="circle" width="124px" />
+      <div class="flex flex-col items-center gap-1.5">
+        <app-skeleton variant="text" width="130px" />
+        <app-skeleton variant="text" width="96px" />
+      </div>
+    } @else {
+      <app-progress-ring [percent]="stat().percent" [size]="124" [color]="ringColor()" [delayMs]="delayMs()">
+        <app-figure size="38px">
+          {{ stat().value }}
+          @if (stat().suffix; as suffix) {
+            <span appFigureSuffix>{{ suffix }}</span>
+          }
+        </app-figure>
+      </app-progress-ring>
+      <div class="flex flex-col gap-[3px]">
+        <span class="font-display text-[18px] font-bold leading-[1.24] tracking-[-.008em] text-ink">{{ stat().label }}</span>
+        <span class="text-meta font-sans text-ink-3">{{ stat().sublabel }}</span>
+      </div>
+    }
+  </div>
+</app-card>

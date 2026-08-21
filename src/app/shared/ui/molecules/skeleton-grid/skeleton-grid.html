@@ -1,0 +1,10 @@
+<div
+  class="grid"
+  [style.grid-template-columns]="gridTemplateColumns()"
+  [style.gap]="gap()"
+  aria-busy="true"
+>
+  @for (item of items(); track item) {
+    <app-skeleton [variant]="variant()" [width]="width()" [height]="height()" [radius]="radius()" />
+  }
+</div>

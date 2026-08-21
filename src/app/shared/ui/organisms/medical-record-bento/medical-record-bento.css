@@ -1,0 +1,45 @@
+/**
+ * design/Main.dc.html & Mobile.dc.html both apply `.odo-strip` /
+ * `.qroll` to the global `roll` / `qshift` keyframes declared once in
+ * shared/tokens/base.css (which only ships the keyframes and their
+ * reduced-motion override, by design — see that file's own comment).
+ *
+ * `roll` is written in `em` units, so the single global keyframe already
+ * adapts to the odometer's mobile (56px) vs desktop (84px) font size —
+ * no override needed there.
+ *
+ * `qshift` is written in literal pixels tied to the *desktop* 38px queue
+ * row height. Mobile's queue rows are 36px, so the same keyframe would
+ * overshoot by 2px per step — a mismatch Tailwind's utility classes have
+ * no way to express (a responsive @keyframes swap). Mobile-first: the
+ * base rule below is the 36px-row version; `md:` swaps to the shared
+ * 38px `qshift` keyframe.
+ */
+:host {
+  display: contents;
+}
+
+.odo-strip {
+  animation: roll 5s steps(1, end) infinite;
+}
+
+.qroll {
+  animation: qroll-mobile 5s steps(1, end) infinite;
+}
+
+@keyframes qroll-mobile {
+  0%, 32% { transform: translateY(0); }
+  34%, 66% { transform: translateY(-36px); }
+  68%, 100% { transform: translateY(-72px); }
+}
+
+@media (min-width: 768px) {
+  .qroll {
+    animation-name: qshift;
+  }
+}
+
+/* Reduced motion for both classes is already handled globally by
+ * shared/tokens/base.css's `@media (prefers-reduced-motion: reduce)`
+ * block, which targets `.odo-strip` / `.qroll` by name with `!important` —
+ * no local override needed here. */

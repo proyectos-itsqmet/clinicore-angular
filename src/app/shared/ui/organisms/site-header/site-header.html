@@ -1,0 +1,127 @@
+<div class="wrap mx-auto w-full max-w-[1240px]">
+  <div
+    class="flex items-center justify-between gap-2.5 rounded-pill border border-surface/34 bg-surface/18 py-2 pr-2.5 pl-3.5 backdrop-blur-[18px] backdrop-saturate-[1.8] md:gap-6 md:py-3 md:pr-4 md:pl-[22px]"
+    [attr.aria-busy]="loading() ? 'true' : null"
+  >
+    <!-- brand: always visible -->
+    <div class="flex items-center gap-2.5">
+      @if (loading()) {
+        <app-skeleton variant="circle" width="26px" />
+        <app-skeleton variant="text" width="96px" />
+      } @else {
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" class="md:h-[30px] md:w-[30px]" aria-hidden="true">
+          <rect width="32" height="32" rx="10" class="fill-surface" />
+          <path d="M16 8.5v15M8.5 16h15" class="stroke-blue" stroke-width="3.4" stroke-linecap="round" />
+        </svg>
+        <span class="font-display text-base font-extrabold tracking-[-0.014em] text-surface md:text-xl">{{
+          site().brand.name
+        }}</span>
+      }
+    </div>
+
+    <!-- primary nav: desktop only -->
+    <nav class="hidden items-center gap-0.5 md:flex">
+      @if (loading()) {
+        @for (i of navSkeletonItems; track i) {
+          <app-skeleton variant="pill" width="82px" height="24px" />
+        }
+      } @else {
+        @for (link of site().nav.primary; track link.id) {
+          <a
+            [href]="link.href"
+            class="inline-flex min-h-11 items-center rounded-pill px-3.5 text-[15px] font-semibold text-surface"
+            >{{ link.label }}</a
+          >
+        }
+      }
+    </nav>
+
+    <!-- contact + CTA: desktop only -->
+    <div class="hidden items-center gap-2.5 md:flex">
+      @if (loading()) {
+        <app-skeleton variant="pill" width="128px" height="44px" />
+        <app-skeleton variant="pill" width="150px" height="52px" />
+      } @else {
+        <a
+          [href]="'tel:' + site().contact.phone"
+          class="inline-flex min-h-11 items-center gap-2 rounded-pill border border-surface/30 bg-surface/16 px-[18px] text-[15px] font-semibold text-surface"
+        >
+          <app-icon name="phone" [size]="17" />
+          <span>{{ site().contact.phone }}</span>
+        </a>
+        <app-button variant="primary" href="#agenda">
+          <span>Agenda tu cita</span>
+          <app-icon name="arrow" [size]="17" />
+        </app-button>
+      }
+    </div>
+
+    <!-- menu toggle: mobile only -->
+    @if (loading()) {
+      <!-- The breakpoint class goes on this wrapper, not on `app-skeleton`: the atom's
+           host is `display: contents`, so `md:hidden` there would be a display-vs-display
+           race decided by stylesheet order. Without the wrapper the desktop glass pill
+           gains a 44px circle while loading and reflows when the data lands. -->
+      <span class="md:hidden">
+        <app-skeleton variant="circle" width="44px" />
+      </span>
+    } @else {
+      <button
+        type="button"
+        class="grid h-11 w-11 place-items-center rounded-full bg-surface/18 md:hidden"
+        [attr.aria-expanded]="isMenuOpen() ? 'true' : 'false'"
+        aria-controls="site-header-panel"
+        [attr.aria-label]="isMenuOpen() ? 'Cerrar menú' : 'Abrir menú'"
+        (click)="toggleMenu()"
+      >
+        <app-icon [name]="isMenuOpen() ? 'plus' : 'menu'" [size]="20" [class]="isMenuOpen() ? 'rotate-45 text-surface transition-transform' : 'text-surface'" />
+      </button>
+    }
+  </div>
+
+  <!-- mobile dropdown panel: local UI state, not parent-visible.
+       The panel stays mounted whenever the toggle exists and is hidden with the
+       `hidden` attribute instead of being destroyed, so the toggle's
+       `aria-controls="site-header-panel"` always resolves to a real element — a
+       dangling IDREF is silently dropped by several screen readers. `hidden` lives
+       on this outer `<nav>` because that is the landmark the toggle controls — the
+       inner div is only the glass surface. Utilities on the hidden element are not a
+       hazard either way: Tailwind's preflight ships an author-level
+       `[hidden]:where(:not([hidden='until-found'])) { display: none !important }`,
+       so the attribute wins over any `display` utility on the same element.
+       It is a plain `<nav>` with real links, not `role="menu"`/`role="menuitem"` —
+       that pattern would override the anchors' link role and oblige us to implement
+       arrow-key navigation, Escape-to-close and focus return, none of which exist. -->
+  @if (!loading()) {
+    <nav
+      id="site-header-panel"
+      aria-label="Menú principal"
+      class="md:hidden"
+      [hidden]="!isMenuOpen()"
+    >
+      <div
+        class="mt-2 flex flex-col gap-1 rounded-[20px_20px_8px_20px] border border-surface/34 bg-surface/18 p-3 backdrop-blur-[18px] backdrop-saturate-[1.8]"
+      >
+        @for (link of site().nav.primary; track link.id) {
+          <a
+            [href]="link.href"
+            (click)="closeMenu()"
+            class="inline-flex min-h-11 items-center rounded-pill px-3.5 text-[15px] font-semibold text-surface"
+            >{{ link.label }}</a
+          >
+        }
+        <a
+          [href]="'tel:' + site().contact.phone"
+          class="inline-flex min-h-11 items-center gap-2 rounded-pill border border-surface/30 bg-surface/16 px-[18px] text-[15px] font-semibold text-surface"
+        >
+          <app-icon name="phone" [size]="17" />
+          <span>{{ site().contact.phone }}</span>
+        </a>
+        <app-button variant="primary" href="#agenda" [fullWidth]="true">
+          <span>Agenda tu cita</span>
+          <app-icon name="arrow" [size]="17" />
+        </app-button>
+      </div>
+    </nav>
+  }
+</div>

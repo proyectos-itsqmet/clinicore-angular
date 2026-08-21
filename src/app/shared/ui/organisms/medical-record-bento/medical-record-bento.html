@@ -1,0 +1,171 @@
+<section class="bg-cream px-5 py-12 md:px-20 md:py-[88px]">
+  <div class="mx-auto flex max-w-[1368px] flex-col gap-5 md:gap-[34px]">
+    @if (loading()) {
+      <!-- 20px kicker / 49px heading lines, both measured off the real line boxes:
+           `text-kicker` declares no line-height, so the preflight's
+           `html { line-height: 1.5 }` gives 13 x 1.5 = 19.5px, and `text-h2` is
+           44 x 1.12 = 49.28px at every breakpoint (there is no responsive override
+           of the token). "Una sola historia, en todas nuestras sedes." is the longest
+           h2 on the landing: THREE of those lines in the 350px mobile box (a 390px
+           viewport minus `px-5`) = 147.80px, and ONE at md:. So the heading is
+           reserved once per breakpoint. The md: side keeps its single 85% bar
+           deliberately: the loaded `app-section-heading` is NOT inside this
+           `max-w-[660px]` wrapper — its host is `display: contents`, so its own root
+           stretches to the section's ~1208px content width and the title fits one
+           line there. The mobile bars sit in a GAPLESS wrapper, the shape
+           `booking-section.html` already ships, because consecutive line boxes are
+           contiguous; the atom's own `lines` input would insert its 8px `gap-2`
+           between them. This wrapper is a flex item of a flex COLUMN, so it has a
+           definite width and the `%` bars resolve normally. -->
+      <div class="flex max-w-[660px] flex-col gap-3.5" aria-busy="true">
+        <app-skeleton variant="text" width="150px" height="20px" />
+        <div class="flex flex-col">
+          <span class="hidden md:block">
+            <app-skeleton variant="text" width="85%" height="49px" />
+          </span>
+          <div class="md:hidden">
+            <app-skeleton variant="text" width="100%" height="49px" />
+            <app-skeleton variant="text" width="96%" height="49px" />
+            <app-skeleton variant="text" width="42%" height="49px" />
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-4 md:auto-rows-[168px] md:gap-[18px]" aria-busy="true">
+        <div class="grid md:col-span-2 md:row-span-2">
+          <!-- Two fixed heights, one per breakpoint, both literals: below md: the loaded
+               live-screen tile is content-sized (~190px), and at md: it fills its
+               `md:row-span-2` cell — two `md:auto-rows-[168px]` rows plus the 18px
+               `md:gap-[18px]` = 354px. A percentage height can't work here: the atom's
+               own root is an auto-height flex column, so `height="100%"` would resolve
+               against an indefinite box and collapse to zero. The radius mirrors the
+               loaded tile's asymmetric 24/24/8/24 nub, not a uniform corner. -->
+          <div class="md:hidden">
+            <app-skeleton variant="block" width="100%" height="190px" radius="24px 24px 8px 24px" />
+          </div>
+          <div class="hidden md:block">
+            <app-skeleton variant="block" width="100%" height="354px" radius="24px 24px 8px 24px" />
+          </div>
+        </div>
+        @for (i of skeletonBenefits; track i) {
+          <div class="grid md:col-span-2">
+            <app-card [interactive]="false" padding="0">
+              <div class="flex items-center gap-4 p-4 md:p-5">
+                <app-skeleton variant="block" width="116px" height="118px" radius="16px" />
+                <div class="flex flex-1 flex-col gap-2">
+                  <app-skeleton variant="text" width="65%" height="16px" />
+                  <app-skeleton variant="text" [lines]="2" />
+                </div>
+              </div>
+            </app-card>
+          </div>
+        }
+      </div>
+    } @else {
+      <app-section-heading
+        [kicker]="record().header.kicker"
+        kickerTone="gold"
+        [heading]="record().header.title"
+      />
+
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-4 md:auto-rows-[168px] md:gap-[18px]">
+        <div class="grid md:col-span-2 md:row-span-2">
+          <div class="relative overflow-hidden rounded-[24px_24px_8px_24px] border border-line">
+            <img
+              [src]="record().liveScreen.image | assetUrl"
+              alt=""
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+            <span class="absolute inset-0 bg-navy-deep/86"></span>
+            <div class="on-dark relative flex flex-col justify-between gap-4 p-[22px] md:h-full md:gap-4 md:p-[30px]">
+              <div class="flex items-center justify-between gap-4">
+                <span class="inline-flex items-center gap-2">
+                  <app-live-dot />
+                  <app-kicker tone="accent">{{ record().liveScreen.status }}</app-kicker>
+                </span>
+                <span class="text-cap text-blue-soft">
+                  Pantalla de sala<span class="hidden md:inline"> · {{ record().liveScreen.location }}</span>
+                </span>
+              </div>
+
+              <div class="flex items-end justify-between gap-4 md:gap-6">
+                <div class="flex flex-col gap-1">
+                  <app-kicker tone="soft">En atención</app-kicker>
+                  <span
+                    class="inline-flex items-baseline font-display text-[56px] font-extrabold leading-[.92] tracking-[-.03em] text-gold md:text-[84px]"
+                  >
+                    @if (ticketDigits(); as digits) {
+                      <!-- The odometer strip renders three real digits so it can roll
+                           through them, but only the clipped first one is ever visible.
+                           Both halves are hidden from AT and the true ticket is exposed
+                           once, `sr-only`, so the number is announced as "A-147" instead
+                           of the concatenated "A-14789". -->
+                      <span aria-hidden="true">{{ ticketPrefix() }}</span>
+                      <span aria-hidden="true" class="odo inline-block h-[1.05em] overflow-hidden align-baseline">
+                        <span class="odo-strip block">
+                          @for (digit of digits; track $index) {
+                            <span class="block">{{ digit }}</span>
+                          }
+                        </span>
+                      </span>
+                      <span class="sr-only">{{ record().liveScreen.currentTicket }}</span>
+                    } @else {
+                      <span>{{ record().liveScreen.currentTicket }}</span>
+                    }
+                  </span>
+                  <span class="text-cap text-surface md:text-meta">{{ record().liveScreen.office }}</span>
+                </div>
+
+                <div class="h-[108px] w-[132px] shrink-0 overflow-hidden md:h-[114px] md:w-[168px]">
+                  <div class="qroll flex flex-col">
+                    @for (next of record().liveScreen.nextTickets; track next.ticket) {
+                      <div class="flex h-9 items-center justify-between gap-2 md:h-[38px]">
+                        <span class="text-cap font-bold text-surface md:text-meta">{{ next.ticket }}</span>
+                        <span class="text-cap text-blue-soft md:text-meta">{{ next.time }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        @for (benefit of record().benefits; track benefit.id) {
+          <div class="grid md:col-span-2">
+            @if (benefit.image; as photo) {
+              <app-card layout="row">
+                <img
+                  cardMedia
+                  [src]="photo | assetUrl"
+                  alt=""
+                  class="h-[118px] w-[116px] object-cover md:h-full md:w-[160px]"
+                />
+                <div class="flex flex-1 flex-col justify-center gap-1.5 p-4 md:gap-[7px] md:p-5">
+                  <span
+                    class="font-display text-[16px] font-bold leading-[1.24] tracking-[-.008em] text-ink md:text-[18px]"
+                    >{{ benefit.title }}</span
+                  >
+                  <span class="text-body text-[14px] md:text-[15px]">{{ benefit.description }}</span>
+                </div>
+              </app-card>
+            } @else {
+              <app-card padding="18px">
+                <div class="flex flex-col gap-2.5 md:gap-2.5 md:p-[4px]">
+                  <span class="grid h-[38px] w-[38px] place-items-center rounded-[12px] bg-tint md:h-10 md:w-10 md:rounded-[13px]">
+                    <app-icon name="shield" [size]="19" class="text-blue-text" />
+                  </span>
+                  <span
+                    class="font-display text-[16px] font-bold leading-[1.24] tracking-[-.008em] text-ink md:text-[18px]"
+                    >{{ benefit.title }}</span
+                  >
+                  <span class="text-body text-[14px] md:text-[15px]">{{ benefit.description }}</span>
+                </div>
+              </app-card>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

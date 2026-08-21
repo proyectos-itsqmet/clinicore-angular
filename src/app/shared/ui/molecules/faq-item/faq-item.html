@@ -1,0 +1,41 @@
+<app-card padding="0" [tone]="open() ? 'field' : 'surface'">
+  <button
+    type="button"
+    class="flex min-h-16 w-full items-center gap-4.5 px-6 py-5 text-left"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="panelId()"
+    (click)="toggle()"
+  >
+    <span class="flex-1 font-display text-[18px] font-bold leading-[1.24] tracking-[-.008em] text-ink">{{
+      item().question
+    }}</span>
+    <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-tint">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M3.5 10h13" stroke="var(--color-blue-text)" stroke-width="2.2" stroke-linecap="round" />
+        <path
+          class="plusv origin-center transition-transform duration-[240ms] ease-brand"
+          [class.scale-y-0]="open()"
+          d="M10 3.5v13"
+          stroke="var(--color-blue-text)"
+          stroke-width="2.2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </span>
+  </button>
+  <div
+    [id]="panelId()"
+    [class]="
+      'acc grid transition-[grid-template-rows] duration-[260ms] ease-brand ' +
+      (open() ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')
+    "
+  >
+    <!-- `inert` while collapsed: the 0fr grid row plus `overflow: hidden` only clips
+         pixels — the answer stays in the accessibility tree and in tab order, which
+         contradicts the button's `aria-expanded="false"`. `inert` removes both and
+         leaves the grid-template-rows transition untouched. -->
+    <div class="min-h-0 overflow-hidden" [attr.inert]="open() ? null : ''">
+      <p class="text-body px-6 pb-[22px] text-[16px]">{{ item().answer }}</p>
+    </div>
+  </div>
+</app-card>

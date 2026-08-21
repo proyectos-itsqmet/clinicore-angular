@@ -1,0 +1,14 @@
+/**
+ * design/Main.dc.html `.tick` (the confirmation checkmark draw-on): the
+ * `@keyframes tickdraw` itself, and the reduced-motion override that
+ * snaps it to its finished state, both live globally in
+ * shared/tokens/base.css already — every component that draws a `.tick`
+ * path shares that one keyframe. Only the applying class (dasharray,
+ * starting offset, and the animation shorthand referencing the shared
+ * keyframe) belongs here, per that file's own convention.
+ */
+.tick {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: tickdraw 340ms var(--ease-brand) 120ms forwards;
+}

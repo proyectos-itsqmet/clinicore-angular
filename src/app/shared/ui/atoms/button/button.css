@@ -1,0 +1,45 @@
+/**
+ * The primary CTA's spinning border beam (design/Main.dc.html `.beam`).
+ * Tailwind's before:/after: variants can't express this cleanly (a
+ * conic-gradient sweep tied to exact offsets that must stay in sync
+ * with the beam's own radius), so it lives here, byte-for-byte from
+ * the source board.
+ *
+ * Reduced motion and the `spin` keyframes are already global — see
+ * shared/tokens/base.css, which targets `.beam::before` by name.
+ */
+:host {
+  display: contents;
+}
+
+.beam {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.beam::before {
+  content: '';
+  position: absolute;
+  left: -60%;
+  top: -160%;
+  width: 220%;
+  height: 420%;
+  z-index: 0;
+  background: conic-gradient(from 0deg, transparent 0 66%, rgb(255 255 255 / 0.95) 78%, transparent 86% 100%);
+  animation: spin 2.8s linear infinite;
+}
+
+.beam::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background-color: var(--color-blue);
+  z-index: 1;
+}
+
+.beam-label {
+  position: relative;
+  z-index: 2;
+}

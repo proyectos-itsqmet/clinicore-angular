@@ -1,0 +1,218 @@
+<!-- Guarded on a non-empty filename: while loading, `hero()` is the empty fixture and
+     `images.background` is '', which would render an invalid `src=""` that browsers
+     resolve against the document URL. The host's own `bg-navy-deep` covers the gap. -->
+@if (hero().images.background; as background) {
+  <img
+    [src]="background | assetUrl"
+    alt=""
+    class="kb absolute inset-0 h-full w-full object-cover object-[64%_38%] [--kb-origin:64%_38%] md:object-[68%_40%] md:[--kb-origin:68%_40%]"
+  />
+}
+<span aria-hidden="true" class="hero-scrim-mobile absolute inset-0 md:hidden"></span>
+<span aria-hidden="true" class="hero-scrim-diagonal absolute inset-0 hidden md:block"></span>
+<span aria-hidden="true" class="hero-scrim-vertical absolute inset-0 hidden md:block"></span>
+
+<div
+  class="wrap relative z-[1] mx-auto flex h-full w-full max-w-[1240px] flex-col justify-end gap-4 px-5 pt-[104px] pb-[150px] md:grid md:grid-cols-[620px_minmax(0,1fr)] md:items-center md:justify-normal md:gap-0 md:px-0 md:pt-[156px] md:pb-[110px]"
+>
+  <!-- text column -->
+  <div class="flex flex-col gap-[18px] md:gap-[22px]" [attr.aria-busy]="loading() ? 'true' : null">
+    @if (loading()) {
+      <!-- Fixed geometry, never derived from the data: while loading, `hero()` is the
+           empty fixture — blank kicker/title/lead/CTA labels and zero trustPills — so
+           the loaded branch would paint an empty h1, an empty lead and two visible but
+           content-less 58px CTA pills. `trustPillSkeletons` matches the four
+           `trustPills` in jsons/landing/hero.json.
+
+           The host is `h-[780px] md:h-[822px]`, so nothing here reflows the page — but
+           this column is `justify-end` at mobile and `md:items-center` at md:, so every
+           pixel it under-reserves is a pixel the kicker/h1/lead visibly jump the moment
+           `hero()` resolves. Loaded column: 613.50px at mobile, 565.39px at md:, both
+           measured in headless Chrome with the real webfonts. Per element:
+
+             kicker row   19.50px   `.text-kicker` is 13px and theme.css declares NO
+                                    `--text-kicker--line-height`, so the utility emits
+                                    font-size only, no line-height is declared on the
+                                    element at all, and preflight's unitless
+                                    `html { line-height: 1.5 }` inherits and re-resolves:
+                                    13 x 1.5. The 9px live dot is the shorter flex item.
+             h1          126.00px   3 lines x 42.00 at mobile (`text-[40px] leading-[1.05]`)
+                         207.89px   3 lines x 69.30 at md:. `.text-h1` exists ONLY as
+                                    `md:text-h1`, so this bar has to be split per
+                                    breakpoint — and the md: line box is 69.30, NOT the
+                                    token's 66 x 1.04 = 68.64: `leading-[1.05]` on the same
+                                    element carries no breakpoint, so it stays in effect and
+                                    beats the line-height `md:text-h1` emits.
+             lead        120.00px   4 lines x 30.00 at mobile, 90.00px (3 lines) at md:
+                                    (`.text-lead` 20px x 1.5 inside `max-w-[40ch]`).
+             pills       146.00px   3 rows at mobile, 98.00px (2 rows) at md: — real
+                                    `app-pill` glass pills are 44px tall, not 34, and the
+                                    row is `flex-wrap`, so see `trustPillSkeletons` for why
+                                    the widths carry the geometry here.
+             CTAs        130.00px   two 58px buttons stacked at mobile plus `mt-1`, 62.00px
+                                    at md: where `md:flex-row` puts them on one line.
+
+           Where a bar stands in for several lines, the atom's own stacking gap is part of
+           the sum, so the per-bar height is the remainder — the arithmetic is spelled out
+           at each one. -->
+      <span class="inline-flex items-center gap-2.5">
+        <app-skeleton variant="circle" width="9px" />
+        <app-skeleton variant="text" width="140px" height="20px" />
+      </span>
+
+      <!-- 3 x 35 + 2 x 10 (this wrapper's `gap-2.5`) = 125, and the last bar takes the
+           spare pixel: 126.00px, the mobile h1 exactly. -->
+      <div class="flex flex-col gap-2.5 md:hidden">
+        <app-skeleton variant="text" width="92%" height="35px" />
+        <app-skeleton variant="text" width="80%" height="35px" />
+        <app-skeleton variant="text" width="58%" height="36px" />
+      </div>
+      <!-- 63 + 63 + 62 + 2 x 10 = 208px against the md: h1's 207.89px. -->
+      <div class="hidden flex-col gap-2.5 md:flex">
+        <app-skeleton variant="text" width="92%" height="63px" />
+        <app-skeleton variant="text" width="80%" height="63px" />
+        <app-skeleton variant="text" width="58%" height="62px" />
+      </div>
+
+      <!-- `lines` stacks at a fixed 8px, so 4 x 24 + 3 x 8 = 120.00px, the mobile lead
+           exactly; 3 x 25 + 2 x 8 = 91px against 90.00px at md:. The wrappers exist
+           because `app-skeleton`'s host is `display: contents` — a breakpoint class on
+           the element itself would never reach the bar. -->
+      <div class="md:hidden">
+        <app-skeleton variant="text" [lines]="4" height="24px" width="min(40ch, 100%)" />
+      </div>
+      <div class="hidden md:block">
+        <app-skeleton variant="text" [lines]="3" height="25px" width="min(40ch, 100%)" />
+      </div>
+
+      <div class="flex flex-wrap gap-[7px] md:gap-2.5">
+        @for (pillWidth of trustPillSkeletons; track pillWidth) {
+          <app-skeleton variant="pill" [width]="pillWidth" height="44px" />
+        }
+      </div>
+
+      <div class="mt-1 flex flex-col gap-2.5 md:flex-row md:items-center">
+        <app-skeleton variant="pill" width="200px" height="58px" />
+        <app-skeleton variant="pill" width="240px" height="58px" />
+      </div>
+    } @else {
+      <span data-rise style="animation-delay: 0ms" class="inline-flex items-center gap-2.5">
+        <app-live-dot />
+        <app-kicker tone="soft">{{ hero().kicker }}</app-kicker>
+      </span>
+
+      <h1
+        data-rise
+        style="animation-delay: 70ms"
+        class="font-display text-[40px] leading-[1.05] font-extrabold tracking-[-0.02em] text-surface md:text-h1"
+      >
+        {{ hero().title }}
+      </h1>
+
+      <p data-rise style="animation-delay: 140ms" class="text-lead max-w-[40ch] text-tint">
+        {{ hero().lead }}
+      </p>
+
+      <div data-rise style="animation-delay: 210ms" class="flex flex-wrap gap-[7px] md:gap-2.5">
+        @for (pill of hero().trustPills; track pill.id) {
+          <app-pill tone="glass">
+            <app-icon name="check" [size]="16" class="text-live" />
+            <span>{{ pill.text }}</span>
+          </app-pill>
+        }
+      </div>
+
+      <div data-rise style="animation-delay: 280ms" class="mt-1 flex flex-col gap-2.5 md:flex-row md:items-center">
+        <app-button variant="primary" size="lg" [href]="hero().ctas.primary.href">
+          <span>{{ hero().ctas.primary.label }}</span>
+          <app-icon name="arrow" [size]="18" />
+        </app-button>
+        <app-button variant="whatsapp" size="lg" [href]="hero().ctas.whatsapp.href">
+          <app-icon name="whatsapp" [size]="19" />
+          <span>{{ hero().ctas.whatsapp.label }}</span>
+        </app-button>
+      </div>
+    }
+  </div>
+
+  <!-- photo + availability column: desktop only -->
+  <div class="relative hidden h-full md:block">
+    <!-- Same empty-src guard as the background: no frame at all rather than a frame
+         wrapped around an `<img src="">`. The loading branch has to come first, though:
+         that guard is also false while loading (`EMPTY_HERO.images.inset` is ''), so on
+         its own it left a ~374px hole beside a fully skeletoned availability panel.
+         The reserved box is the loaded frame's real geometry — 300px wide (this column's
+         own literal) and 373.5px tall, since `app-photo-frame` sets no height and the
+         620x775 source resolves against a 294px content box plus its 3px border on each
+         side — at `radius="28px"`, the `--radius-panel-sm` that `radius="sm"` maps to.
+         `aria-busy` sits on the wrapper because `app-skeleton` is always `aria-hidden`. -->
+    @if (loading()) {
+      <div class="absolute top-0 right-[14px] w-[300px]" aria-busy="true">
+        <app-skeleton variant="block" width="100%" height="373.5px" radius="28px" />
+      </div>
+    } @else if (hero().images.inset; as inset) {
+      <div data-rise style="animation-delay: 350ms" class="absolute top-0 right-[14px] w-[300px]">
+        <app-photo-frame [src]="inset" alt="" radius="sm" [bordered]="true" [transformOrigin]="'50% 50%'" />
+      </div>
+    }
+
+    <div
+      data-rise
+      style="animation-delay: 420ms"
+      class="absolute top-[248px] right-[224px] w-[268px] rounded-[24px_24px_8px_24px] border border-surface/34 bg-surface/18 px-5 py-[18px] backdrop-blur-[18px] backdrop-saturate-[1.8]"
+      [attr.aria-busy]="loading() ? 'true' : null"
+    >
+      @if (loading()) {
+        <div class="flex flex-col gap-2.5">
+          <div class="flex items-center gap-2.5">
+            <app-skeleton variant="circle" width="9px" />
+            <app-skeleton variant="text" width="110px" />
+          </div>
+          <app-skeleton variant="text" width="90px" height="32px" />
+          <app-skeleton variant="text" width="160px" />
+        </div>
+      } @else {
+        <div class="flex flex-col gap-2.5">
+          <span class="inline-flex items-center gap-2.5">
+            <app-live-dot />
+            <span class="font-sans text-[11px] font-bold tracking-[0.14em] text-surface uppercase">{{
+              hero().availability.label
+            }}</span>
+          </span>
+          <app-figure size="40px" tone="gold">
+            {{ hero().availability.count }}
+            <span appFigureSuffix>{{ hero().availability.unit }}</span>
+          </app-figure>
+          <span class="text-meta text-tint">{{ hero().availability.specialty }} · {{ hero().availability.location }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- availability bar: mobile only -->
+<div
+  data-rise
+  style="animation-delay: 350ms"
+  class="absolute inset-x-5 bottom-10 z-[1] flex items-center justify-between gap-3 rounded-[20px_20px_8px_20px] border border-surface/34 bg-surface/18 p-3 backdrop-blur-[18px] backdrop-saturate-[1.8] md:hidden"
+  [attr.aria-busy]="loading() ? 'true' : null"
+>
+  @if (loading()) {
+    <div class="flex items-center gap-2.5">
+      <app-skeleton variant="circle" width="9px" />
+      <app-skeleton variant="text" width="110px" />
+    </div>
+    <app-skeleton variant="text" width="70px" height="24px" />
+  } @else {
+    <span class="inline-flex items-center gap-2.5">
+      <app-live-dot />
+      <span class="font-sans text-[11px] font-bold tracking-[0.14em] text-surface uppercase">{{
+        hero().availability.label
+      }}</span>
+    </span>
+    <app-figure size="24px" tone="gold">
+      {{ hero().availability.count }}
+      <span appFigureSuffix>{{ hero().availability.unit }}</span>
+    </app-figure>
+  }
+</div>

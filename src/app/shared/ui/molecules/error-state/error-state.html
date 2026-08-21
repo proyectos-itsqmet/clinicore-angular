@@ -1,0 +1,8 @@
+<div
+  role="alert"
+  class="flex w-full flex-col items-center justify-center gap-3.5 rounded-card rounded-br-card-nub border border-line bg-surface px-6 py-10 text-center"
+  [style.min-height]="minHeight()"
+>
+  <p class="text-body max-w-[46ch] text-ink-2">{{ message() }}</p>
+  <app-button variant="ghost" size="md" type="button" (click)="retry.emit()">Reintentar</app-button>
+</div>

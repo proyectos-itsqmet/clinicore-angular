@@ -1,0 +1,8 @@
+<figure class="flex flex-col gap-2">
+  <div [class]="frameClasses()">
+    <img [src]="src() | assetUrl" [alt]="alt()" [class]="imageClasses()" [style.--kb-origin]="transformOrigin()" />
+  </div>
+  @if (referenceCaption(); as caption) {
+    <figcaption class="text-cap text-ink-3">{{ caption }}</figcaption>
+  }
+</figure>
