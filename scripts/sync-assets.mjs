@@ -4,6 +4,7 @@
 //
 //   design/photos/*.jpg  -> Frontend/public/img/
 //   jsons/landing/*.json -> Frontend/public/mock/landing/
+//   jsons/sala/*.json    -> Frontend/public/mock/sala/
 //
 // Both public/img and public/mock are generated artifacts (see .gitignore) —
 // never edit the copies, only their sources. Safe to run repeatedly.
@@ -28,6 +29,15 @@ const jobs = [
     label: 'landing mocks',
     sourceDir: join(projectRoot, 'jsons', 'landing'),
     targetDir: join(scriptDir, '..', 'public', 'mock', 'landing'),
+    extension: '.json',
+  },
+  // La pantalla de sala de espera tiene su propio contrato, no una seccion mas
+  // del de la landing: otro endpoint, otro ciclo de vida, otro consumidor.
+  // Ver jsons/sala/README.md.
+  {
+    label: 'sala mocks',
+    sourceDir: join(projectRoot, 'jsons', 'sala'),
+    targetDir: join(scriptDir, '..', 'public', 'mock', 'sala'),
     extension: '.json',
   },
 ];

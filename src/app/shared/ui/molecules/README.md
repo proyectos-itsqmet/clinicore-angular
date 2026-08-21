@@ -23,10 +23,75 @@ Geometry, colors and motion come from `shared/tokens/theme.css` and
 | `app-step-card` | `step: HowItWorksStep`, `loading` | — | The "Cómo funciona" three-step grid |
 | `app-location-card` | `location: LocationItem`, `image`, `mapHref?`, `loading` | — | A sede card (photo + address block), synthesized from two separate design instances — see below |
 | `app-marquee` | `direction`, `durationSeconds` | direction: `left` · `right` | The convenios and reviews-quotes infinite ribbons. Row content is an `<ng-template>`, rendered twice (the second copy `aria-hidden`) |
+| `app-vertical-marquee` | `durationSeconds` (34), `gap` ('0.75rem'), `animate` (true) | — | The waiting-room display's called-turns column. Same `<ng-template>`-rendered-twice trick as `app-marquee`, on the vertical axis. Two invariants carry it — read the component's doc before touching either |
+| `app-admin-nav` | `entries` (required), `basePath` ('/admin'), `navigated` output | — | The admin panel's accordion nav, in both the desktop sidebar and the mobile drawer. The tree arrives as an input so the molecule never imports from `features/`; the open group derives from the URL through a `linkedSignal`, which is what makes a deep link open the right group |
 | `app-segmented` | `options`, `selectedIndex`, `selectedIndexChange` | — | The Especialidades tab switch (Consulta / Control / Telemedicina) |
 | `app-photo-frame` | `src`, `alt`, `radius`, `bordered`, `animate`, `transformOrigin`, `referenceCaption?` | radius: `sm` (28px) · `lg` (32px) | Framed photo panels: the hero inset, bento tiles, any Ken-Burns photo |
 | `app-skeleton-grid` | `count`, `columns`, `gap`, `variant`, `width`, `height?`, `radius?` | variant: same as `app-skeleton` | Reserves a `count`-item, `columns`-wide grid of placeholder shapes so organisms don't hand-write the same loading `@for` fourteen times |
 | `app-error-state` | `message` (default `'No pudimos cargar esta información.'`), `minHeight` (default `'220px'`), `retry` output | — | The retryable failure state for any section fed by a remote resource, so a failed fetch never leaves a section stuck on its skeleton forever. It knows nothing about the resource: the feature container reads `error()` and calls `reload()` on `(retry)` |
+
+## `app-vertical-marquee` vs `app-marquee`, and the gap that is an input here
+
+Both loop a projected row seamlessly by rendering it twice and translating each
+copy by its own size plus one gap. The difference is where that gap lives.
+
+`app-marquee` cannot expose it: `sc-l` / `sc-r` in `shared/tokens/base.css` bake
+`32px` into their `translateX`, so its own doc has to warn that the gap is not an
+input. `vq-roll` reads `var(--vq-gap)` off the animated element instead, so the
+three places that must agree — container gap, strip gap, keyframe offset — all
+resolve from one declared value and cannot drift apart.
+
+The vertical one carries a SECOND invariant the horizontal one never hits: the
+strip must be at least as tall as the window, or for part of the cycle copy 1 has
+left the top while copy 2 has not reached the bottom and a gap opens that neither
+covers. `animate` is how the caller says whether that holds — and the good news
+is that the failing condition and "there is nothing to scroll" are the same
+condition, so `animate: false` is correct behaviour, not a degraded fallback.
+
+## `app-admin-nav` — why the open group is a `linkedSignal`
+
+`linkedSignal` is writable, so toggling a group works, but it RESETS to its
+source whenever that source changes. Its source here is "the group holding the
+active route", so navigating snaps the accordion to where you actually are while
+clicking around inside one group leaves your choice alone.
+
+Use a plain `signal()` and the bug is not subtle: a deep link or a page reload
+renders the nav CLOSED over the page it is displaying. That is the case
+`admin-nav.spec.ts` locks first, and it is why the component creates itself
+after navigation in those tests — a deep link means the first `NavigationEnd`
+already fired, so only `router.url`'s initial value can get it right.
+
+The tree is an `input()` and not an import for the layer rule at the top of this
+file: a molecule never reaches into `features/`. `AdminNavEntry` is exported from
+the component next to it, the same way `app-card` exports `CardTone` — and
+`features/admin/admin-nav.data.ts` owns the data, which `admin.routes.ts` also
+generates the whole route table from, so a menu item and its page cannot drift.
+
+## Why the waiting-room display does NOT compose `app-card`
+
+`/sala/:sedeId` draws card-shaped surfaces — the queue's rows and the big call
+panel — and hand-rolls their shape instead of composing `app-card`, which is a
+real deviation from this file's own "do not hand-roll the signature corner
+elsewhere" rule. Three reasons, and the first is disqualifying:
+
+1. **`app-card`'s radii are fixed px.** `--radius-card` / `--radius-card-nub` are
+   `24px` / `8px`, and that whole screen is drawn in `rem` so it can scale to any
+   16:9 panel. Composed as-is, the signature corner would be the only thing on
+   the screen that does not grow with it — visibly wrong at 4K.
+2. **Its tones don't cover the surface.** The rows are `--tint` and the chrome
+   bars are `--navy`; `app-card` offers `surface` / `field` / `emergency`.
+3. **Its `shadow-lift-1` is invisible on a dark field**, and its hover lift is
+   meaningless on a screen nobody touches.
+
+Reason 1 is the actual gap to close: **`app-card` has no scalable-radius mode.**
+Flagged here rather than papered over, same as `app-location-card`'s missing
+`imageHeight` below. Give it one and that screen should compose it.
+
+Same shape of answer for two more: `app-error-state` is not used for the display's
+cold-failure state because its retry is a BUTTON, and nobody clicks anything on a
+waiting-room TV — the poll already retries every 5s. And `app-skeleton` is not
+used at all there, deliberately against the skeleton contract below: a shimmering
+ghost of a 240px turn number reads as a broken screen, not as loading.
 
 ## Skeleton contract
 

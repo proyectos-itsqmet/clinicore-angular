@@ -1,6 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-export type FigureTone = 'ink' | 'gold' | 'ok' | 'surface';
+/**
+ * `ink` (default) · `gold` · `ok` · `surface` are the landing's four.
+ *
+ * `blue`, `ink-3` and `gold-ink` were added for the waiting-room display: the
+ * turn number sits on a white panel where `--color-gold` measures 1.6:1 and is
+ * unusable, the queue's consultorio column is secondary next to its ticket, and
+ * the current row is a solid gold tile whose only legible ink is `--gold-ink`
+ * (the pair theme.css declares as "ink on top of gold").
+ */
+export type FigureTone = 'ink' | 'ink-3' | 'gold' | 'gold-ink' | 'blue' | 'ok' | 'surface';
 
 /**
  * app-figure — a display number (design `.fig`: Nunito 800, tabular
@@ -24,8 +33,14 @@ export class Figure {
 
   protected readonly toneClass = computed(() => {
     switch (this.tone()) {
+      case 'ink-3':
+        return 'text-ink-3';
       case 'gold':
         return 'text-gold';
+      case 'gold-ink':
+        return 'text-gold-ink';
+      case 'blue':
+        return 'text-blue';
       case 'ok':
         return 'text-ok';
       case 'surface':

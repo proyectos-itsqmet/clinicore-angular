@@ -5,7 +5,18 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * `location` and `user` are not drawn anywhere in Main.dc.html /
  * Mobile.dc.html — they were added to complete the set the brief
  * asks for, matching the same 24x24 / 2px-stroke / round-cap visual
- * language as the rest. See atoms/README.md.
+ * language as the rest.
+ *
+ * The last seven (`grid` through `banknote`) exist for the admin panel's
+ * navigation: it has twelve first-level groups and only five of the icons
+ * above could serve one (`shield`, `clock`, `calendar`, `user`, `document`).
+ * They are not in any board either — `design/panel-admin/` is where they were
+ * drawn — and they follow the same visual language.
+ *
+ * `chevron` is the eighth, and its absence until now was a real hole: it is
+ * the disclosure glyph every expandable row needs. `arrow` is not a
+ * substitute — it carries a shaft and reads as "go", not as "open".
+ * See atoms/README.md.
  */
 export type IconName =
   | 'calendar'
@@ -21,7 +32,15 @@ export type IconName =
   | 'menu'
   | 'clock'
   | 'location'
-  | 'user';
+  | 'user'
+  | 'grid'
+  | 'chart'
+  | 'box'
+  | 'droplet'
+  | 'tag'
+  | 'ban'
+  | 'banknote'
+  | 'chevron';
 
 /**
  * app-icon — a single component that draws every icon in the system

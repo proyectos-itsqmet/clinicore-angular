@@ -1,0 +1,75 @@
+<!--
+  Geometry lives in utilities, STATE lives in admin-nav.css. That split is
+  deliberate: an active row recolors three things at once (its own background,
+  its label and its icon), and `currentColor` cascading from one CSS state class
+  does that in three lines. Doing it with class bindings would mean either
+  three `[class]` ternaries or mixing a static `class` with a `[class]` binding
+  and letting Angular's merge pick the winner between two equal-specificity
+  Tailwind utilities — which `waiting-room-display.html` already documents as
+  not worth finding out.
+
+  It also lets `routerLinkActive` be the single source of "this is the current
+  page": it adds one class, the CSS does the rest, and `ariaCurrentWhenActive`
+  gives the announcement for free.
+-->
+<!-- `flex-1 min-h-0` y NO `h-full`: el host es `display: contents`, asi que
+     este `<nav>` ES el item flex de la barra que lo contiene, y esa barra
+     tiene una cabecera arriba. Con `h-full` mediria el 100% del contenedor
+     entero y se pasaria de largo por debajo. `min-h-0` es lo que permite que
+     el scroll interno recorte de verdad. -->
+<nav class="flex min-h-0 flex-1 flex-col" aria-label="Panel administrativo">
+  <div class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2.5 py-3">
+    @for (row of rows(); track row.id) {
+      @if (row.isGroup) {
+        <button
+          type="button"
+          class="nav-row"
+          [class.nav-row-open]="row.isOpen"
+          [attr.aria-expanded]="row.isOpen"
+          [attr.aria-controls]="row.panelId"
+          (click)="toggle(row.id)"
+        >
+          <app-icon [name]="row.icon" [size]="19" [strokeWidth]="1.9" />
+          <span class="nav-label">{{ row.label }}</span>
+          <!-- El chevron es el unico movimiento del acordeon. La ALTURA del
+               grupo no se anima: animar `height` con cinco hijos obliga a medir
+               en JS y da un salto en el primer frame. -->
+          <span class="nav-chevron" [class.nav-chevron-open]="row.isOpen">
+            <app-icon name="chevron" [size]="15" [strokeWidth]="2.2" />
+          </span>
+        </button>
+
+        @if (row.isOpen) {
+          <div [id]="row.panelId" class="flex flex-col gap-px pb-1.5 pt-0.5">
+            @for (child of row.children; track child.path) {
+              <a
+                class="nav-leaf"
+                routerLinkActive="nav-leaf-active"
+                ariaCurrentWhenActive="page"
+                [routerLink]="child.link"
+                (click)="navigated.emit()"
+              >
+                <!-- La barra activa existe SIEMPRE, transparente cuando no
+                     toca. Reservarla evita que la fila se corra 3px al
+                     activarse: un salto chico que se nota mucho al navegar. -->
+                <span class="nav-leaf-bar"></span>
+                <span class="nav-leaf-label">{{ child.label }}</span>
+              </a>
+            }
+          </div>
+        }
+      } @else {
+        <a
+          class="nav-row"
+          routerLinkActive="nav-row-active"
+          ariaCurrentWhenActive="page"
+          [routerLink]="row.link"
+          (click)="navigated.emit()"
+        >
+          <app-icon [name]="row.icon" [size]="19" [strokeWidth]="1.9" />
+          <span class="nav-label">{{ row.label }}</span>
+        </a>
+      }
+    }
+  </div>
+</nav>
