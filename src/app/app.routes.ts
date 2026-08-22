@@ -1,9 +1,15 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./features/landing/landing-page').then((module) => module.LandingPage),
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./features/auth/login-page').then((module) => module.LoginPage),
+    title: 'Ingreso · CliniCore',
   },
   // La pantalla de sala de espera. Sin chrome, sin scroll, relacion de aspecto
   // fija: es un TV, no una pagina. `:sedeId` llega al componente como `input`
@@ -24,6 +30,7 @@ export const routes: Routes = [
   // `loadChildren` con la tabla GENERADA de ADMIN_NAV — ver admin.routes.ts.
   {
     path: 'admin',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/admin/admin-layout').then((module) => module.AdminLayout),
     loadChildren: () => import('./features/admin/admin.routes').then((module) => module.adminRoutes),
   },

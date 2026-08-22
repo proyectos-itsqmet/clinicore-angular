@@ -18,3 +18,5 @@ export * from './coverage.model';
 // No pertenece al contrato de la landing: es la pantalla de sala de espera
 // (`GET /api/sala/{sedeId}/pantalla`), otra superficie y otro endpoint.
 export * from './waiting-room.model';
+export * from './page.model';
+export * from './establishment.model';

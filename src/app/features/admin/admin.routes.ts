@@ -25,6 +25,11 @@ const placeholder = () => import('./admin-placeholder-page').then((module) => mo
 
 export const adminRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: ADMIN_DEFAULT_PATH },
+  
+  {
+    path: 'administracion/establecimientos',
+    loadChildren: () => import('./establishments/establishments.routes').then(m => m.establishmentRoutes),
+  },
 
   ...ADMIN_NAV.flatMap((entry) => {
     // A row with no children is a destination itself, not a container.

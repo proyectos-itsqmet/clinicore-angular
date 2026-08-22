@@ -1,0 +1,102 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-text-strong">Gestor de establecimientos</h1>
+    <a
+      routerLink="nuevo"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong"
+    >
+      <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+      </svg>
+      Nuevo Establecimiento
+    </a>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-md bg-red-50 p-4">
+      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-border">
+      <thead class="bg-surface-muted">
+        <tr>
+          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Nombre</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Dirección</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+            <span class="sr-only">Acciones</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        @if (loading()) {
+          <tr>
+            <td colspan="4" class="py-12 text-center text-sm text-text-muted">Cargando establecimientos...</td>
+          </tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr>
+            <td colspan="4" class="py-12 text-center text-sm text-text-muted">No hay establecimientos registrados.</td>
+          </tr>
+        } @else {
+          @for (item of data()?.content; track item.id) {
+            <tr>
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-strong sm:pl-6">{{ item.id }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">{{ item.name }}</td>
+              <td class="px-3 py-4 text-sm text-text-muted">{{ item.address }}</td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                <a [routerLink]="['/admin/administracion/establecimientos', item.id]" class="text-blue hover:text-blue-strong mr-4">Editar</a>
+                <button (click)="deleteEstablishment(item.id)" class="text-red-600 hover:text-red-900">Eliminar</button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+    
+    <!-- Paginación -->
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-text-muted">
+              Mostrando <span class="font-medium">{{ data()!.pageable.offset + 1 }}</span> a
+              <span class="font-medium">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
+              <span class="font-medium">{{ data()!.totalElements }}</span> resultados
+            </p>
+          </div>
+          <div>
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                [disabled]="data()!.first"
+                (click)="loadPage(data()!.number - 1)"
+                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span class="sr-only">Anterior</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              
+              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
+                Página {{ data()!.number + 1 }} de {{ data()!.totalPages }}
+              </span>
+
+              <button
+                [disabled]="data()!.last"
+                (click)="loadPage(data()!.number + 1)"
+                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span class="sr-only">Siguiente</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
