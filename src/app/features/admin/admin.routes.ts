@@ -25,14 +25,29 @@ const placeholder = () => import('./admin-placeholder-page').then((module) => mo
 
 export const adminRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: ADMIN_DEFAULT_PATH },
-  
+
   {
     path: 'administracion/establecimientos',
     loadChildren: () => import('./establishments/establishments.routes').then(m => m.establishmentRoutes),
+    data: { crumbGroup: 'Admin', crumbLeaf: 'Gestor de establecimientos' }
+  },
+  {
+    path: 'administracion/operadores',
+    loadChildren: () => import('./operators/operators.routes').then(m => m.operatorRoutes),
+    data: { crumbGroup: 'Admin', crumbLeaf: 'Operadores' }
+  },
+  {
+    path: 'administracion/doctores',
+    loadChildren: () => import('./doctors/doctors.routes').then(m => m.doctorRoutes),
+    data: { crumbGroup: 'Admin', crumbLeaf: 'Doctores' }
+  },
+  {
+    path: 'administracion/especialidades',
+    loadChildren: () => import('./specialties/specialties.routes').then(m => m.specialtyRoutes),
+    data: { crumbGroup: 'Admin', crumbLeaf: 'Servicios' }
   },
 
   ...ADMIN_NAV.flatMap((entry) => {
-    // A row with no children is a destination itself, not a container.
     if (entry.children.length === 0) {
       return [
         {
@@ -44,20 +59,27 @@ export const adminRoutes: Routes = [
       ];
     }
 
+    const filteredChildren = entry.children.filter(child => {
+      const fullPath = `${entry.path}/${child.path}`;
+      return fullPath !== 'administracion/establecimientos' && 
+             fullPath !== 'administracion/operadores' && 
+             fullPath !== 'administracion/doctores' &&
+             fullPath !== 'administracion/especialidades';
+    });
+
     return [
-      // Landing on a group with no leaf goes to its first child rather than
-      // rendering an empty frame: a group is a container, never a page.
       { path: entry.path, pathMatch: 'full' as const, redirectTo: `${entry.path}/${entry.children[0].path}` },
-      ...entry.children.map((child) => ({
-        path: `${entry.path}/${child.path}`,
-        loadComponent: placeholder,
-        data: { crumbGroup: entry.label, crumbLeaf: child.label },
-        title: `${child.label} · ${entry.label} · CliniCore`,
-      })),
+      ...filteredChildren.map((child) => {
+        const fullPath = `${entry.path}/${child.path}`;
+        return {
+          path: fullPath,
+          loadComponent: placeholder,
+          data: { crumbGroup: entry.label, crumbLeaf: child.label },
+          title: `${child.label} · ${entry.label} · CliniCore`,
+        };
+      }),
     ];
   }),
 
-  // Anything else under /admin is a typo or a stale link, and a blank frame is
-  // the worst possible answer. Send it home.
   { path: '**', redirectTo: ADMIN_DEFAULT_PATH },
 ];

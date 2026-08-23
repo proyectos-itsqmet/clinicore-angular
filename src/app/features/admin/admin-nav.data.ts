@@ -52,8 +52,9 @@ export const ADMIN_NAV: readonly AdminNavEntry[] = [
     path: 'administracion',
     children: [
       { path: 'establecimientos', label: 'Gestor de establecimientos' },
-      { path: 'usuarios', label: 'Usuarios' },
-      { path: 'especialidades', label: 'Especialidades' },
+      { path: 'operadores', label: 'Operadores' },
+      { path: 'doctores', label: 'Doctores' },
+      { path: 'especialidades', label: 'Servicios' },
       { path: 'planes-de-cobertura', label: 'Planes de cobertura' },
       { path: 'horarios', label: 'Horarios de atención' },
     ],

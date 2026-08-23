@@ -20,3 +20,6 @@ export * from './coverage.model';
 export * from './waiting-room.model';
 export * from './page.model';
 export * from './establishment.model';
+export * from './operator.model';
+export * from './doctor.model';
+export * from './servicio.model';

@@ -1,0 +1,247 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-text-strong">Operadores</h1>
+    <button
+      (click)="openCreateModal()"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong"
+    >
+      <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+      </svg>
+      Nuevo Operador
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-md bg-red-50 p-4">
+      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-border">
+      <thead class="bg-surface-muted">
+        <tr>
+          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6">Nombre</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Correo</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Rol</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+            <span class="sr-only">Acciones</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        @if (loading()) {
+          <tr>
+            <td colspan="4" class="py-12 text-center text-sm text-text-muted">Cargando operadores...</td>
+          </tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr>
+            <td colspan="4" class="py-12 text-center text-sm text-text-muted">No hay operadores registrados.</td>
+          </tr>
+        } @else {
+          @for (item of data()?.content; track item.uuid) {
+            <tr>
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-strong sm:pl-6">{{ item.firstName }} {{ item.lastName }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">{{ item.email }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
+                <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                  {{ item.role === 'ROLE_EMPLOYEE' ? 'Operador' : 'Administrador' }}
+                </span>
+              </td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                <button (click)="openAssignModal(item.uuid)" class="text-blue hover:text-blue-strong mr-4">Asignar Est.</button>
+                <button (click)="openEditModal(item)" class="text-blue hover:text-blue-strong mr-4">Editar</button>
+                <button (click)="openDeleteModal(item.uuid)" class="text-red-600 hover:text-red-900">Eliminar</button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+    
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-text-muted">
+              Mostrando <span class="font-medium">{{ data()!.pageable.offset + 1 }}</span> a
+              <span class="font-medium">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
+              <span class="font-medium">{{ data()!.totalElements }}</span> resultados
+            </p>
+          </div>
+          <div>
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button [disabled]="data()!.first" (click)="loadPage(data()!.number - 1)" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50">
+                <span class="sr-only">Anterior</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
+              </button>
+              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
+                Página {{ data()!.number + 1 }} de {{ data()!.totalPages }}
+              </span>
+              <button [disabled]="data()!.last" (click)="loadPage(data()!.number + 1)" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50">
+                <span class="sr-only">Siguiente</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+@if (isModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
+                  {{ currentOperatorId() ? 'Editar Operador' : 'Nuevo Operador' }}
+                </h3>
+                <div class="mt-6 space-y-4">
+                  <div class="flex space-x-4">
+                    <div class="flex-1">
+                      <label for="firstName" class="block text-sm font-medium leading-6 text-text-strong">Nombre</label>
+                      <div class="mt-2">
+                        <input type="text" id="firstName" formControlName="firstName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
+                        @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
+                          <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
+                        }
+                      </div>
+                    </div>
+                    <div class="flex-1">
+                      <label for="lastName" class="block text-sm font-medium leading-6 text-text-strong">Apellido</label>
+                      <div class="mt-2">
+                        <input type="text" id="lastName" formControlName="lastName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
+                        @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
+                          <p class="mt-1 text-sm text-red-600">El apellido es requerido.</p>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="email" class="block text-sm font-medium leading-6 text-text-strong">Correo Electrónico</label>
+                    <div class="mt-2">
+                      <input type="email" id="email" formControlName="email" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
+                      @if (form.controls.email.touched && form.controls.email.invalid) {
+                        <p class="mt-1 text-sm text-red-600">Debe ser un correo válido.</p>
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <label for="password" class="block text-sm font-medium leading-6 text-text-strong">
+                      Contraseña {{ currentOperatorId() ? '(Opcional)' : '' }}
+                    </label>
+                    <div class="mt-2">
+                      <input type="password" id="password" formControlName="password" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
+                      @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+                        <p class="mt-1 text-sm text-red-600">La contraseña es requerida.</p>
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <label for="role" class="block text-sm font-medium leading-6 text-text-strong">Rol</label>
+                    <div class="mt-2">
+                      <select id="role" formControlName="role" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50">
+                        <option [value]="'ROLE_EMPLOYEE'">Operador</option>
+                        <option [value]="'ROLE_ADMIN'">Administrador</option>
+                      </select>
+                      @if (form.controls.role.touched && form.controls.role.hasError('required')) {
+                        <p class="mt-1 text-sm text-red-600">El rol es requerido.</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <button type="submit" [disabled]="formLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
+                {{ formLoading() ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button type="button" (click)="closeModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (isDeleteModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <div class="sm:flex sm:items-start">
+            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 class="text-base font-semibold leading-6 text-text-strong" id="modal-title">Eliminar operador</h3>
+              <div class="mt-2"><p class="text-sm text-text-muted">¿Estás seguro de que deseas eliminar este operador? Esta acción no se puede deshacer.</p></div>
+            </div>
+          </div>
+          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <button type="button" [disabled]="formLoading()" (click)="confirmDelete()" class="inline-flex w-full justify-center rounded-pill bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto disabled:opacity-50">
+              {{ formLoading() ? 'Eliminando...' : 'Eliminar' }}
+            </button>
+            <button type="button" (click)="closeDeleteModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (isAssignModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <form [formGroup]="assignForm" (ngSubmit)="onAssignSubmit()">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">Asignar a Establecimiento</h3>
+                <div class="mt-6 space-y-4">
+                  <div>
+                    <label for="stablishmentId" class="block text-sm font-medium leading-6 text-text-strong">Establecimiento</label>
+                    <div class="mt-2">
+                      <select id="stablishmentId" formControlName="stablishmentId" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50">
+                        <option [value]="0" disabled>Selecciona un establecimiento</option>
+                        @for (est of establishments(); track est.id) {
+                          <option [value]="est.id">{{ est.name }} - {{ est.address }}</option>
+                        }
+                      </select>
+                      @if (assignForm.controls.stablishmentId.touched && assignForm.controls.stablishmentId.invalid) {
+                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un establecimiento válido.</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <button type="submit" [disabled]="formLoading() || establishmentsLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
+                {{ formLoading() ? 'Asignando...' : 'Asignar' }}
+              </button>
+              <button type="button" (click)="closeAssignModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

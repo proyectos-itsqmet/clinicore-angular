@@ -22,11 +22,15 @@ export class EstablishmentApiService {
   }
 
   create(establishment: EstablishmentCreate): Observable<Establishment> {
-    return this.http.post<Establishment>(this.API_URL, establishment, { withCredentials: true });
+    return this.http.post<Establishment>(`${this.API_URL}/save`, establishment, { withCredentials: true });
   }
 
   update(id: number, establishment: EstablishmentCreate): Observable<Establishment> {
     return this.http.put<Establishment>(`${this.API_URL}/${id}`, establishment, { withCredentials: true });
+  }
+
+  assignService(id: number, serviceId: number): Observable<Establishment> {
+    return this.http.post<Establishment>(`${this.API_URL}/${id}/services/${serviceId}`, {}, { withCredentials: true });
   }
 
   delete(id: number): Observable<void> {

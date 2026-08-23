@@ -1,15 +1,15 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <h1 class="text-2xl font-bold text-text-strong">Gestor de establecimientos</h1>
-    <a
-      routerLink="nuevo"
+    <button
+      (click)="openCreateModal()"
       class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong"
     >
       <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
         <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
       </svg>
       Nuevo Establecimiento
-    </a>
+    </button>
   </div>
 
   @if (error()) {
@@ -46,8 +46,9 @@
               <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">{{ item.name }}</td>
               <td class="px-3 py-4 text-sm text-text-muted">{{ item.address }}</td>
               <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                <a [routerLink]="['/admin/administracion/establecimientos', item.id]" class="text-blue hover:text-blue-strong mr-4">Editar</a>
-                <button (click)="deleteEstablishment(item.id)" class="text-red-600 hover:text-red-900">Eliminar</button>
+                <button (click)="openAssignModal(item.id)" class="text-blue hover:text-blue-strong mr-4">Asignar Servicio</button>
+                <button (click)="openEditModal(item)" class="text-blue hover:text-blue-strong mr-4">Editar</button>
+                <button (click)="openDeleteModal(item.id)" class="text-red-600 hover:text-red-900">Eliminar</button>
               </td>
             </tr>
           }
@@ -100,3 +101,135 @@
     }
   </div>
 </div>
+
+<!-- Modal Formulario -->
+@if (isModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
+                  {{ currentEstablishmentId() ? 'Editar Establecimiento' : 'Nuevo Establecimiento' }}
+                </h3>
+                <div class="mt-6 space-y-6">
+                  <div>
+                    <label for="name" class="block text-sm font-medium leading-6 text-text-strong">
+                      Nombre del Establecimiento
+                    </label>
+                    <div class="mt-2">
+                      <input type="text" id="name" formControlName="name" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
+                      @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+                        <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <label for="address" class="block text-sm font-medium leading-6 text-text-strong">
+                      Dirección
+                    </label>
+                    <div class="mt-2">
+                      <input type="text" id="address" formControlName="address" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
+                      @if (form.controls.address.touched && form.controls.address.hasError('required')) {
+                        <p class="mt-1 text-sm text-red-600">La dirección es requerida.</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <button type="submit" [disabled]="formLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
+                {{ formLoading() ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button type="button" (click)="closeModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Borrado -->
+@if (isDeleteModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <div class="sm:flex sm:items-start">
+            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3 class="text-base font-semibold leading-6 text-text-strong" id="modal-title">Eliminar establecimiento</h3>
+              <div class="mt-2">
+                <p class="text-sm text-text-muted">¿Estás seguro de que deseas eliminar este establecimiento? Esta acción no se puede deshacer.</p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <button type="button" [disabled]="formLoading()" (click)="confirmDelete()" class="inline-flex w-full justify-center rounded-pill bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto disabled:opacity-50">
+              {{ formLoading() ? 'Eliminando...' : 'Eliminar' }}
+            </button>
+            <button type="button" (click)="closeDeleteModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Asignar Servicio -->
+@if (isAssignModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <form [formGroup]="assignForm" (ngSubmit)="onAssignSubmit()">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">Asignar Servicio</h3>
+                <div class="mt-6 space-y-4">
+                  <div>
+                    <label for="serviceId" class="block text-sm font-medium leading-6 text-text-strong">Servicio</label>
+                    <div class="mt-2">
+                      <select id="serviceId" formControlName="serviceId" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50">
+                        <option [value]="0" disabled>Selecciona un servicio</option>
+                        @for (srv of services(); track srv.id) {
+                          <option [value]="srv.id">{{ srv.name }}</option>
+                        }
+                      </select>
+                      @if (assignForm.controls.serviceId.touched && assignForm.controls.serviceId.invalid) {
+                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un servicio válido.</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <button type="submit" [disabled]="formLoading() || servicesLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
+                {{ formLoading() ? 'Asignando...' : 'Asignar' }}
+              </button>
+              <button type="button" (click)="closeAssignModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
