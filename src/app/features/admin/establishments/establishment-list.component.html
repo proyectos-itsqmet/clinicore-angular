@@ -1,56 +1,67 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-text-strong">Gestor de establecimientos</h1>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Sedes y Centros Médicos</h1>
+      <p class="mt-1 text-xs text-ink-3">Gestiona las instalaciones, puntos de atención y asignaciones de personal.</p>
+    </div>
     <button
       (click)="openCreateModal()"
-      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
     >
-      <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
         <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
       </svg>
-      Nuevo Establecimiento
+      Nueva Sede
     </button>
   </div>
 
   @if (error()) {
-    <div class="rounded-md bg-red-50 p-4">
-      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
     </div>
   }
 
-  <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-    <table class="min-w-full divide-y divide-border">
-      <thead class="bg-surface-muted">
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
         <tr>
-          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6">ID</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Nombre</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Dirección</th>
-          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-            <span class="sr-only">Acciones</span>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Nombre del Establecimiento</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Dirección / Ubicación</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">
+            Acciones
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-border">
+      <tbody class="divide-y divide-line bg-surface">
         @if (loading()) {
           <tr>
-            <td colspan="4" class="py-12 text-center text-sm text-text-muted">Cargando establecimientos...</td>
+            <td colspan="4" class="py-12 text-center text-xs text-ink-3">Cargando establecimientos...</td>
           </tr>
         } @else if (data()?.content?.length === 0) {
           <tr>
-            <td colspan="4" class="py-12 text-center text-sm text-text-muted">No hay establecimientos registrados.</td>
+            <td colspan="4" class="py-12 text-center text-xs text-ink-3">No hay establecimientos registrados.</td>
           </tr>
         } @else {
           @for (item of data()?.content; track item.id) {
-            <tr>
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-strong sm:pl-6">{{ item.id }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">{{ item.name }}</td>
-              <td class="px-3 py-4 text-sm text-text-muted">{{ item.address }}</td>
-              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                <a [routerLink]="['/admin/administracion/establecimientos', item.id]" class="inline-flex items-center text-blue hover:text-blue-strong font-medium">
-                  Ver detalles
-                  <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-bold text-ink">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-tint text-blue font-bold flex items-center justify-center text-sm shadow-inner shrink-0">
+                    🏥
+                  </div>
+                  <span>{{ item.name }}</span>
+                </div>
+              </td>
+              <td class="px-3 py-4 text-xs text-ink-3">📍 {{ item.address }}</td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <a
+                  [routerLink]="['/admin/administracion/establecimientos', item.id]"
+                  class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                >
+                  <span>Ver Detalle & Recursos</span>
+                  <span>→</span>
                 </a>
               </td>
             </tr>
@@ -61,41 +72,33 @@
     
     <!-- Paginación -->
     @if (data() && !loading()) {
-      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <div class="flex flex-1 items-center justify-between">
           <div>
-            <p class="text-sm text-text-muted">
-              Mostrando <span class="font-medium">{{ data()!.pageable.offset + 1 }}</span> a
-              <span class="font-medium">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
-              <span class="font-medium">{{ data()!.totalElements }}</span> resultados
+            <p class="text-xs text-ink-3">
+              Mostrando <span class="font-bold text-ink">{{ data()!.pageable.offset + 1 }}</span> a
+              <span class="font-bold text-ink">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
+              <span class="font-bold text-ink">{{ data()!.totalElements }}</span> sedes
             </p>
           </div>
           <div>
-            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <nav class="inline-flex items-center gap-1" aria-label="Pagination">
               <button
                 [disabled]="data()!.first"
                 (click)="loadPage(data()!.number - 1)"
-                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
               >
-                <span class="sr-only">Anterior</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                </svg>
+                Anterior
               </button>
-              
-              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
-                Página {{ data()!.number + 1 }} de {{ data()!.totalPages }}
+              <span class="px-2 text-xs font-bold text-ink">
+                Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages }}
               </span>
-
               <button
                 [disabled]="data()!.last"
                 (click)="loadPage(data()!.number + 1)"
-                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
               >
-                <span class="sr-only">Siguiente</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                </svg>
+                Siguiente
               </button>
             </nav>
           </div>
@@ -105,51 +108,77 @@
   </div>
 </div>
 
-<!-- Modal Formulario -->
+<!-- =========================================================================
+     MODAL CREAR ESTABLECIMIENTO
+     ========================================================================= -->
 @if (isModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              Registrar Nueva Sede
+            </h3>
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
-                  Nuevo Establecimiento
-                </h3>
-                <div class="mt-6 space-y-6">
-                  <div>
-                    <label for="name" class="block text-sm font-medium leading-6 text-text-strong">
-                      Nombre del Establecimiento
-                    </label>
-                    <div class="mt-2">
-                      <input type="text" id="name" formControlName="name" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                      @if (form.controls.name.touched && form.controls.name.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <label for="address" class="block text-sm font-medium leading-6 text-text-strong">
-                      Dirección
-                    </label>
-                    <div class="mt-2">
-                      <input type="text" id="address" formControlName="address" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                      @if (form.controls.address.touched && form.controls.address.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La dirección es requerida.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
+            <div class="space-y-4">
+              <div>
+                <label for="name" class="block text-xs font-bold text-ink mb-1">
+                  Nombre del Centro / Sede *
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  formControlName="name"
+                  placeholder="Ej. Sede Norte, Consultorio Central..."
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">El nombre es requerido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="address" class="block text-xs font-bold text-ink mb-1">
+                  Dirección *
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  formControlName="address"
+                  placeholder="Ej. Av. 10 de Agosto y Colón"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (form.controls.address.touched && form.controls.address.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">La dirección es requerida.</p>
+                }
               </div>
             </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button type="submit" [disabled]="formLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
-                {{ formLoading() ? 'Guardando...' : 'Guardar' }}
-              </button>
-              <button type="button" (click)="closeModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
                 Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : 'Crear Sede' }}
               </button>
             </div>
           </form>

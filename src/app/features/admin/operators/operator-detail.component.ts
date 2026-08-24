@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { OperatorApiService } from '../../../core/api/operator-api.service';
 import { EstablishmentApiService } from '../../../core/api/establishment-api.service';
-import type { Operator, Establishment } from '../../../core/models';
+import type { Operator, Establishment, Page } from '../../../core/models';
 
 @Component({
   selector: 'app-operator-detail',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './operator-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -29,9 +29,14 @@ export class OperatorDetailComponent implements OnInit {
   protected readonly isAssignEstModalOpen = signal<boolean>(false);
   protected readonly formLoading = signal<boolean>(false);
 
-  // Catálogos para asignación
-  protected readonly establishments = signal<Establishment[]>([]);
-  protected readonly establishmentsLoading = signal<boolean>(false);
+  // Búsqueda y Asignación de Establecimientos
+  protected readonly candidateEstName = signal<string>('');
+  protected readonly candidateEstablishments = signal<Page<Establishment> | null>(null);
+  protected readonly candidateEstLoading = signal<boolean>(false);
+  protected readonly candidateEstPage = signal<number>(0);
+  protected readonly assigningEstId = signal<number | null>(null);
+  protected readonly assignEstSuccess = signal<string | null>(null);
+  protected readonly assignEstError = signal<string | null>(null);
 
   // Formularios
   protected readonly editForm = this.fb.nonNullable.group({
@@ -40,10 +45,6 @@ export class OperatorDetailComponent implements OnInit {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     role: ['ROLE_EMPLOYEE', Validators.required]
-  });
-
-  protected readonly assignEstForm = this.fb.nonNullable.group({
-    stablishmentId: [0, [Validators.required, Validators.min(1)]]
   });
 
   private operatorId: string = '';
@@ -147,49 +148,61 @@ export class OperatorDetailComponent implements OnInit {
     });
   }
 
-  // --- Modal Asignar Establecimiento ---
+  // --- Modal Asignar Establecimiento (Búsqueda) ---
   openAssignEstModal(): void {
-    this.assignEstForm.reset({ stablishmentId: 0 });
+    this.candidateEstName.set('');
+    this.candidateEstablishments.set(null);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
     this.isAssignEstModalOpen.set(true);
-
-    if (this.establishments().length === 0) {
-      this.establishmentsLoading.set(true);
-      this.establishmentApi.getAll(0, 100).subscribe({
-        next: (page) => {
-          this.establishments.set(page.content);
-          this.establishmentsLoading.set(false);
-        },
-        error: () => {
-          this.establishmentsLoading.set(false);
-          alert('Error al cargar la lista de establecimientos.');
-        }
-      });
-    }
+    this.searchCandidateEst(0);
   }
 
   closeAssignEstModal(): void {
     this.isAssignEstModalOpen.set(false);
   }
 
-  onAssignEstSubmit(): void {
-    if (this.assignEstForm.invalid) {
-      this.assignEstForm.markAllAsTouched();
-      return;
-    }
+  searchCandidateEst(page: number = 0): void {
+    this.candidateEstLoading.set(true);
+    this.candidateEstPage.set(page);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
 
-    this.formLoading.set(true);
-    const estId = Number(this.assignEstForm.getRawValue().stablishmentId);
+    const name = this.candidateEstName().trim() || undefined;
 
-    this.operatorApi.assignToStablishment(this.operatorId, estId).subscribe({
-      next: () => {
-        this.formLoading.set(false);
-        this.closeAssignEstModal();
-        alert('Establecimiento asignado correctamente al operador.');
-        this.loadOperator();
+    this.establishmentApi.getAll(page, 5, name).subscribe({
+      next: (data) => {
+        this.candidateEstablishments.set(data);
+        this.candidateEstLoading.set(false);
       },
       error: () => {
-        this.formLoading.set(false);
-        alert('Error al asignar el establecimiento al operador.');
+        this.candidateEstLoading.set(false);
+        this.assignEstError.set('Error al consultar establecimientos.');
+      }
+    });
+  }
+
+  resetCandidateEstSearch(): void {
+    this.candidateEstName.set('');
+    this.searchCandidateEst(0);
+  }
+
+  onAssignEst(est: Establishment): void {
+    if (!est.id) return;
+    this.assigningEstId.set(est.id);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
+
+    this.operatorApi.assignToStablishment(this.operatorId, est.id).subscribe({
+      next: () => {
+        this.assigningEstId.set(null);
+        this.assignEstSuccess.set(`Sede "${est.name}" asignada correctamente.`);
+        this.loadOperator();
+      },
+      error: (err) => {
+        this.assigningEstId.set(null);
+        const msg = err?.error?.message || err?.error?.Message || 'No se pudo asignar el establecimiento al operador.';
+        this.assignEstError.set(msg);
       }
     });
   }

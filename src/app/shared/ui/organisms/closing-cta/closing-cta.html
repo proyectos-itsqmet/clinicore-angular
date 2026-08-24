@@ -78,7 +78,7 @@
         </h2>
         <p class="text-lead max-w-[46ch] text-tint">{{ coverage().header.lead }}</p>
         <div class="mt-1.5 flex flex-col gap-2.5 md:flex-row md:items-center md:gap-3">
-          <app-button variant="primary" size="lg" [href]="coverage().ctas.primary.href">
+          <app-button variant="primary" size="lg" [href]="primaryCtaHref()">
             {{ coverage().ctas.primary.label }}
             <app-icon name="arrow" [size]="18" />
           </app-button>

@@ -11,6 +11,31 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login-page').then((module) => module.LoginPage),
     title: 'Ingreso · CliniCore',
   },
+  {
+    path: 'registro',
+    loadComponent: () => import('./features/auth/register-page').then((module) => module.RegisterPage),
+    title: 'Registro de Paciente · CliniCore',
+  },
+  {
+    path: 'agendar',
+    loadComponent: () => import('./features/booking/booking-page').then((module) => module.BookingPage),
+    title: 'Agendar Turno · CliniCore',
+  },
+  {
+    path: 'citas/agendar',
+    redirectTo: 'agendar',
+    pathMatch: 'full'
+  },
+  {
+    path: 'perfil',
+    loadComponent: () => import('./features/patient/patient-profile').then((module) => module.PatientProfileComponent),
+    title: 'Mi Perfil y Turnos · CliniCore',
+  },
+  {
+    path: 'mi-perfil',
+    redirectTo: 'perfil',
+    pathMatch: 'full'
+  },
   // La pantalla de sala de espera. Sin chrome, sin scroll, relacion de aspecto
   // fija: es un TV, no una pagina. `:sedeId` llega al componente como `input`
   // gracias a `withComponentInputBinding()` en app.config.ts, y de ahi a

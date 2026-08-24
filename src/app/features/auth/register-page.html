@@ -1,0 +1,398 @@
+<div class="min-h-screen bg-field flex flex-col justify-between py-8 px-4 sm:px-6 lg:px-8">
+  <!-- Top Navigation & Brand Header -->
+  <div class="max-w-4xl mx-auto w-full flex items-center justify-between pb-6 border-b border-line">
+    <a routerLink="/" class="flex items-center gap-2.5 group">
+      <div class="w-10 h-10 rounded-xl bg-blue flex items-center justify-center shadow-cta text-surface font-extrabold">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="10" class="fill-blue" />
+          <path d="M16 8.5v15M8.5 16h15" stroke="white" stroke-width="3.4" stroke-linecap="round" />
+        </svg>
+      </div>
+      <span class="font-display text-xl font-extrabold tracking-tight text-ink group-hover:text-blue transition-colors">
+        CliniCore
+      </span>
+    </a>
+
+    <a
+      routerLink="/login"
+      class="inline-flex items-center text-sm font-semibold text-blue-text hover:text-ink transition-colors gap-1.5"
+    >
+      <span>¿Ya tienes cuenta? Inicia sesión</span>
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+      </svg>
+    </a>
+  </div>
+
+  <!-- Form Container -->
+  <div class="max-w-3xl mx-auto w-full my-6">
+    <div class="bg-surface rounded-card p-6 sm:p-10 shadow-lift-1 border border-line">
+      <!-- Title & Greeting -->
+      <div class="text-center sm:text-left mb-8 border-b border-line/60 pb-6">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-tint text-xs font-bold text-blue uppercase tracking-wider mb-2">
+          ✨ Registro de Paciente
+        </span>
+        <h1 class="text-2xl sm:text-3xl font-display font-extrabold text-ink">
+          Crea tu cuenta para agendar tu cita
+        </h1>
+        <p class="text-ink-2 text-sm sm:text-base mt-1">
+          Completa tus datos para recibir tu código de validación y gestionar tus citas de forma rápida y segura.
+        </p>
+      </div>
+
+      <!-- Success Notification -->
+      @if (registrationSuccess()) {
+        <div class="mb-6 rounded-2xl bg-emerald-50 border border-emerald-200 p-6 text-center animate-fade-in">
+          <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-xl font-bold">
+            ✓
+          </div>
+          <h3 class="text-lg font-bold text-emerald-900">¡Registro completado con éxito!</h3>
+          <p class="text-sm text-emerald-700 mt-1">
+            Tu cuenta ha sido creada. Te estamos redirigiendo a la pantalla de inicio de sesión...
+          </p>
+        </div>
+      }
+
+      <!-- Error Notification -->
+      @if (error()) {
+        <div class="mb-6 rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700 flex items-start gap-3">
+          <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          <div class="flex-1">
+            <p class="font-semibold text-red-800">No se pudo iniciar el registro</p>
+            <p class="mt-0.5">{{ error() }}</p>
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onInitRegistration()" class="space-y-6">
+        <!-- Sección 1: Datos Obligatorios Principales -->
+        <div>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-ink-3 mb-4 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-blue text-surface text-xs flex items-center justify-center">1</span>
+            Datos Obligatorios
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Nombres -->
+            <div>
+              <label for="reg-firstName" class="block text-xs font-semibold text-ink mb-1">
+                Nombres <span class="text-emergency">*</span>
+              </label>
+              <input
+                id="reg-firstName"
+                type="text"
+                formControlName="firstName"
+                placeholder="Ej. Gerardo"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+              @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
+                <p class="mt-1 text-xs text-emergency">Los nombres son obligatorios.</p>
+              }
+            </div>
+
+            <!-- Apellidos -->
+            <div>
+              <label for="reg-lastName" class="block text-xs font-semibold text-ink mb-1">
+                Apellidos <span class="text-emergency">*</span>
+              </label>
+              <input
+                id="reg-lastName"
+                type="text"
+                formControlName="lastName"
+                placeholder="Ej. Araque"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+              @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
+                <p class="mt-1 text-xs text-emergency">Los apellidos son obligatorios.</p>
+              }
+            </div>
+
+            <!-- Cédula (CI) -->
+            <div>
+              <label for="reg-ci" class="block text-xs font-semibold text-ink mb-1">
+                Cédula de Identidad (10 dígitos) <span class="text-emergency">*</span>
+              </label>
+              <input
+                id="reg-ci"
+                type="text"
+                maxlength="10"
+                formControlName="ci"
+                placeholder="Ej. 1724037890"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all font-mono"
+              />
+              @if (form.controls.ci.touched && form.controls.ci.hasError('required')) {
+                <p class="mt-1 text-xs text-emergency">La cédula es obligatoria.</p>
+              }
+              @if (form.controls.ci.touched && form.controls.ci.hasError('pattern')) {
+                <p class="mt-1 text-xs text-emergency">Debe contener exactamente 10 dígitos numéricos.</p>
+              }
+            </div>
+
+            <!-- Fecha de Nacimiento (birthday) -->
+            <div>
+              <label for="reg-birthday" class="block text-xs font-semibold text-ink mb-1">
+                Fecha de Nacimiento <span class="text-emergency">*</span>
+              </label>
+              <input
+                id="reg-birthday"
+                type="date"
+                formControlName="birthday"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+              @if (form.controls.birthday.touched && form.controls.birthday.hasError('required')) {
+                <p class="mt-1 text-xs text-emergency">La fecha de nacimiento es obligatoria.</p>
+              }
+            </div>
+
+            <!-- Correo Electrónico -->
+            <div>
+              <label for="reg-email" class="block text-xs font-semibold text-ink mb-1">
+                Correo Electrónico <span class="text-emergency">*</span>
+              </label>
+              <input
+                id="reg-email"
+                type="email"
+                formControlName="email"
+                placeholder="tu_correo@ejemplo.com"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+              @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+                <p class="mt-1 text-xs text-emergency">El correo electrónico es obligatorio.</p>
+              }
+              @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                <p class="mt-1 text-xs text-emergency">Ingresa un correo electrónico válido.</p>
+              }
+            </div>
+
+            <!-- Contraseña -->
+            <div>
+              <label for="reg-password" class="block text-xs font-semibold text-ink mb-1">
+                Contraseña <span class="text-emergency">*</span>
+              </label>
+              <input
+                id="reg-password"
+                type="password"
+                formControlName="password"
+                placeholder="Mínimo 6 caracteres"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+              @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+                <p class="mt-1 text-xs text-emergency">La contraseña es obligatoria.</p>
+              }
+              @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+                <p class="mt-1 text-xs text-emergency">Debe tener al menos 6 caracteres.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 2: Datos Opcionales de Contacto y Perfil -->
+        <div class="pt-4 border-t border-line/60">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-ink-3 mb-4 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-tint text-blue text-xs flex items-center justify-center font-bold">2</span>
+            Información Adicional (Opcional)
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Teléfono Personal -->
+            <div>
+              <label for="reg-phone" class="block text-xs font-semibold text-ink mb-1">
+                Teléfono de Contacto
+              </label>
+              <input
+                id="reg-phone"
+                type="tel"
+                formControlName="phone"
+                placeholder="Ej. 0987654321"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+            </div>
+
+            <!-- Género -->
+            <div>
+              <label for="reg-gender" class="block text-xs font-semibold text-ink mb-1">
+                Género
+              </label>
+              <select
+                id="reg-gender"
+                formControlName="gender"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              >
+                <option value="GENDER_MALE">Masculino</option>
+                <option value="GENDER_FEMALE">Femenino</option>
+                <option value="GENDER_OTHER">Otro / Prefiero no decir</option>
+              </select>
+            </div>
+
+            <!-- Dirección -->
+            <div class="sm:col-span-2">
+              <label for="reg-address" class="block text-xs font-semibold text-ink mb-1">
+                Dirección Domiciliaria
+              </label>
+              <input
+                id="reg-address"
+                type="text"
+                formControlName="address"
+                placeholder="Ej. Av. Amazonas y República, Quito"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+            </div>
+
+            <!-- Nombre de Contacto de Emergencia -->
+            <div>
+              <label for="reg-emg-name" class="block text-xs font-semibold text-ink mb-1">
+                Contacto de Emergencia (Nombre)
+              </label>
+              <input
+                id="reg-emg-name"
+                type="text"
+                formControlName="emergencyContactName"
+                placeholder="Ej. María Araque"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+            </div>
+
+            <!-- Teléfono de Contacto de Emergencia -->
+            <div>
+              <label for="reg-emg-phone" class="block text-xs font-semibold text-ink mb-1">
+                Teléfono de Emergencia
+              </label>
+              <input
+                id="reg-emg-phone"
+                type="tel"
+                formControlName="emergencyContactPhone"
+                placeholder="Ej. 0991234567"
+                class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-4 border-t border-line/60">
+          <button
+            type="submit"
+            [disabled]="loading() || registrationSuccess()"
+            class="w-full flex items-center justify-center gap-2 rounded-pill bg-blue py-3.5 px-6 text-base font-bold text-surface shadow-cta hover:bg-blue-bright active:translate-y-px transition-all disabled:opacity-50"
+          >
+            @if (loading()) {
+              <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-surface" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              Enviando código de verificación...
+            } @else {
+              <span>Continuar y verificar correo</span>
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer Info -->
+  <div class="max-w-4xl mx-auto w-full text-center text-xs text-ink-3 pt-4">
+    CliniCore © 2026 · Sistema Médico y Gestión de Turnos Clínicos
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL AMIGABLE DE VERIFICACIÓN OTP
+     ========================================================================= -->
+@if (isOtpModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-otp-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-navy-deep/60 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-center justify-center p-4 text-center">
+        <div class="relative transform overflow-hidden rounded-panel-sm bg-surface p-6 sm:p-8 text-left shadow-lift-2 transition-all w-full max-w-md border border-line">
+          <!-- Icon Header -->
+          <div class="flex flex-col items-center text-center mb-6">
+            <div class="w-16 h-16 rounded-full bg-tint flex items-center justify-center text-blue text-2xl mb-3 shadow-inner">
+              ✉️
+            </div>
+            <h3 class="text-xl font-display font-bold text-ink" id="modal-otp-title">
+              Verifica tu Correo Electrónico
+            </h3>
+            <p class="text-sm text-ink-2 mt-2 leading-relaxed">
+              Hemos enviado un código de seguridad (OTP) a:
+              <br />
+              <strong class="text-blue font-semibold font-mono">{{ form.getRawValue().email }}</strong>
+            </p>
+          </div>
+
+          <!-- Error Alert inside modal -->
+          @if (otpError()) {
+            <div class="mb-4 rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-700 flex items-start gap-2">
+              <svg class="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <span>{{ otpError() }}</span>
+            </div>
+          }
+
+          <form [formGroup]="otpForm" (ngSubmit)="onVerifyOtpAndRegister()" class="space-y-5">
+            <div>
+              <label for="otp-input" class="block text-xs font-semibold text-ink text-center mb-2">
+                Ingresa el código recibido
+              </label>
+              <input
+                id="otp-input"
+                type="text"
+                formControlName="otp"
+                placeholder="Ej. 123456"
+                maxlength="10"
+                autofocus
+                class="block w-full text-center tracking-[0.35em] text-2xl font-mono font-bold rounded-2xl border-2 border-line bg-field py-3 px-4 text-ink focus:border-blue focus:bg-surface focus:outline-none focus:ring-4 focus:ring-blue/10 transition-all"
+              />
+              @if (otpForm.controls.otp.touched && otpForm.controls.otp.hasError('required')) {
+                <p class="mt-1 text-xs text-emergency text-center">Debes ingresar el código OTP.</p>
+              }
+            </div>
+
+            <!-- Botón de verificación y registro -->
+            <button
+              type="submit"
+              [disabled]="otpLoading()"
+              class="w-full flex items-center justify-center gap-2 rounded-pill bg-blue py-3 px-6 text-sm font-bold text-surface shadow-cta hover:bg-blue-bright active:translate-y-px transition-all disabled:opacity-50"
+            >
+              @if (otpLoading()) {
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-surface" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                Verificando y completando registro...
+              } @else {
+                <span>Confirmar y Completar Registro</span>
+              }
+            </button>
+
+            <!-- Reenviar OTP & Cerrar -->
+            <div class="flex items-center justify-between pt-3 border-t border-line/60 text-xs">
+              <button
+                type="button"
+                (click)="resendOtp()"
+                [disabled]="otpLoading()"
+                class="text-blue-text font-semibold hover:underline"
+              >
+                ¿No te llegó el código? Reenviar
+              </button>
+
+              <button
+                type="button"
+                (click)="closeOtpModal()"
+                class="text-ink-3 hover:text-ink"
+              >
+                Corregir datos
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

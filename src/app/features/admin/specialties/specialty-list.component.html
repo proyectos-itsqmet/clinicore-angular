@@ -1,15 +1,15 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-text-strong">Servicios Médicos</h1>
-      <p class="mt-1 text-sm text-text-muted">Gestiona los servicios y especialidades del sistema.</p>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Servicios y Especialidades Médicas</h1>
+      <p class="mt-1 text-xs text-ink-3">Gestiona el catálogo de especialidades, precios, sedes y horarios de atención.</p>
     </div>
     <button
       (click)="openCreateModal()"
       type="button"
-      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
     >
-      <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
         <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
       </svg>
       Añadir Servicio
@@ -17,51 +17,56 @@
   </div>
 
   @if (error()) {
-    <div class="rounded-md bg-red-50 p-4">
-      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
     </div>
   }
 
-  <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-    <table class="min-w-full divide-y divide-border">
-      <thead class="bg-surface-muted">
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
         <tr>
-          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6">ID</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Nombre del Servicio</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Precio</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Descuento</th>
-          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6"><span class="sr-only">Acciones</span></th>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Nombre del Servicio</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio Base</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Descuento</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-border">
+      <tbody class="divide-y divide-line bg-surface">
         @if (loading()) {
-          <tr><td colspan="5" class="py-12 text-center text-sm text-text-muted">Cargando servicios...</td></tr>
+          <tr><td colspan="5" class="py-12 text-center text-xs text-ink-3">Cargando catálogo de servicios...</td></tr>
         } @else if (data()?.content?.length === 0) {
-          <tr><td colspan="5" class="py-12 text-center text-sm text-text-muted">No hay servicios registrados.</td></tr>
+          <tr><td colspan="5" class="py-12 text-center text-xs text-ink-3">No hay servicios registrados actualmente.</td></tr>
         } @else {
           @for (item of data()?.content; track item.id) {
-            <tr class="hover:bg-surface-muted/50 transition-colors">
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-mono font-medium text-text-muted sm:pl-6">#{{ item.id }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-text-strong">{{ item.name }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-strong font-medium">${{ item.price | number:'1.2-2' }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-bold text-ink">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-tint text-blue font-bold flex items-center justify-center text-sm shadow-inner shrink-0">
+                    🩺
+                  </div>
+                  <span>{{ item.name }}</span>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink font-bold">${{ item.price | number:'1.2-2' }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
                 @if (item.discount && item.discount > 0) {
-                  <span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                  <span class="inline-flex items-center rounded-pill bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
                     -${{ item.discount | number:'1.2-2' }}
                   </span>
                 } @else {
-                  <span class="text-text-muted text-xs">Sin descuento</span>
+                  <span class="text-ink-3 text-xs">Sin descuento</span>
                 }
               </td>
-              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
                 <a
                   [routerLink]="['/admin/administracion/especialidades', item.id]"
-                  class="inline-flex items-center text-blue hover:text-blue-strong font-medium"
+                  class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
                 >
-                  Ver detalles
-                  <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
+                  <span>Ver Detalle & Sedes</span>
+                  <span>→</span>
                 </a>
               </td>
             </tr>
@@ -71,27 +76,33 @@
     </table>
     
     @if (data() && !loading()) {
-      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <div class="flex flex-1 items-center justify-between">
           <div>
-            <p class="text-sm text-text-muted">
-              Mostrando <span class="font-medium">{{ data()!.pageable.offset + 1 }}</span> a
-              <span class="font-medium">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
-              <span class="font-medium">{{ data()!.totalElements }}</span> resultados
+            <p class="text-xs text-ink-3">
+              Mostrando <span class="font-bold text-ink">{{ data()!.pageable.offset + 1 }}</span> a
+              <span class="font-bold text-ink">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
+              <span class="font-bold text-ink">{{ data()!.totalElements }}</span> servicios
             </p>
           </div>
           <div>
-            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-              <button [disabled]="data()!.first" (click)="loadPage(data()!.number - 1)" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50">
-                <span class="sr-only">Anterior</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
+            <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+              <button
+                [disabled]="data()!.first"
+                (click)="loadPage(data()!.number - 1)"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+              >
+                Anterior
               </button>
-              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
-                Página {{ data()!.number + 1 }} de {{ data()!.totalPages }}
+              <span class="px-2 text-xs font-bold text-ink">
+                Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages }}
               </span>
-              <button [disabled]="data()!.last" (click)="loadPage(data()!.number + 1)" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50">
-                <span class="sr-only">Siguiente</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+              <button
+                [disabled]="data()!.last"
+                (click)="loadPage(data()!.number + 1)"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+              >
+                Siguiente
               </button>
             </nav>
           </div>
@@ -101,63 +112,93 @@
   </div>
 </div>
 
+<!-- =========================================================================
+     MODAL CREAR SERVICIO
+     ========================================================================= -->
 @if (isModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              Nuevo Servicio Médico
+            </h3>
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
-                  Nuevo Servicio
-                </h3>
-                <div class="mt-6 space-y-4">
-                  <div>
-                    <label for="name" class="block text-sm font-medium leading-6 text-text-strong">Nombre del Servicio</label>
-                    <div class="mt-2">
-                      <input type="text" id="name" formControlName="name" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                      @if (form.controls.name.touched && form.controls.name.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <label for="price" class="block text-sm font-medium leading-6 text-text-strong">Precio Base ($)</label>
-                    <div class="mt-2 relative rounded-md shadow-sm">
-                      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <span class="text-text-muted sm:text-sm">$</span>
-                      </div>
-                      <input type="number" id="price" formControlName="price" step="0.01" min="0" class="block w-full rounded-md border-0 bg-surface py-1.5 pl-7 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                      @if (form.controls.price.touched && form.controls.price.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El precio es requerido.</p>
-                      } @else if (form.controls.price.touched && form.controls.price.hasError('min')) {
-                        <p class="mt-1 text-sm text-red-600">El precio no puede ser negativo.</p>
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <label for="discount" class="block text-sm font-medium leading-6 text-text-strong">Descuento ($) (Opcional)</label>
-                    <div class="mt-2 relative rounded-md shadow-sm">
-                      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <span class="text-text-muted sm:text-sm">$</span>
-                      </div>
-                      <input type="number" id="discount" formControlName="discount" step="0.01" min="0" class="block w-full rounded-md border-0 bg-surface py-1.5 pl-7 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                      @if (form.controls.discount.touched && form.controls.discount.hasError('min')) {
-                        <p class="mt-1 text-sm text-red-600">El descuento no puede ser negativo.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
+            <div class="space-y-4">
+              <div>
+                <label for="name" class="block text-xs font-bold text-ink mb-1">Nombre del Servicio *</label>
+                <input
+                  type="text"
+                  id="name"
+                  formControlName="name"
+                  placeholder="Ej. Odontología General, Consulta Médica..."
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">El nombre es requerido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="price" class="block text-xs font-bold text-ink mb-1">Precio Base ($) *</label>
+                <input
+                  type="number"
+                  id="price"
+                  formControlName="price"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (form.controls.price.touched && form.controls.price.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">El precio es requerido.</p>
+                } @else if (form.controls.price.touched && form.controls.price.hasError('min')) {
+                  <p class="mt-1 text-xs text-red-600">El precio no puede ser negativo.</p>
+                }
+              </div>
+
+              <div>
+                <label for="discount" class="block text-xs font-bold text-ink mb-1">Descuento Promocional ($) (Opcional)</label>
+                <input
+                  type="number"
+                  id="discount"
+                  formControlName="discount"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (form.controls.discount.touched && form.controls.discount.hasError('min')) {
+                  <p class="mt-1 text-xs text-red-600">El descuento no puede ser negativo.</p>
+                }
               </div>
             </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button type="submit" [disabled]="formLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
-                {{ formLoading() ? 'Guardando...' : 'Guardar' }}
-              </button>
-              <button type="button" (click)="closeModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
                 Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : 'Crear Servicio' }}
               </button>
             </div>
           </form>

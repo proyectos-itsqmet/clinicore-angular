@@ -1,46 +1,42 @@
-<div class="px-4 sm:px-6 lg:px-8 space-y-6">
-  <div class="sm:flex sm:items-center sm:justify-between">
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-text-strong">Pacientes</h1>
-      <p class="mt-1 text-sm text-text-muted">Listado general de pacientes registrados en el sistema.</p>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Pacientes del Sistema</h1>
+      <p class="mt-1 text-xs text-ink-3">Búsqueda y consulta de fichas médicas, historial de turnos y datos personales de pacientes.</p>
     </div>
   </div>
 
   <!-- Filtros de Búsqueda -->
-  <div class="rounded-xl border border-border bg-surface p-4 shadow-sm">
-    <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:items-end">
-      <div>
-        <label for="name" class="block text-sm font-medium leading-6 text-text-strong">Buscar por Nombre</label>
-        <div class="mt-1">
-          <input
-            type="text"
-            id="name"
-            formControlName="name"
-            placeholder="Ej. Juan Pérez"
-            class="block w-full rounded-md border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm"
-          />
-        </div>
+  <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="grid grid-cols-1 gap-3 sm:grid-cols-12 sm:items-end">
+      <div class="sm:col-span-5">
+        <label for="name" class="block text-xs font-bold text-ink mb-1">Buscar por Nombre o Apellido</label>
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          placeholder="Ej. Juan Pérez o Maria"
+          class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+        />
       </div>
 
-      <div>
-        <label for="ci" class="block text-sm font-medium leading-6 text-text-strong">Número de Cédula</label>
-        <div class="mt-1">
-          <input
-            type="text"
-            id="ci"
-            formControlName="ci"
-            placeholder="Ej. 1712345678"
-            class="block w-full rounded-md border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm"
-          />
-        </div>
+      <div class="sm:col-span-4">
+        <label for="ci" class="block text-xs font-bold text-ink mb-1">Cédula de Identidad (CI)</label>
+        <input
+          type="text"
+          id="ci"
+          formControlName="ci"
+          placeholder="Ej. 1712345678"
+          class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+        />
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="sm:col-span-3 flex items-center gap-2">
         <button
           type="submit"
-          class="inline-flex flex-1 justify-center items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
+          class="inline-flex flex-1 justify-center items-center rounded-pill bg-blue py-2 px-4 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
         >
-          <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <svg class="-ml-1 mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           Buscar
@@ -48,7 +44,7 @@
         <button
           type="button"
           (click)="onReset()"
-          class="inline-flex justify-center items-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted"
+          class="inline-flex justify-center items-center rounded-pill border border-line bg-field px-3 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
         >
           Limpiar
         </button>
@@ -57,58 +53,57 @@
   </div>
 
   @if (error()) {
-    <div class="rounded-md bg-red-50 p-4">
-      <div class="flex">
-        <div class="ml-3">
-          <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
-        </div>
-      </div>
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
     </div>
   }
 
   <!-- Tabla de Pacientes -->
-  <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-    <table class="min-w-full divide-y divide-border">
-      <thead class="bg-surface-muted">
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
         <tr>
-          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6">Correo Electrónico</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Nombres</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Número de Cédula</th>
-          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-            <span class="sr-only">Acciones</span>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Paciente</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Cédula (CI)</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Correo Electrónico</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">
+            Acciones
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-border bg-surface">
+      <tbody class="divide-y divide-line bg-surface">
         @if (loading()) {
           <tr>
-            <td colspan="4" class="py-12 text-center text-sm text-text-muted">Cargando pacientes...</td>
+            <td colspan="4" class="py-12 text-center text-xs text-ink-3">Cargando pacientes del sistema...</td>
           </tr>
         } @else if (data()?.content?.length === 0) {
           <tr>
-            <td colspan="4" class="py-12 text-center text-sm text-text-muted">No se encontraron pacientes registrados.</td>
+            <td colspan="4" class="py-12 text-center text-xs text-ink-3">No se encontraron pacientes registrados con los filtros aplicados.</td>
           </tr>
         } @else {
           @for (patient of data()?.content; track patient.uuid) {
-            <tr class="hover:bg-surface-muted/50 transition-colors">
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-strong sm:pl-6">
-                {{ patient.email }}
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-bold text-ink">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 font-extrabold flex items-center justify-center text-xs shadow-inner shrink-0">
+                    {{ patient.firstName?.charAt(0) }}
+                  </div>
+                  <span>{{ patient.firstName }} {{ patient.lastName }}</span>
+                </div>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
-                {{ patient.firstName }} {{ patient.lastName }}
-              </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-mono font-bold text-ink">
                 {{ patient.ci }}
               </td>
-              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">
+                {{ patient.email }}
+              </td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
                 <a
                   [routerLink]="['/admin/pacientes/informacion', patient.uuid]"
-                  class="inline-flex items-center font-medium text-blue hover:text-blue-strong"
+                  class="inline-flex items-center gap-1 rounded-pill bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 hover:bg-purple-700 hover:text-white transition-all shadow-sm"
                 >
-                  Ver detalles
-                  <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
+                  <span>Ver Historial & Ficha</span>
+                  <span>→</span>
                 </a>
               </td>
             </tr>
@@ -119,39 +114,33 @@
 
     <!-- Paginación -->
     @if (data() && !loading()) {
-      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <div class="flex flex-1 items-center justify-between">
           <div>
-            <p class="text-sm text-text-muted">
-              Mostrando <span class="font-medium">{{ data()!.pageable.offset + 1 }}</span> a
-              <span class="font-medium">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
-              <span class="font-medium">{{ data()!.totalElements }}</span> resultados
+            <p class="text-xs text-ink-3">
+              Mostrando <span class="font-bold text-ink">{{ data()!.pageable.offset + 1 }}</span> a
+              <span class="font-bold text-ink">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
+              <span class="font-bold text-ink">{{ data()!.totalElements }}</span> pacientes
             </p>
           </div>
           <div>
-            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <nav class="inline-flex items-center gap-1" aria-label="Pagination">
               <button
                 [disabled]="data()!.first"
                 (click)="loadPage(data()!.number - 1)"
-                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
               >
-                <span class="sr-only">Anterior</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                </svg>
+                Anterior
               </button>
-              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
-                Página {{ data()!.number + 1 }} de {{ data()!.totalPages === 0 ? 1 : data()!.totalPages }}
+              <span class="px-2 text-xs font-bold text-ink">
+                Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages === 0 ? 1 : data()!.totalPages }}
               </span>
               <button
                 [disabled]="data()!.last"
                 (click)="loadPage(data()!.number + 1)"
-                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
               >
-                <span class="sr-only">Siguiente</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                </svg>
+                Siguiente
               </button>
             </nav>
           </div>

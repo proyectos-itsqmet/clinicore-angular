@@ -58,9 +58,33 @@ export class SpecialtyDetailComponent implements OnInit {
   protected readonly isEditModalOpen = signal<boolean>(false);
   protected readonly isDeleteModalOpen = signal<boolean>(false);
   protected readonly isCreateScheduleModalOpen = signal<boolean>(false);
+  protected readonly isGenerateBatchModalOpen = signal<boolean>(false);
   protected readonly isAssignEstablishmentModalOpen = signal<boolean>(false);
+  protected readonly isAssignDoctorModalOpen = signal<boolean>(false);
   protected readonly formLoading = signal<boolean>(false);
   protected readonly createScheduleLoading = signal<boolean>(false);
+  protected readonly generateBatchLoading = signal<boolean>(false);
+  protected readonly generateBatchError = signal<string | null>(null);
+  protected readonly generateBatchSuccess = signal<string | null>(null);
+
+  // Búsqueda y Asignación de Doctores al Servicio
+  protected readonly candidateDoctorName = signal<string>('');
+  protected readonly candidateDoctorCi = signal<string>('');
+  protected readonly candidateDoctors = signal<Page<AdminDoctor> | null>(null);
+  protected readonly candidateDoctorsLoading = signal<boolean>(false);
+  protected readonly candidateDoctorsPage = signal<number>(0);
+  protected readonly assigningDoctorUuid = signal<string | null>(null);
+  protected readonly assignDoctorSuccess = signal<string | null>(null);
+  protected readonly assignDoctorError = signal<string | null>(null);
+
+  // Búsqueda y Asignación de Establecimientos al Servicio
+  protected readonly candidateEstName = signal<string>('');
+  protected readonly candidateEstablishments = signal<Page<Establishment> | null>(null);
+  protected readonly candidateEstLoading = signal<boolean>(false);
+  protected readonly candidateEstPage = signal<number>(0);
+  protected readonly assigningEstId = signal<number | null>(null);
+  protected readonly assignEstSuccess = signal<string | null>(null);
+  protected readonly assignEstError = signal<string | null>(null);
 
   // Formulario de edición de servicio
   protected readonly editForm = this.fb.nonNullable.group({
@@ -74,11 +98,19 @@ export class SpecialtyDetailComponent implements OnInit {
     stablishmentId: [0, [Validators.required, Validators.min(1)]]
   });
 
-  // Formulario de creación de horario
+  // Formulario de creación de horario individual
   protected readonly createScheduleForm = this.fb.nonNullable.group({
     date: ['', Validators.required],
     hour: ['12:00', Validators.required],
     doctorUuid: ['', Validators.required],
+    stablishmentId: [0, [Validators.required, Validators.min(1)]]
+  });
+
+  // Formulario de generación de turnos en lote (/api/schedules/generate)
+  protected readonly generateBatchForm = this.fb.nonNullable.group({
+    date: ['', Validators.required],
+    intervalMinutes: [30, [Validators.required, Validators.min(5), Validators.max(120)]],
+    doctorUuid: [''],
     stablishmentId: [0, [Validators.required, Validators.min(1)]]
   });
 
@@ -302,36 +334,184 @@ export class SpecialtyDetailComponent implements OnInit {
     });
   }
 
-  // --- Modal Asignar Establecimiento ---
+  // --- Modal Generación de Turnos en Lote (/api/schedules/generate) ---
+  openGenerateBatchModal(): void {
+    const today = new Date().toISOString().split('T')[0];
+    const firstEstId = this.assignedEstablishments()?.content?.[0]?.id || this.establishments()?.[0]?.id || 0;
+    const firstDocUuid = this.doctors()?.content?.[0]?.uuid || '';
+
+    this.generateBatchForm.reset({
+      date: today,
+      intervalMinutes: 30,
+      doctorUuid: firstDocUuid,
+      stablishmentId: firstEstId
+    });
+
+    this.generateBatchError.set(null);
+    this.generateBatchSuccess.set(null);
+    this.isGenerateBatchModalOpen.set(true);
+  }
+
+  closeGenerateBatchModal(): void {
+    this.isGenerateBatchModalOpen.set(false);
+  }
+
+  onGenerateBatchSubmit(): void {
+    if (this.generateBatchForm.invalid) {
+      this.generateBatchForm.markAllAsTouched();
+      return;
+    }
+
+    this.generateBatchLoading.set(true);
+    this.generateBatchError.set(null);
+    this.generateBatchSuccess.set(null);
+
+    const val = this.generateBatchForm.getRawValue();
+
+    const payload = {
+      serviceId: this.serviceId,
+      stablishmentId: Number(val.stablishmentId),
+      doctorId: val.doctorUuid ? val.doctorUuid : (undefined as any),
+      date: val.date,
+      intervalMinutes: Number(val.intervalMinutes)
+    };
+
+    this.scheduleApi.generateSchedules(payload).subscribe({
+      next: (schedules) => {
+        this.generateBatchLoading.set(false);
+        this.generateBatchSuccess.set(`¡Se han generado exitosamente ${schedules.length} turnos de atención para el ${val.date}!`);
+        this.loadSchedules(0);
+        setTimeout(() => {
+          this.closeGenerateBatchModal();
+        }, 1800);
+      },
+      error: (err) => {
+        this.generateBatchLoading.set(false);
+        const msg = err?.error?.message || err?.error?.error || 'No se pudieron generar los turnos en lote. Verifica que el doctor y el servicio pertenezcan a la sede seleccionada.';
+        this.generateBatchError.set(msg);
+      }
+    });
+  }
+
+  // --- Modal Asignar Doctor al Servicio ---
+  openAssignDoctorModal(): void {
+    this.candidateDoctorName.set('');
+    this.candidateDoctorCi.set('');
+    this.candidateDoctors.set(null);
+    this.assignDoctorSuccess.set(null);
+    this.assignDoctorError.set(null);
+    this.isAssignDoctorModalOpen.set(true);
+    this.searchCandidateDoctors(0);
+  }
+
+  closeAssignDoctorModal(): void {
+    this.isAssignDoctorModalOpen.set(false);
+  }
+
+  searchCandidateDoctors(page: number = 0): void {
+    this.candidateDoctorsLoading.set(true);
+    this.candidateDoctorsPage.set(page);
+    this.assignDoctorSuccess.set(null);
+    this.assignDoctorError.set(null);
+
+    const name = this.candidateDoctorName().trim() || undefined;
+    const ci = this.candidateDoctorCi().trim() || undefined;
+
+    this.doctorApi.getAll(page, 5, name, ci).subscribe({
+      next: (data) => {
+        this.candidateDoctors.set(data);
+        this.candidateDoctorsLoading.set(false);
+      },
+      error: () => {
+        this.candidateDoctorsLoading.set(false);
+        this.assignDoctorError.set('Error al buscar médicos.');
+      }
+    });
+  }
+
+  resetCandidateSearch(): void {
+    this.candidateDoctorName.set('');
+    this.candidateDoctorCi.set('');
+    this.searchCandidateDoctors(0);
+  }
+
+  onAssignDoctor(doc: AdminDoctor): void {
+    if (!doc.uuid) return;
+    this.assigningDoctorUuid.set(doc.uuid);
+    this.assignDoctorSuccess.set(null);
+    this.assignDoctorError.set(null);
+
+    this.doctorApi.assignToService(doc.uuid, this.serviceId).subscribe({
+      next: () => {
+        this.assigningDoctorUuid.set(null);
+        this.assignDoctorSuccess.set(`Dr. ${doc.firstName} ${doc.lastName} asignado exitosamente.`);
+        this.loadDoctors();
+        this.loadAllDoctors();
+      },
+      error: (err) => {
+        this.assigningDoctorUuid.set(null);
+        const msg = err?.error?.message || err?.error?.Message || 'No se pudo asignar el doctor a este servicio.';
+        this.assignDoctorError.set(msg);
+      }
+    });
+  }
+
+  // --- Modal Asignar Establecimiento al Servicio ---
   openAssignEstablishmentModal(): void {
-    const firstEstId = this.establishments()?.[0]?.id || 0;
-    this.assignEstablishmentForm.reset({ stablishmentId: firstEstId });
+    this.candidateEstName.set('');
+    this.candidateEstablishments.set(null);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
     this.isAssignEstablishmentModalOpen.set(true);
+    this.searchCandidateEstablishments(0);
   }
 
   closeAssignEstablishmentModal(): void {
     this.isAssignEstablishmentModalOpen.set(false);
   }
 
-  onAssignEstablishmentSubmit(): void {
-    if (this.assignEstablishmentForm.invalid) {
-      this.assignEstablishmentForm.markAllAsTouched();
-      return;
-    }
+  searchCandidateEstablishments(page: number = 0): void {
+    this.candidateEstLoading.set(true);
+    this.candidateEstPage.set(page);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
 
-    this.formLoading.set(true);
-    const estId = Number(this.assignEstablishmentForm.getRawValue().stablishmentId);
+    const name = this.candidateEstName().trim() || undefined;
 
-    this.servicioApi.assignStablishment(this.serviceId, estId).subscribe({
-      next: () => {
-        this.formLoading.set(false);
-        this.closeAssignEstablishmentModal();
-        alert('Establecimiento asignado correctamente al servicio.');
-        this.loadAssignedEstablishments();
+    this.establishmentApi.getAll(page, 5, name).subscribe({
+      next: (data) => {
+        this.candidateEstablishments.set(data);
+        this.candidateEstLoading.set(false);
       },
       error: () => {
-        this.formLoading.set(false);
-        alert('Error al asignar el establecimiento.');
+        this.candidateEstLoading.set(false);
+        this.assignEstError.set('Error al consultar establecimientos.');
+      }
+    });
+  }
+
+  resetCandidateEstSearch(): void {
+    this.candidateEstName.set('');
+    this.searchCandidateEstablishments(0);
+  }
+
+  onAssignEstablishment(est: Establishment): void {
+    if (!est.id) return;
+    this.assigningEstId.set(est.id);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
+
+    this.servicioApi.assignStablishment(this.serviceId, est.id).subscribe({
+      next: () => {
+        this.assigningEstId.set(null);
+        this.assignEstSuccess.set(`Sede "${est.name}" asignada exitosamente.`);
+        this.loadAssignedEstablishments();
+        this.loadEstablishments();
+      },
+      error: (err) => {
+        this.assigningEstId.set(null);
+        const msg = err?.error?.message || err?.error?.Message || 'No se pudo asignar el establecimiento.';
+        this.assignEstError.set(msg);
       }
     });
   }

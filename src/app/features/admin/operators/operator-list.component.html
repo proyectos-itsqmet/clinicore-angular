@@ -1,11 +1,14 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-text-strong">Operadores</h1>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Operadores y Personal de Ventanilla</h1>
+      <p class="mt-1 text-xs text-ink-3">Gestiona las cuentas de operadores encargados de atención en sala y emisión de turnos.</p>
+    </div>
     <button
       (click)="openCreateModal()"
-      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
     >
-      <svg class="-ml-1 mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
         <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
       </svg>
       Nuevo Operador
@@ -13,48 +16,56 @@
   </div>
 
   @if (error()) {
-    <div class="rounded-md bg-red-50 p-4">
-      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
     </div>
   }
 
-  <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-    <table class="min-w-full divide-y divide-border">
-      <thead class="bg-surface-muted">
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
         <tr>
-          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6">Nombre</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Correo</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Rol</th>
-          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-            <span class="sr-only">Acciones</span>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Nombre del Operador</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Correo Electrónico</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Rol Asignado</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">
+            Acciones
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-border">
+      <tbody class="divide-y divide-line bg-surface">
         @if (loading()) {
           <tr>
-            <td colspan="4" class="py-12 text-center text-sm text-text-muted">Cargando operadores...</td>
+            <td colspan="4" class="py-12 text-center text-xs text-ink-3">Cargando operadores...</td>
           </tr>
         } @else if (data()?.content?.length === 0) {
           <tr>
-            <td colspan="4" class="py-12 text-center text-sm text-text-muted">No hay operadores registrados.</td>
+            <td colspan="4" class="py-12 text-center text-xs text-ink-3">No hay operadores registrados.</td>
           </tr>
         } @else {
           @for (item of data()?.content; track item.uuid) {
-            <tr>
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-strong sm:pl-6">{{ item.firstName }} {{ item.lastName }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">{{ item.email }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
-                <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                  {{ item.role === 'ROLE_EMPLOYEE' ? 'Operador' : 'Administrador' }}
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-bold text-ink">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-tint text-blue font-bold flex items-center justify-center text-xs shadow-inner shrink-0">
+                    {{ item.firstName?.charAt(0) }}
+                  </div>
+                  <span>{{ item.firstName }} {{ item.lastName }}</span>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">{{ item.email }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                <span class="inline-flex items-center rounded-pill bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                  {{ item.role === 'ROLE_EMPLOYEE' ? 'Operador de Turnos' : 'Administrador' }}
                 </span>
               </td>
-              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                <a [routerLink]="['/admin/administracion/operadores', item.uuid]" class="inline-flex items-center text-blue hover:text-blue-strong font-medium">
-                  Ver detalles
-                  <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <a
+                  [routerLink]="['/admin/administracion/operadores', item.uuid]"
+                  class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                >
+                  <span>Ver Ficha & Sede</span>
+                  <span>→</span>
                 </a>
               </td>
             </tr>
@@ -64,27 +75,33 @@
     </table>
     
     @if (data() && !loading()) {
-      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <div class="flex flex-1 items-center justify-between">
           <div>
-            <p class="text-sm text-text-muted">
-              Mostrando <span class="font-medium">{{ data()!.pageable.offset + 1 }}</span> a
-              <span class="font-medium">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
-              <span class="font-medium">{{ data()!.totalElements }}</span> resultados
+            <p class="text-xs text-ink-3">
+              Mostrando <span class="font-bold text-ink">{{ data()!.pageable.offset + 1 }}</span> a
+              <span class="font-bold text-ink">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
+              <span class="font-bold text-ink">{{ data()!.totalElements }}</span> operadores
             </p>
           </div>
           <div>
-            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-              <button [disabled]="data()!.first" (click)="loadPage(data()!.number - 1)" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50">
-                <span class="sr-only">Anterior</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
+            <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+              <button
+                [disabled]="data()!.first"
+                (click)="loadPage(data()!.number - 1)"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+              >
+                Anterior
               </button>
-              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
-                Página {{ data()!.number + 1 }} de {{ data()!.totalPages }}
+              <span class="px-2 text-xs font-bold text-ink">
+                Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages }}
               </span>
-              <button [disabled]="data()!.last" (click)="loadPage(data()!.number + 1)" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50">
-                <span class="sr-only">Siguiente</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
+              <button
+                [disabled]="data()!.last"
+                (click)="loadPage(data()!.number + 1)"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+              >
+                Siguiente
               </button>
             </nav>
           </div>
@@ -94,80 +111,115 @@
   </div>
 </div>
 
+<!-- =========================================================================
+     MODAL CREAR OPERADOR
+     ========================================================================= -->
 @if (isModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              Registrar Nuevo Operador
+            </h3>
+            <button
+              type="button"
+              (click)="closeModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
-                  Nuevo Operador
-                </h3>
-                <div class="mt-6 space-y-4">
-                  <div class="flex space-x-4">
-                    <div class="flex-1">
-                      <label for="firstName" class="block text-sm font-medium leading-6 text-text-strong">Nombre</label>
-                      <div class="mt-2">
-                        <input type="text" id="firstName" formControlName="firstName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                        @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
-                          <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
-                        }
-                      </div>
-                    </div>
-                    <div class="flex-1">
-                      <label for="lastName" class="block text-sm font-medium leading-6 text-text-strong">Apellido</label>
-                      <div class="mt-2">
-                        <input type="text" id="lastName" formControlName="lastName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                        @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
-                          <p class="mt-1 text-sm text-red-600">El apellido es requerido.</p>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label for="email" class="block text-sm font-medium leading-6 text-text-strong">Correo Electrónico</label>
-                    <div class="mt-2">
-                      <input type="email" id="email" formControlName="email" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                      @if (form.controls.email.touched && form.controls.email.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Debe ser un correo válido.</p>
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <label for="password" class="block text-sm font-medium leading-6 text-text-strong">
-                      Contraseña
-                    </label>
-                    <div class="mt-2">
-                      <input type="password" id="password" formControlName="password" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50" />
-                      @if (form.controls.password.touched && form.controls.password.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La contraseña es requerida.</p>
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <label for="role" class="block text-sm font-medium leading-6 text-text-strong">Rol</label>
-                    <div class="mt-2">
-                      <select id="role" formControlName="role" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6 disabled:opacity-50">
-                        <option [value]="'ROLE_EMPLOYEE'">Operador</option>
-                        <option [value]="'ROLE_ADMIN'">Administrador</option>
-                      </select>
-                      @if (form.controls.role.touched && form.controls.role.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El rol es requerido.</p>
-                      }
-                    </div>
-                  </div>
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="firstName" class="block text-xs font-bold text-ink mb-1">Nombre *</label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    formControlName="firstName"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                  @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
+                    <p class="mt-1 text-xs text-red-600">El nombre es requerido.</p>
+                  }
+                </div>
+                <div>
+                  <label for="lastName" class="block text-xs font-bold text-ink mb-1">Apellido *</label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    formControlName="lastName"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                  @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
+                    <p class="mt-1 text-xs text-red-600">El apellido es requerido.</p>
+                  }
                 </div>
               </div>
+
+              <div>
+                <label for="email" class="block text-xs font-bold text-ink mb-1">Correo Electrónico *</label>
+                <input
+                  type="email"
+                  id="email"
+                  formControlName="email"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (form.controls.email.touched && form.controls.email.invalid) {
+                  <p class="mt-1 text-xs text-red-600">Debe ser un correo válido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="password" class="block text-xs font-bold text-ink mb-1">
+                  Contraseña *
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  formControlName="password"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">La contraseña es requerida.</p>
+                }
+              </div>
+
+              <div>
+                <label for="role" class="block text-xs font-bold text-ink mb-1">Rol *</label>
+                <select
+                  id="role"
+                  formControlName="role"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option [value]="'ROLE_EMPLOYEE'">Operador de Turnos</option>
+                  <option [value]="'ROLE_ADMIN'">Administrador</option>
+                </select>
+                @if (form.controls.role.touched && form.controls.role.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">El rol es requerido.</p>
+                }
+              </div>
             </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button type="submit" [disabled]="formLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
-                {{ formLoading() ? 'Guardando...' : 'Guardar' }}
-              </button>
-              <button type="button" (click)="closeModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
                 Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : 'Crear Operador' }}
               </button>
             </div>
           </form>

@@ -1,0 +1,554 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <!-- Encabezado de la Vista -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Gestión General de Turnos</h1>
+      <p class="mt-1 text-xs text-ink-3">
+        Selecciona un centro médico y una fecha para explorar los turnos asignados por servicio y atender a los pacientes.
+      </p>
+    </div>
+  </div>
+
+  <!-- Feedback Toast / Alerta -->
+  @if (actionFeedback()) {
+    <div
+      [class]="actionFeedback()!.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200'"
+      class="rounded-2xl p-3.5 text-xs font-bold flex items-center justify-between border shadow-sm transition-all"
+    >
+      <div class="flex items-center gap-2">
+        <span>{{ actionFeedback()!.type === 'success' ? '✓' : '✕' }}</span>
+        <span>{{ actionFeedback()!.message }}</span>
+      </div>
+      <button (click)="actionFeedback.set(null)" class="text-ink-3 hover:text-ink font-bold text-sm">✕</button>
+    </div>
+  }
+
+  <!-- =========================================================================
+       PASO 1: SELECCIÓN DE ESTABLECIMIENTO (CENTRO MÉDICO)
+       ========================================================================= -->
+  <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm space-y-3">
+    <div class="flex items-center justify-between">
+      <h2 class="font-display text-sm font-extrabold text-ink flex items-center gap-2">
+        <span>🏥</span>
+        <span>1. Selecciona la Sede / Establecimiento</span>
+      </h2>
+      <span class="text-xs text-ink-3">
+        {{ establishments().length }} sedes disponibles
+      </span>
+    </div>
+
+    @if (establishmentsLoading()) {
+      <div class="py-6 text-center text-xs text-ink-3">Cargando centros médicos...</div>
+    } @else if (establishments().length === 0) {
+      <div class="py-6 text-center text-xs text-ink-3 rounded-xl border border-dashed border-line bg-field">
+        No hay establecimientos registrados en el sistema.
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        @for (est of establishments(); track est.id) {
+          <button
+            type="button"
+            (click)="selectEstablishment(est)"
+            [class.border-blue]="selectedEstablishment()?.id === est.id"
+            [class.ring-2]="selectedEstablishment()?.id === est.id"
+            [class.ring-blue]="selectedEstablishment()?.id === est.id"
+            [class.bg-tint/30]="selectedEstablishment()?.id === est.id"
+            class="p-3.5 rounded-2xl border border-line bg-surface hover:border-blue/50 text-left transition-all shadow-sm flex items-start justify-between group"
+          >
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="text-xs font-bold text-ink truncate group-hover:text-blue transition-colors">{{ est.name }}</span>
+              </div>
+              <p class="text-[11px] text-ink-3 truncate">📍 {{ est.address }}</p>
+              <span class="mt-2 inline-flex items-center rounded-pill bg-field px-2 py-0.5 text-[10px] font-bold text-ink-3 border border-line">
+                ID #{{ est.id }}
+              </span>
+            </div>
+            @if (selectedEstablishment()?.id === est.id) {
+              <span class="w-5 h-5 rounded-full bg-blue text-surface flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+                ✓
+              </span>
+            }
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- =========================================================================
+       PASO 2: SELECCIÓN DE FECHA DE CONSULTA
+       ========================================================================= -->
+  <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm space-y-3">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <h2 class="font-display text-sm font-extrabold text-ink flex items-center gap-2">
+        <span>📅</span>
+        <span>2. Fecha de Consulta</span>
+      </h2>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="setDatePreset('today')"
+          class="rounded-pill border border-line bg-field px-3 py-1 text-xs font-bold text-ink hover:bg-surface hover:border-blue/30 transition-colors"
+        >
+          Hoy
+        </button>
+        <button
+          type="button"
+          (click)="setDatePreset('tomorrow')"
+          class="rounded-pill border border-line bg-field px-3 py-1 text-xs font-bold text-ink hover:bg-surface hover:border-blue/30 transition-colors"
+        >
+          Mañana
+        </button>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 max-w-sm">
+      <input
+        type="date"
+        [ngModel]="selectedDate()"
+        (ngModelChange)="onDateChange($event)"
+        class="block w-full rounded-xl border border-line bg-field py-2 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none focus:bg-surface transition-all"
+      />
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       PASO 3: SERVICIOS DISPONIBLES EN ESTE ESTABLECIMIENTO
+       ========================================================================= -->
+  <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm space-y-4">
+    <div class="flex items-center justify-between border-b border-line pb-3">
+      <div>
+        <h2 class="font-display text-sm font-extrabold text-ink flex items-center gap-2">
+          <span>🩺</span>
+          <span>3. Especialidades y Servicios Disponibles en: <span class="text-blue">{{ selectedEstablishment()?.name }}</span></span>
+        </h2>
+        <p class="text-xs text-ink-3 mt-0.5">
+          Haz clic en cualquier servicio para ver la lista de turnos programados y los pacientes asignados para el <strong class="text-ink">{{ selectedDate() }}</strong>.
+        </p>
+      </div>
+      <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
+        {{ services().length }} servicios
+      </span>
+    </div>
+
+    @if (servicesLoading()) {
+      <div class="py-12 text-center text-xs text-ink-3">Cargando servicios de la sede...</div>
+    } @else if (servicesError()) {
+      <div class="p-4 rounded-xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">
+        {{ servicesError() }}
+      </div>
+    } @else if (services().length === 0) {
+      <div class="py-12 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40 p-6">
+        No se encontraron servicios asociados a este establecimiento.
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (srv of services(); track srv.id) {
+          <div
+            (click)="openTurnModal(srv)"
+            class="p-4 rounded-2xl border border-line bg-surface hover:border-blue/50 hover:bg-tint/10 transition-all cursor-pointer shadow-sm flex flex-col justify-between group"
+          >
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-tint text-blue font-extrabold flex items-center justify-center text-base shadow-inner group-hover:scale-105 transition-transform shrink-0">
+                  🩺
+                </div>
+                <span class="text-xs font-extrabold text-ink">
+                  ${{ srv.price | number:'1.2-2' }}
+                </span>
+              </div>
+              <h3 class="font-display text-sm font-extrabold text-ink group-hover:text-blue transition-colors">
+                {{ srv.name }}
+              </h3>
+              @if (srv.discount && srv.discount > 0) {
+                <span class="mt-1 inline-flex items-center rounded-pill bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                  Descuento: -${{ srv.discount | number:'1.2-2' }}
+                </span>
+              }
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-line flex items-center justify-between">
+              <span class="text-[11px] text-ink-3 font-semibold">Ver turnos del día</span>
+              <span class="inline-flex items-center gap-1 text-xs font-bold text-blue group-hover:translate-x-0.5 transition-transform">
+                <span>Explorar</span>
+                <span>→</span>
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL DETALLE DE TURNOS POR SERVICIO (ORDENADO POR HORA)
+     ========================================================================= -->
+@if (isTurnModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeTurnModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl border border-line">
+          
+          <!-- Header Modal -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-line pb-4 mb-4 gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-tint text-blue flex items-center justify-center font-bold text-sm">
+                  🩺
+                </span>
+                <h3 class="font-display text-base font-extrabold text-ink">
+                  Turnos: {{ selectedService()?.name }}
+                </h3>
+              </div>
+              <p class="text-xs text-ink-3 mt-1">
+                Sede: <strong class="text-ink">{{ selectedEstablishment()?.name }}</strong> • Fecha: <strong class="text-blue">{{ selectedDate() }}</strong>
+              </p>
+            </div>
+
+            <!-- Filtro de Estado dentro del Modal -->
+            <div class="flex items-center gap-2">
+              <select
+                [value]="statusFilter()"
+                (change)="onStatusFilterChange($any($event.target).value)"
+                class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+              >
+                <option value="">Todos los Estados</option>
+                <option value="TURN_PENDING">Pendiente</option>
+                <option value="TURN_WAITNG">En Espera</option>
+                <option value="TURN_IN_TREATMENT">En Atención</option>
+                <option value="TURN_TREATED">Atendido</option>
+                <option value="TURN_CANCELLED">Cancelado</option>
+              </select>
+
+              <button
+                type="button"
+                (click)="closeTurnModal()"
+                class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- Listado de Turnos -->
+          @if (turnsLoading()) {
+            <div class="py-16 text-center text-xs text-ink-3">Cargando turnos programados...</div>
+          } @else if (turnsError()) {
+            <div class="p-4 rounded-xl bg-red-50 text-red-800 text-xs font-bold border border-red-200 mb-4">
+              {{ turnsError() }}
+            </div>
+          } @else if (!turnsData()?.content || turnsData()!.content!.length === 0) {
+            <div class="py-12 text-center rounded-2xl border border-dashed border-line bg-field/50 p-6 space-y-2">
+              <p class="text-xs font-bold text-ink">No hay turnos registrados para este servicio en la fecha seleccionada.</p>
+              <p class="text-[11px] text-ink-3">Selecciona otra fecha o asigna nuevos turnos a los pacientes desde el módulo de Pacientes.</p>
+            </div>
+          } @else {
+            <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm mb-4">
+              <table class="min-w-full divide-y divide-line">
+                <thead class="bg-field">
+                  <tr>
+                    <th scope="col" class="py-3 pl-4 pr-2 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Hora & Orden</th>
+                    <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Información del Paciente</th>
+                    <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Médico</th>
+                    <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Estado</th>
+                    <th scope="col" class="relative py-3 pl-2 pr-4 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-line bg-surface">
+                  @for (turn of turnsData()?.content; track turn.id) {
+                    <tr class="hover:bg-tint/20 transition-colors">
+                      <!-- Hora y Orden -->
+                      <td class="whitespace-nowrap py-3.5 pl-4 pr-2 text-xs font-bold text-ink">
+                        <div class="flex items-center gap-2">
+                          <span class="font-mono text-sm font-extrabold text-blue">⏰ {{ turn.schedule?.hour }}</span>
+                          <span class="inline-flex items-center rounded-pill bg-tint px-2 py-0.5 text-[10px] font-bold text-blue">
+                            #{{ turn.order }}
+                          </span>
+                        </div>
+                      </td>
+
+                      <!-- Paciente -->
+                      <td class="px-3 py-3.5 text-xs">
+                        @if (turn.patient) {
+                          <div class="font-bold text-ink">
+                            {{ turn.patient.firstName }} {{ turn.patient.lastName }}
+                          </div>
+                          <div class="text-[11px] text-ink-3 font-mono">
+                            CI: {{ turn.patient.ci }}
+                          </div>
+                          <div class="text-[10px] text-ink-3">
+                            {{ turn.patient.email }} @if (turn.patient.phone) { • {{ turn.patient.phone }} }
+                          </div>
+                        } @else {
+                          <span class="text-ink-3 italic">Sin paciente asociado</span>
+                        }
+                      </td>
+
+                      <!-- Médico -->
+                      <td class="whitespace-nowrap px-3 py-3.5 text-xs text-ink-3">
+                        @if (turn.schedule?.doctor) {
+                          <div class="font-bold text-ink">
+                            Dr. {{ turn.schedule?.doctor?.firstName }} {{ turn.schedule?.doctor?.lastName }}
+                          </div>
+                          <div class="text-[10px] text-purple-700 font-semibold">{{ turn.schedule?.doctor?.speciality }}</div>
+                        } @else {
+                          <span class="text-ink-3">-</span>
+                        }
+                      </td>
+
+                      <!-- Estado -->
+                      <td class="whitespace-nowrap px-3 py-3.5 text-xs">
+                        <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[10px] font-bold ' + getStatusBadgeClass(turn.status)">
+                          {{ getStatusLabel(turn.status) }}
+                        </span>
+                      </td>
+
+                      <!-- Acciones -->
+                      <td class="relative whitespace-nowrap py-3.5 pl-2 pr-4 text-right text-xs font-bold">
+                        <div class="flex items-center justify-end gap-1">
+                          @if (turn.status !== 'TURN_CANCELLED' && turn.status !== 'TURN_TREATED') {
+                            <!-- Botón Atender -->
+                            <button
+                              type="button"
+                              (click)="markTurnTreated(turn)"
+                              class="inline-flex items-center rounded-pill bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 text-[11px] font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                              title="Marcar como atendido"
+                            >
+                              ✓ Atender
+                            </button>
+
+                            <!-- Botón Reasignar -->
+                            <button
+                              type="button"
+                              (click)="openReassignModal(turn)"
+                              class="inline-flex items-center rounded-pill bg-tint text-blue px-2 py-1 text-[11px] font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
+                              title="Reasignar turno"
+                            >
+                              🔄
+                            </button>
+
+                            <!-- Botón Cancelar -->
+                            <button
+                              type="button"
+                              (click)="openCancelModal(turn)"
+                              class="inline-flex items-center rounded-pill bg-red-50 text-red-600 border border-red-200 px-2 py-1 text-[11px] font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                              title="Cancelar turno"
+                            >
+                              ✕
+                            </button>
+                          } @else {
+                            <span class="text-[10px] text-ink-3 italic">Finalizado</span>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Paginación de Turnos en Modal -->
+            @if (turnsData() && turnsData()!.totalPages > 1) {
+              <div class="flex items-center justify-between text-xs text-ink-3 border-t border-line pt-3">
+                <span>Página {{ turnsData()!.number + 1 }} de {{ turnsData()!.totalPages }}</span>
+                <div class="flex gap-2">
+                  <button
+                    [disabled]="turnsData()!.first"
+                    (click)="loadTurnsForService(turnsData()!.number - 1)"
+                    class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    [disabled]="turnsData()!.last"
+                    (click)="loadTurnsForService(turnsData()!.number + 1)"
+                    class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            }
+          }
+
+          <div class="mt-4 flex justify-end border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeTurnModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL REASIGNACIÓN DE TURNO
+     ========================================================================= -->
+@if (isReassignModalOpen()) {
+  <div class="relative z-[60]">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeReassignModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Reasignar Turno #{{ turnToReassign()?.order }}
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Paciente: <strong class="text-ink">{{ turnToReassign()?.patient?.firstName }} {{ turnToReassign()?.patient?.lastName }}</strong> (CI: {{ turnToReassign()?.patient?.ci }})
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="closeReassignModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-[11px] font-bold text-ink mb-1">📅 Seleccionar Nueva Fecha</label>
+            <input
+              type="date"
+              [ngModel]="reassignDate()"
+              (ngModelChange)="onReassignDateChange($event)"
+              class="block w-full sm:w-64 rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+            />
+          </div>
+
+          <!-- Horarios Disponibles -->
+          <div class="space-y-2">
+            <p class="text-xs font-bold text-ink">Horarios Disponibles para esta especialidad:</p>
+            
+            @if (reassignLoading()) {
+              <div class="py-8 text-center text-xs text-ink-3">Buscando horarios...</div>
+            } @else if (!reassignSchedules()?.content || reassignSchedules()!.content!.length === 0) {
+              <div class="py-6 text-center text-xs text-ink-3 rounded-xl border border-dashed border-line bg-field/50">
+                No hay horarios disponibles en esta fecha.
+              </div>
+            } @else {
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto pr-1">
+                @for (sched of reassignSchedules()?.content; track sched.id) {
+                  <div
+                    (click)="selectScheduleForReassign(sched)"
+                    [class.border-blue]="selectedNewSchedule()?.id === sched.id"
+                    [class.ring-2]="selectedNewSchedule()?.id === sched.id"
+                    [class.ring-blue]="selectedNewSchedule()?.id === sched.id"
+                    [class.bg-tint/30]="selectedNewSchedule()?.id === sched.id"
+                    [class.opacity-40]="sched.status === 'STATUS_OCCUPIED' || sched.status === 'STATUS_UNAVAILABLE'"
+                    [class.cursor-not-allowed]="sched.status === 'STATUS_OCCUPIED' || sched.status === 'STATUS_UNAVAILABLE'"
+                    [class.cursor-pointer]="sched.status !== 'STATUS_OCCUPIED' && sched.status !== 'STATUS_UNAVAILABLE'"
+                    class="p-3 rounded-xl border border-line bg-surface hover:border-blue/40 transition-all text-xs flex items-center justify-between"
+                  >
+                    <div>
+                      <p class="font-bold text-blue font-mono">⏰ {{ sched.hour }}</p>
+                      <p class="text-[11px] text-ink truncate">Dr. {{ sched.doctor?.firstName }} {{ sched.doctor?.lastName }}</p>
+                    </div>
+                    @if (selectedNewSchedule()?.id === sched.id) {
+                      <span class="text-xs font-bold text-blue">✓ Elegido</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeReassignModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="!selectedNewSchedule() || reassigning()"
+              (click)="confirmReassign()"
+              class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50"
+            >
+              {{ reassigning() ? 'Reasignando...' : 'Confirmar Reasignación' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL CANCELACIÓN POR PERSONAL
+     ========================================================================= -->
+@if (isCancelModalOpen()) {
+  <div class="relative z-[60]">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeCancelModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-line">
+          
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Cancelar Turno #{{ turnToCancel()?.order }}
+              </h3>
+              <p class="text-xs text-ink-3">
+                Paciente: {{ turnToCancel()?.patient?.firstName }} {{ turnToCancel()?.patient?.lastName }}
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label for="staffCancelReason" class="block text-xs font-bold text-ink mb-1">
+                Motivo de la Cancelación (Opcional)
+              </label>
+              <textarea
+                id="staffCancelReason"
+                rows="3"
+                [ngModel]="cancelReason()"
+                (ngModelChange)="cancelReason.set($event)"
+                placeholder="Ej. Inasistencia del paciente, reasignación médica..."
+                class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeCancelModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface"
+            >
+              Cerrar
+            </button>
+            <button
+              type="button"
+              [disabled]="cancelling()"
+              (click)="confirmCancel()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50"
+            >
+              {{ cancelling() ? 'Cancelando...' : 'Confirmar Cancelación' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}

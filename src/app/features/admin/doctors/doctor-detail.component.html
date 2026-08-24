@@ -2,13 +2,13 @@
   <!-- Top Navigation & Actions -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <a routerLink="/admin/administracion/doctores" class="inline-flex items-center text-sm font-medium text-text-muted hover:text-text-strong mb-2">
+      <a routerLink="/admin/administracion/doctores" class="inline-flex items-center text-xs font-bold text-ink-3 hover:text-ink mb-2 transition-colors">
         <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
         </svg>
         Volver a la lista de doctores
       </a>
-      <h1 class="text-2xl font-bold text-text-strong">
+      <h1 class="font-display text-2xl font-extrabold text-ink">
         @if (doctor()) {
           Dr. {{ doctor()!.firstName }} {{ doctor()!.lastName }}
         } @else {
@@ -22,9 +22,9 @@
         <button
           (click)="openEditModal()"
           type="button"
-          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted transition-colors"
+          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-xs font-bold text-ink shadow-sm border border-line hover:bg-field transition-all"
         >
-          <svg class="w-4 h-4 mr-2 text-text-muted" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <svg class="w-4 h-4 mr-2 text-ink-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
           </svg>
           Editar Información
@@ -34,35 +34,35 @@
   </div>
 
   @if (loading()) {
-    <div class="p-12 text-center text-text-muted">Cargando información del doctor...</div>
+    <div class="p-12 text-center text-xs text-ink-3">Cargando información del doctor...</div>
   } @else if (error()) {
-    <div class="rounded-md bg-red-50 p-4">
-      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
     </div>
   } @else if (doctor()) {
     <!-- Informacion General Card -->
-    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm">
-      <h2 class="text-base font-semibold text-text-strong mb-4">Información Personal y Profesional</h2>
+    <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm">
+      <h2 class="font-display text-base font-extrabold text-ink mb-4">Información Personal y Profesional</h2>
       <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Cédula</dt>
-          <dd class="mt-1 text-sm font-semibold text-text-strong">{{ doctor()!.ci }}</dd>
+          <dt class="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Cédula (CI)</dt>
+          <dd class="mt-1 text-sm font-mono font-bold text-ink">{{ doctor()!.ci }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Correo Electrónico</dt>
-          <dd class="mt-1 text-sm font-semibold text-text-strong">{{ doctor()!.email }}</dd>
+          <dt class="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Correo Electrónico</dt>
+          <dd class="mt-1 text-sm font-semibold text-ink">{{ doctor()!.email }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Especialidad</dt>
+          <dt class="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Especialidad</dt>
           <dd class="mt-1">
-            <span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
+            <span class="inline-flex items-center rounded-pill bg-purple-50 px-2.5 py-0.5 text-xs font-bold text-purple-700 border border-purple-200">
               {{ doctor()!.speciality }}
             </span>
           </dd>
         </div>
         <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Género</dt>
-          <dd class="mt-1 text-sm font-semibold text-text-strong">
+          <dt class="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Género</dt>
+          <dd class="mt-1 text-sm font-semibold text-ink">
             {{ doctor()!.gender === 'GENDER_MALE' ? 'Masculino' : doctor()!.gender === 'GENDER_FEMALE' ? 'Femenino' : 'Otro' }}
           </dd>
         </div>
@@ -73,35 +73,40 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       
       <!-- Card Establecimientos Asignados -->
-      <div class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
+      <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-base font-semibold text-text-strong">Establecimientos Asignados</h2>
-              <p class="text-xs text-text-muted">Sedes donde este doctor brinda atención</p>
+              <h2 class="font-display text-base font-extrabold text-ink">Establecimientos Asignados</h2>
+              <p class="text-xs text-ink-3">Sedes donde este doctor brinda atención médica</p>
             </div>
             <button
               (click)="openAssignEstModal()"
               type="button"
-              class="inline-flex items-center rounded-pill bg-blue px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-strong transition-colors"
+              class="inline-flex items-center rounded-pill bg-blue px-3.5 py-1.5 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
             >
-              + Asignar Establecimiento
+              + Asignar Sede
             </button>
           </div>
 
-          <div class="mt-4 divide-y divide-border border border-border rounded-lg overflow-hidden">
+          <div class="mt-4 space-y-2">
             @if (!doctor()!.stablishments || doctor()!.stablishments!.length === 0) {
-              <div class="p-6 text-center text-sm text-text-muted">
+              <div class="p-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40">
                 No tiene establecimientos asignados actualmente.
               </div>
             } @else {
               @for (est of doctor()!.stablishments; track est.id) {
-                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors">
-                  <div>
-                    <h4 class="text-sm font-semibold text-text-strong">{{ est.name }}</h4>
-                    <p class="text-xs text-text-muted mt-0.5">{{ est.address }}</p>
+                <div class="p-3.5 rounded-2xl border border-line bg-surface hover:border-blue/30 transition-all flex items-center justify-between shadow-sm">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-2xl bg-tint text-blue font-bold flex items-center justify-center text-sm shadow-inner shrink-0">
+                      🏥
+                    </div>
+                    <div>
+                      <h4 class="text-xs font-bold text-ink">{{ est.name }}</h4>
+                      <p class="text-[11px] text-ink-3 mt-0.5">{{ est.address }}</p>
+                    </div>
                   </div>
-                  <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue ring-1 ring-inset ring-blue/20">
+                  <span class="inline-flex items-center rounded-pill bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue border border-blue/20">
                     ID #{{ est.id }}
                   </span>
                 </div>
@@ -112,52 +117,49 @@
       </div>
 
       <!-- Card Servicios Asignados -->
-      <div class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
+      <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-base font-semibold text-text-strong">Servicios Asignados</h2>
-              <p class="text-xs text-text-muted">Tratamientos o consultas que puede realizar</p>
+              <h2 class="font-display text-base font-extrabold text-ink">Servicios Asignados</h2>
+              <p class="text-xs text-ink-3">Especialidades y procedimientos que realiza el doctor</p>
             </div>
             <button
               (click)="openAssignServiceModal()"
               type="button"
-              class="inline-flex items-center rounded-pill bg-blue px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-strong transition-colors"
+              class="inline-flex items-center rounded-pill bg-blue px-3.5 py-1.5 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
             >
-              + Asignar Servicios
+              + Asignar Servicio
             </button>
           </div>
 
-          <div class="mt-4 divide-y divide-border border border-border rounded-lg overflow-hidden">
+          <div class="mt-4 space-y-2">
             @if (!doctor()!.services || doctor()!.services!.length === 0) {
-              <div class="p-6 text-center text-sm text-text-muted">
+              <div class="p-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40">
                 No tiene servicios asignados actualmente.
               </div>
             } @else {
               @for (srv of doctor()!.services; track srv.id) {
-                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors gap-3">
-                  <div>
-                    <h4 class="text-sm font-semibold text-text-strong">{{ srv.name }}</h4>
-                    @if (srv.discount) {
-                      <p class="text-xs text-green-600 mt-0.5 font-medium">Descuento: ${{ srv.discount | number:'1.2-2' }}</p>
-                    }
+                <div class="p-3.5 rounded-2xl border border-line bg-surface hover:border-blue/30 transition-all flex items-center justify-between gap-3 shadow-sm">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-2xl bg-tint text-blue font-bold flex items-center justify-center text-sm shadow-inner shrink-0">
+                      🩺
+                    </div>
+                    <div class="min-w-0">
+                      <h4 class="text-xs font-bold text-ink truncate">{{ srv.name }}</h4>
+                      <p class="text-[11px] text-ink-3 font-semibold">${{ srv.price | number:'1.2-2' }}</p>
+                    </div>
                   </div>
-                  <div class="flex items-center gap-3">
-                    <span class="text-sm font-bold text-text-strong">
-                      ${{ srv.price | number:'1.2-2' }}
-                    </span>
-                    <button
-                      type="button"
-                      (click)="openGenerateScheduleModal(srv)"
-                      class="inline-flex items-center rounded-pill bg-blue-50 text-blue px-3 py-1 text-xs font-semibold hover:bg-blue hover:text-white ring-1 ring-inset ring-blue/30 transition-colors"
-                      title="Crear horarios para este servicio"
-                    >
-                      <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Crear Horarios
-                    </button>
-                  </div>
+
+                  <!-- Redirección directa al detalle del servicio para gestionar y ver turnos -->
+                  <a
+                    [routerLink]="['/admin/administracion/especialidades', srv.id]"
+                    class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm shrink-0"
+                    title="Ver detalle del servicio y sus horarios"
+                  >
+                    <span>Ver Servicio & Horarios</span>
+                    <span class="text-sm leading-none">→</span>
+                  </a>
                 </div>
               }
             }
@@ -169,203 +171,253 @@
   }
 </div>
 
-<!-- Modal Editar Doctor -->
+<!-- =========================================================================
+     MODAL EDITAR DOCTOR
+     ========================================================================= -->
 @if (isEditModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeEditModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              Editar Información del Doctor
+            </h3>
+            <button
+              type="button"
+              (click)="closeEditModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
           <form [formGroup]="editForm" (ngSubmit)="onEditSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
-                  Editar Doctor
-                </h3>
-                <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                  
-                  <div>
-                    <label for="edit_firstName" class="block text-sm font-medium leading-6 text-text-strong">Nombre</label>
-                    <div class="mt-2">
-                      <input type="text" id="edit_firstName" formControlName="firstName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.firstName.touched && editForm.controls.firstName.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
-                      }
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label for="edit_lastName" class="block text-sm font-medium leading-6 text-text-strong">Apellido</label>
-                    <div class="mt-2">
-                      <input type="text" id="edit_lastName" formControlName="lastName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.lastName.touched && editForm.controls.lastName.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El apellido es requerido.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="edit_email" class="block text-sm font-medium leading-6 text-text-strong">Correo Electrónico</label>
-                    <div class="mt-2">
-                      <input type="email" id="edit_email" formControlName="email" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.email.touched && editForm.controls.email.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Debe ser un correo válido.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="edit_ci" class="block text-sm font-medium leading-6 text-text-strong">Cédula (10 dígitos)</label>
-                    <div class="mt-2">
-                      <input type="text" id="edit_ci" formControlName="ci" maxlength="10" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.ci.touched && editForm.controls.ci.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La cédula es requerida.</p>
-                      } @else if (editForm.controls.ci.touched && editForm.controls.ci.hasError('pattern')) {
-                        <p class="mt-1 text-sm text-red-600">Debe tener 10 dígitos numéricos.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="edit_speciality" class="block text-sm font-medium leading-6 text-text-strong">Especialidad</label>
-                    <div class="mt-2">
-                      <input type="text" id="edit_speciality" formControlName="speciality" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.speciality.touched && editForm.controls.speciality.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La especialidad es requerida.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="edit_gender" class="block text-sm font-medium leading-6 text-text-strong">Género</label>
-                    <div class="mt-2">
-                      <select id="edit_gender" formControlName="gender" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6">
-                        <option [value]="'GENDER_MALE'">Masculino</option>
-                        <option [value]="'GENDER_FEMALE'">Femenino</option>
-                        <option [value]="'GENDER_OTHER'">Otro</option>
-                      </select>
-                    </div>
-                  </div>
-
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="edit_firstName" class="block text-xs font-bold text-ink mb-1">Nombre</label>
+                <input type="text" id="edit_firstName" formControlName="firstName" class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none" />
+                @if (editForm.controls.firstName.touched && editForm.controls.firstName.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">El nombre es requerido.</p>
+                }
               </div>
-            </div>
-            <div class="mt-8 sm:flex sm:flex-row-reverse">
-              <button type="submit" [disabled]="formLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
-                {{ formLoading() ? 'Guardando...' : 'Guardar Cambios' }}
-              </button>
-              <button type="button" (click)="closeEditModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- Modal Asignar Establecimiento -->
-@if (isAssignEstModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
-      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <form [formGroup]="assignEstForm" (ngSubmit)="onAssignEstSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">Asignar a Establecimiento</h3>
-                <div class="mt-6 space-y-4">
-                  <div>
-                    <label for="assign_estId" class="block text-sm font-medium leading-6 text-text-strong">Establecimiento</label>
-                    <div class="mt-2">
-                      <select id="assign_estId" formControlName="stablishmentId" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6">
-                        <option [value]="0" disabled>Selecciona un establecimiento</option>
-                        @for (est of establishments(); track est.id) {
-                          <option [value]="est.id">{{ est.name }} - {{ est.address }}</option>
-                        }
-                      </select>
-                      @if (assignEstForm.controls.stablishmentId.touched && assignEstForm.controls.stablishmentId.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un establecimiento válido.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button type="submit" [disabled]="formLoading() || establishmentsLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
-                {{ formLoading() ? 'Asignando...' : 'Asignar' }}
-              </button>
-              <button type="button" (click)="closeAssignEstModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- Modal Asignar Servicios (Múltiple) -->
-@if (isAssignServiceModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
-      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <div class="sm:flex sm:items-start">
-            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-              <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">Asignar Servicios al Doctor</h3>
-              <p class="mt-1 text-sm text-text-muted">Selecciona uno o varios servicios para vincularlos.</p>
               
-              <div class="mt-4 max-h-60 overflow-y-auto divide-y divide-border border border-border rounded-md">
-                @if (servicesLoading()) {
-                  <div class="p-4 text-center text-sm text-text-muted">Cargando servicios...</div>
-                } @else if (services().length === 0) {
-                  <div class="p-4 text-center text-sm text-text-muted">No hay servicios disponibles.</div>
-                } @else {
-                  @for (srv of services(); track srv.id) {
-                    <label class="flex items-center justify-between p-3 hover:bg-surface-muted cursor-pointer">
-                      <div class="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          [checked]="selectedServiceIds().includes(srv.id)"
-                          (change)="toggleServiceSelection(srv.id)"
-                          class="h-4 w-4 rounded border-border text-blue focus:ring-blue"
-                        />
-                        <span class="text-sm font-medium text-text-strong">{{ srv.name }}</span>
-                      </div>
-                      <span class="text-sm font-semibold text-text-muted">${{ srv.price | number:'1.2-2' }}</span>
-                    </label>
-                  }
+              <div>
+                <label for="edit_lastName" class="block text-xs font-bold text-ink mb-1">Apellido</label>
+                <input type="text" id="edit_lastName" formControlName="lastName" class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none" />
+                @if (editForm.controls.lastName.touched && editForm.controls.lastName.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">El apellido es requerido.</p>
                 }
               </div>
 
-              @if (selectedServiceIds().length > 0) {
-                <p class="mt-2 text-xs text-text-muted">
-                  {{ selectedServiceIds().length }} servicio(s) seleccionado(s).
-                </p>
+              <div>
+                <label for="edit_email" class="block text-xs font-bold text-ink mb-1">Correo Electrónico</label>
+                <input type="email" id="edit_email" formControlName="email" class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none" />
+                @if (editForm.controls.email.touched && editForm.controls.email.invalid) {
+                  <p class="mt-1 text-xs text-red-600">Debe ser un correo válido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="edit_ci" class="block text-xs font-bold text-ink mb-1">Cédula (10 dígitos)</label>
+                <input type="text" id="edit_ci" formControlName="ci" maxlength="10" class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none" />
+                @if (editForm.controls.ci.touched && editForm.controls.ci.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">La cédula es requerida.</p>
+                } @else if (editForm.controls.ci.touched && editForm.controls.ci.hasError('pattern')) {
+                  <p class="mt-1 text-xs text-red-600">Debe tener 10 dígitos numéricos.</p>
+                }
+              </div>
+
+              <div>
+                <label for="edit_speciality" class="block text-xs font-bold text-ink mb-1">Especialidad</label>
+                <input type="text" id="edit_speciality" formControlName="speciality" class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none" />
+                @if (editForm.controls.speciality.touched && editForm.controls.speciality.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">La especialidad es requerida.</p>
+                }
+              </div>
+
+              <div>
+                <label for="edit_gender" class="block text-xs font-bold text-ink mb-1">Género</label>
+                <select id="edit_gender" formControlName="gender" class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none">
+                  <option [value]="'GENDER_MALE'">Masculino</option>
+                  <option [value]="'GENDER_FEMALE'">Femenino</option>
+                  <option [value]="'GENDER_OTHER'">Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button type="button" (click)="closeEditModal()" class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors">
+                Cancelar
+              </button>
+              <button type="submit" [disabled]="formLoading()" class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all">
+                {{ formLoading() ? 'Guardando...' : 'Guardar Cambios' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ASIGNAR ESTABLECIMIENTO AL DOCTOR (Búsqueda por Nombre)
+     ========================================================================= -->
+@if (isAssignEstModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeAssignEstModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Asignar Sede al Dr. {{ doctor()?.firstName }} {{ doctor()?.lastName }}
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Busca centros médicos y sedes para asociar a este profesional.
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="closeAssignEstModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Alertas -->
+          @if (assignEstSuccess()) {
+            <div class="mb-4 rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-800 flex items-center gap-2 border border-emerald-200">
+              <span>✓</span>
+              <span>{{ assignEstSuccess() }}</span>
+            </div>
+          }
+
+          @if (assignEstError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ assignEstError() }}</span>
+            </div>
+          }
+
+          <!-- Formulario de Búsqueda -->
+          <div class="flex items-center gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
+            <div class="flex-1">
+              <label class="block text-[11px] font-bold text-ink mb-1">Nombre o Dirección de la Sede</label>
+              <input
+                type="text"
+                placeholder="Ej. Sede Norte o Clínica Central"
+                [ngModel]="candidateEstName()"
+                (ngModelChange)="candidateEstName.set($event)"
+                (keyup.enter)="searchCandidateEst(0)"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            <div class="flex items-end gap-2 pt-4">
+              <button
+                type="button"
+                (click)="searchCandidateEst(0)"
+                class="rounded-pill bg-blue py-2 px-4 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+              >
+                Buscar
+              </button>
+              @if (candidateEstName()) {
+                <button
+                  type="button"
+                  (click)="resetCandidateEstSearch()"
+                  class="rounded-pill border border-line bg-surface py-2 px-2.5 text-xs font-semibold text-ink-3 hover:bg-field"
+                  title="Limpiar búsqueda"
+                >
+                  ✕
+                </button>
               }
             </div>
           </div>
-          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+
+          <!-- Resultados -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs text-ink-3 px-1">
+              <span>Sedes disponibles</span>
+              <span class="font-bold text-ink">{{ candidateEstablishments()?.totalElements ?? 0 }} encontradas</span>
+            </div>
+
+            @if (candidateEstLoading()) {
+              <div class="py-12 text-center text-xs text-ink-3">Buscando establecimientos...</div>
+            } @else if (!candidateEstablishments()?.content || candidateEstablishments()!.content!.length === 0) {
+              <div class="py-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/50 p-4">
+                No se encontraron establecimientos con los criterios ingresados.
+              </div>
+            } @else {
+              <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                @for (est of candidateEstablishments()?.content; track est.id) {
+                  <div class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/40 hover:bg-tint/20 transition-all flex items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-10 h-10 rounded-2xl bg-tint text-blue font-extrabold flex items-center justify-center text-base shadow-inner shrink-0">
+                        🏥
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-bold text-ink truncate">{{ est.name }}</p>
+                        <p class="text-[11px] text-ink-3 truncate">📍 {{ est.address }}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      [disabled]="assigningEstId() === est.id"
+                      (click)="onAssignEst(est)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-blue px-3.5 py-1.5 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 shrink-0 transition-all"
+                    >
+                      @if (assigningEstId() === est.id) {
+                        <span class="animate-spin text-xs">⏳</span>
+                        <span>Asignando...</span>
+                      } @else {
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span>Asignar Sede</span>
+                      }
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Paginación -->
+              @if (candidateEstablishments() && candidateEstablishments()!.totalPages > 1) {
+                <div class="flex items-center justify-between pt-3 text-xs text-ink-3 border-t border-line">
+                  <span>Página {{ candidateEstablishments()!.number + 1 }} de {{ candidateEstablishments()!.totalPages }}</span>
+                  <div class="flex gap-2">
+                    <button
+                      [disabled]="candidateEstablishments()!.first"
+                      (click)="searchCandidateEst(candidateEstablishments()!.number - 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      [disabled]="candidateEstablishments()!.last"
+                      (click)="searchCandidateEst(candidateEstablishments()!.number + 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="mt-5 flex justify-end border-t border-line pt-3">
             <button
               type="button"
-              [disabled]="formLoading() || servicesLoading() || selectedServiceIds().length === 0"
-              (click)="onAssignServiceSubmit()"
-              class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
+              (click)="closeAssignEstModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
             >
-              {{ formLoading() ? 'Asignando...' : 'Asignar Selección' }}
-            </button>
-            <button
-              type="button"
-              (click)="closeAssignServiceModal()"
-              class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
-            >
-              Cancelar
+              Cerrar
             </button>
           </div>
         </div>
@@ -374,114 +426,164 @@
   </div>
 }
 
-<!-- Modal Generar Horarios -->
-@if (isGenerateScheduleModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-schedule-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+<!-- =========================================================================
+     MODAL ASIGNAR SERVICIO AL DOCTOR (Búsqueda por Nombre)
+     ========================================================================= -->
+@if (isAssignServiceModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeAssignServiceModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <form [formGroup]="scheduleForm" (ngSubmit)="onGenerateScheduleSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-schedule-title">
-                  Crear Horarios
-                </h3>
-                @if (selectedServiceForSchedule()) {
-                  <p class="mt-1 text-sm text-text-muted">
-                    Servicio: <strong class="text-text-strong">{{ selectedServiceForSchedule()!.name }}</strong>
-                  </p>
-                }
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Asignar Servicio al Dr. {{ doctor()?.firstName }} {{ doctor()?.lastName }}
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Busca especialidades y tratamientos para vincularlos a este profesional.
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="closeAssignServiceModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
 
-                @if (!doctor()?.stablishments || doctor()!.stablishments!.length === 0) {
-                  <div class="mt-4 rounded-md bg-amber-50 p-3 border border-amber-200">
-                    <p class="text-xs text-amber-800 font-medium">
-                      Este doctor aún no tiene establecimientos asignados. Debes asignarle un establecimiento antes de crear horarios.
-                    </p>
-                  </div>
-                }
+          <!-- Alertas -->
+          @if (assignServiceSuccess()) {
+            <div class="mb-4 rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-800 flex items-center gap-2 border border-emerald-200">
+              <span>✓</span>
+              <span>{{ assignServiceSuccess() }}</span>
+            </div>
+          }
 
-                <div class="mt-6 space-y-4">
-                  <!-- Selector de Establecimiento -->
-                  <div>
-                    <label for="schedule_estId" class="block text-sm font-medium leading-6 text-text-strong">
-                      Establecimiento al que tiene acceso
-                    </label>
-                    <div class="mt-2">
-                      <select
-                        id="schedule_estId"
-                        formControlName="stablishmentId"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
-                      >
-                        <option [value]="0" disabled>Selecciona un establecimiento</option>
-                        @for (est of doctor()?.stablishments || []; track est.id) {
-                          <option [value]="est.id">{{ est.name }} - {{ est.address }}</option>
-                        }
-                      </select>
-                      @if (scheduleForm.controls.stablishmentId.touched && scheduleForm.controls.stablishmentId.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un establecimiento.</p>
-                      }
-                    </div>
-                  </div>
+          @if (assignServiceError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ assignServiceError() }}</span>
+            </div>
+          }
 
-                  <!-- Campo de Fecha -->
-                  <div>
-                    <label for="schedule_date" class="block text-sm font-medium leading-6 text-text-strong">
-                      Fecha del día
-                    </label>
-                    <div class="mt-2">
-                      <input
-                        type="date"
-                        id="schedule_date"
-                        formControlName="date"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
-                      />
-                      @if (scheduleForm.controls.date.touched && scheduleForm.controls.date.invalid) {
-                        <p class="mt-1 text-sm text-red-600">La fecha es requerida.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Selector de Intervalo de tiempo -->
-                  <div>
-                    <label for="schedule_interval" class="block text-sm font-medium leading-6 text-text-strong">
-                      Intervalo de tiempo
-                    </label>
-                    <div class="mt-2">
-                      <select
-                        id="schedule_interval"
-                        formControlName="intervalMinutes"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
-                      >
-                        <option [value]="45">45 minutos</option>
-                        <option [value]="60">60 minutos (1 hora)</option>
-                      </select>
-                      @if (scheduleForm.controls.intervalMinutes.touched && scheduleForm.controls.intervalMinutes.invalid) {
-                        <p class="mt-1 text-sm text-red-600">El intervalo es requerido.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <!-- Formulario de Búsqueda -->
+          <div class="flex items-center gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
+            <div class="flex-1">
+              <label class="block text-[11px] font-bold text-ink mb-1">Nombre del Servicio o Especialidad</label>
+              <input
+                type="text"
+                placeholder="Ej. Odontología, Consulta General o Pediatría"
+                [ngModel]="candidateServiceName()"
+                (ngModelChange)="candidateServiceName.set($event)"
+                (keyup.enter)="searchCandidateServices(0)"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              />
             </div>
 
-            <div class="mt-6 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                [disabled]="formLoading() || !doctor()?.stablishments || doctor()!.stablishments!.length === 0"
-                class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
-              >
-                {{ formLoading() ? 'Creando Horarios...' : 'Crear Horarios' }}
-              </button>
+            <div class="flex items-end gap-2 pt-4">
               <button
                 type="button"
-                (click)="closeGenerateScheduleModal()"
-                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+                (click)="searchCandidateServices(0)"
+                class="rounded-pill bg-blue py-2 px-4 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
               >
-                Cancelar
+                Buscar
               </button>
+              @if (candidateServiceName()) {
+                <button
+                  type="button"
+                  (click)="resetCandidateServiceSearch()"
+                  class="rounded-pill border border-line bg-surface py-2 px-2.5 text-xs font-semibold text-ink-3 hover:bg-field"
+                  title="Limpiar búsqueda"
+                >
+                  ✕
+                </button>
+              }
             </div>
-          </form>
+          </div>
+
+          <!-- Resultados -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs text-ink-3 px-1">
+              <span>Servicios disponibles</span>
+              <span class="font-bold text-ink">{{ candidateServices()?.totalElements ?? 0 }} encontrados</span>
+            </div>
+
+            @if (candidateServiceLoading()) {
+              <div class="py-12 text-center text-xs text-ink-3">Buscando servicios en el sistema...</div>
+            } @else if (!candidateServices()?.content || candidateServices()!.content!.length === 0) {
+              <div class="py-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/50 p-4">
+                No se encontraron servicios con los filtros ingresados.
+              </div>
+            } @else {
+              <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                @for (srv of candidateServices()?.content; track srv.id) {
+                  <div class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/40 hover:bg-tint/20 transition-all flex items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-10 h-10 rounded-2xl bg-tint text-blue font-extrabold flex items-center justify-center text-base shadow-inner shrink-0">
+                        🩺
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-bold text-ink truncate">{{ srv.name }}</p>
+                        <p class="text-[11px] text-ink-3 font-semibold">${{ srv.price | number:'1.2-2' }}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      [disabled]="assigningServiceId() === srv.id"
+                      (click)="onAssignService(srv)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-blue px-3.5 py-1.5 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 shrink-0 transition-all"
+                    >
+                      @if (assigningServiceId() === srv.id) {
+                        <span class="animate-spin text-xs">⏳</span>
+                        <span>Asignando...</span>
+                      } @else {
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span>Asignar Servicio</span>
+                      }
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Paginación -->
+              @if (candidateServices() && candidateServices()!.totalPages > 1) {
+                <div class="flex items-center justify-between pt-3 text-xs text-ink-3 border-t border-line">
+                  <span>Página {{ candidateServices()!.number + 1 }} de {{ candidateServices()!.totalPages }}</span>
+                  <div class="flex gap-2">
+                    <button
+                      [disabled]="candidateServices()!.first"
+                      (click)="searchCandidateServices(candidateServices()!.number - 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      [disabled]="candidateServices()!.last"
+                      (click)="searchCandidateServices(candidateServices()!.number + 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="mt-5 flex justify-end border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeAssignServiceModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>

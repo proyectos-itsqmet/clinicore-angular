@@ -1,0 +1,548 @@
+<div class="min-h-screen bg-field flex flex-col justify-between py-6 px-4 sm:px-6 lg:px-8">
+  <!-- Header Principal -->
+  <div class="max-w-6xl mx-auto w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-line">
+    <a routerLink="/" class="flex items-center gap-2.5 group">
+      <div class="w-10 h-10 rounded-xl bg-blue flex items-center justify-center shadow-cta text-surface font-extrabold">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="10" class="fill-blue" />
+          <path d="M16 8.5v15M8.5 16h15" stroke="white" stroke-width="3.4" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div>
+        <span class="font-display text-xl font-extrabold tracking-tight text-ink group-hover:text-blue transition-colors">
+          CliniCore
+        </span>
+        <span class="block text-[11px] font-semibold text-ink-3">Portal del Paciente</span>
+      </div>
+    </a>
+
+    <div class="flex items-center gap-3">
+      <a
+        routerLink="/agendar"
+        class="inline-flex items-center gap-1.5 rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        <span>Agendar Nueva Cita</span>
+      </a>
+
+      <button
+        type="button"
+        (click)="onLogout()"
+        class="inline-flex items-center gap-1.5 rounded-pill border border-line bg-surface px-4 py-2 text-xs font-bold text-emergency hover:bg-red-50 hover:border-red-200 transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+        </svg>
+        <span>Cerrar Sesión</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido Principal: Grid 2 Columnas -->
+  <div class="max-w-6xl mx-auto w-full my-6 flex-1">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- =========================================================================
+           COLUMNA IZQUIERDA: PERFIL DEL PACIENTE
+           ========================================================================= -->
+      <div class="lg:col-span-4 space-y-6">
+        <!-- Tarjeta de Perfil -->
+        <div class="bg-surface rounded-card p-6 shadow-lift-1 border border-line space-y-6">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-tint text-blue font-extrabold flex items-center justify-center text-xl shadow-inner shrink-0">
+              {{ userProfile().firstName.charAt(0) }}{{ userProfile().lastName.charAt(0) }}
+            </div>
+            <div class="min-w-0">
+              <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-[11px] font-bold text-blue uppercase tracking-wider">
+                Paciente
+              </span>
+              <h2 class="font-display text-lg font-extrabold text-ink truncate mt-0.5">
+                {{ userProfile().firstName }} {{ userProfile().lastName }}
+              </h2>
+              <p class="text-xs text-ink-3 truncate">{{ userProfile().email }}</p>
+            </div>
+          </div>
+
+          <!-- Éxito al guardar perfil -->
+          @if (profileSaveSuccess()) {
+            <div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800 flex items-center gap-2">
+              <span>✓</span>
+              <span>¡Información actualizada con éxito!</span>
+            </div>
+          }
+
+          <!-- Vista Solo Lectura -->
+          @if (!isEditingProfile()) {
+            <div class="space-y-3 pt-2 border-t border-line/60 text-xs">
+              <div class="flex justify-between py-1 border-b border-line/40">
+                <span class="text-ink-3 font-semibold">Correo:</span>
+                <span class="text-ink font-medium">{{ userProfile().email }}</span>
+              </div>
+
+              @if (userProfile().phone) {
+                <div class="flex justify-between py-1 border-b border-line/40">
+                  <span class="text-ink-3 font-semibold">Teléfono:</span>
+                  <span class="text-ink font-medium">{{ userProfile().phone }}</span>
+                </div>
+              }
+
+              @if (userProfile().gender) {
+                <div class="flex justify-between py-1 border-b border-line/40">
+                  <span class="text-ink-3 font-semibold">Género:</span>
+                  <span class="text-ink font-medium">
+                    {{ userProfile().gender === 'GENDER_MALE' ? 'Masculino' : userProfile().gender === 'GENDER_FEMALE' ? 'Femenino' : 'Otro' }}
+                  </span>
+                </div>
+              }
+
+              @if (userProfile().address) {
+                <div class="flex justify-between py-1 border-b border-line/40">
+                  <span class="text-ink-3 font-semibold">Dirección:</span>
+                  <span class="text-ink font-medium text-right truncate max-w-[180px]">{{ userProfile().address }}</span>
+                </div>
+              }
+
+              @if (userProfile().emergencyContactName) {
+                <div class="flex justify-between py-1 border-b border-line/40">
+                  <span class="text-ink-3 font-semibold">Contacto Emerg.:</span>
+                  <span class="text-ink font-medium">{{ userProfile().emergencyContactName }}</span>
+                </div>
+              }
+
+              @if (userProfile().emergencyContactPhone) {
+                <div class="flex justify-between py-1">
+                  <span class="text-ink-3 font-semibold">Teléfono Emerg.:</span>
+                  <span class="text-ink font-medium">{{ userProfile().emergencyContactPhone }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="pt-2">
+              <button
+                type="button"
+                (click)="startEditingProfile()"
+                class="w-full flex items-center justify-center gap-1.5 rounded-pill border border-line bg-field py-2.5 px-4 text-xs font-bold text-ink hover:bg-tint hover:border-blue/40 transition-colors"
+              >
+                <svg class="w-3.5 h-3.5 text-blue" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+                <span>Editar Información Personal</span>
+              </button>
+            </div>
+          } @else {
+            <!-- Formulario de Edición -->
+            <form [formGroup]="editProfileForm" (ngSubmit)="onSaveProfile()" class="space-y-3 pt-2 border-t border-line/60">
+              <div>
+                <label for="prof_firstName" class="block text-[11px] font-semibold text-ink mb-1">Nombres</label>
+                <input
+                  id="prof_firstName"
+                  type="text"
+                  formControlName="firstName"
+                  class="block w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label for="prof_lastName" class="block text-[11px] font-semibold text-ink mb-1">Apellidos</label>
+                <input
+                  id="prof_lastName"
+                  type="text"
+                  formControlName="lastName"
+                  class="block w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label for="prof_phone" class="block text-[11px] font-semibold text-ink mb-1">Teléfono</label>
+                <input
+                  id="prof_phone"
+                  type="tel"
+                  formControlName="phone"
+                  placeholder="Ej. 0987654321"
+                  class="block w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label for="prof_gender" class="block text-[11px] font-semibold text-ink mb-1">Género</label>
+                <select
+                  id="prof_gender"
+                  formControlName="gender"
+                  class="block w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="GENDER_MALE">Masculino</option>
+                  <option value="GENDER_FEMALE">Femenino</option>
+                  <option value="GENDER_OTHER">Otro</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="prof_address" class="block text-[11px] font-semibold text-ink mb-1">Dirección</label>
+                <input
+                  id="prof_address"
+                  type="text"
+                  formControlName="address"
+                  placeholder="Dirección domiciliaria"
+                  class="block w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label for="prof_emg_name" class="block text-[11px] font-semibold text-ink mb-1">Contacto Emergencia</label>
+                <input
+                  id="prof_emg_name"
+                  type="text"
+                  formControlName="emergencyContactName"
+                  placeholder="Nombre de contacto"
+                  class="block w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label for="prof_emg_phone" class="block text-[11px] font-semibold text-ink mb-1">Teléfono Emergencia</label>
+                <input
+                  id="prof_emg_phone"
+                  type="tel"
+                  formControlName="emergencyContactPhone"
+                  placeholder="Teléfono de contacto"
+                  class="block w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+              </div>
+
+              <div class="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  class="flex-1 rounded-pill bg-blue py-2 px-3 text-xs font-bold text-surface hover:bg-blue-bright transition-colors"
+                >
+                  Guardar Cambios
+                </button>
+                <button
+                  type="button"
+                  (click)="cancelEditingProfile()"
+                  class="rounded-pill border border-line bg-surface py-2 px-3 text-xs font-semibold text-ink-3 hover:bg-field transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          }
+        </div>
+      </div>
+
+      <!-- =========================================================================
+           COLUMNA DERECHA: HISTORIAL DE TURNOS AGENDADOS (/api/turns/me)
+           ========================================================================= -->
+      <div class="lg:col-span-8 space-y-6">
+        <div class="bg-surface rounded-card p-6 shadow-lift-1 border border-line space-y-6">
+          <!-- Encabezado de la Sección -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-display font-extrabold text-ink">Mis Turnos Agendados</h2>
+                <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
+                  {{ myTurns()?.totalElements ?? 0 }} turnos
+                </span>
+              </div>
+              <p class="text-xs text-ink-2 mt-0.5">Historial y próximos turnos médicos registrados a tu nombre</p>
+            </div>
+
+            <button
+              type="button"
+              (click)="loadMyTurns(0)"
+              class="inline-flex items-center text-xs font-bold text-blue hover:underline gap-1 self-start sm:self-center"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              <span>Actualizar</span>
+            </button>
+          </div>
+
+          <!-- Alertas de Cancelación / Error -->
+          @if (actionSuccessMessage()) {
+            <div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs font-bold text-emerald-800 flex items-center justify-between shadow-sm">
+              <div class="flex items-center gap-2">
+                <span>✓</span>
+                <span>{{ actionSuccessMessage() }}</span>
+              </div>
+              <button (click)="actionSuccessMessage.set(null)" class="text-emerald-600 hover:text-emerald-900 font-bold">✕</button>
+            </div>
+          }
+
+          @if (actionErrorMessage()) {
+            <div class="rounded-2xl bg-red-50 border border-red-200 p-3.5 text-xs font-bold text-red-800 flex items-center justify-between shadow-sm">
+              <div class="flex items-center gap-2">
+                <span>✕</span>
+                <span>{{ actionErrorMessage() }}</span>
+              </div>
+              <button (click)="actionErrorMessage.set(null)" class="text-red-600 hover:text-red-900 font-bold">✕</button>
+            </div>
+          }
+
+          <!-- Barra de Filtros -->
+          <div class="flex flex-wrap items-center gap-3 bg-field p-3 rounded-2xl border border-line">
+            <!-- Filtro Estado -->
+            <select
+              [value]="filterStatus()"
+              (change)="onStatusChange($any($event.target).value)"
+              class="rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+            >
+              <option value="">Todos los Estados</option>
+              <option value="TURN_PENDING">Pendiente</option>
+              <option value="TURN_TREATED">Atendido</option>
+              <option value="TURN_CANCELLED">Cancelado</option>
+            </select>
+
+            <!-- Filtro Fecha Desde -->
+            <div class="flex items-center gap-1.5 text-xs text-ink-3">
+              <span>Desde:</span>
+              <input
+                type="date"
+                [ngModel]="filterFrom()"
+                (ngModelChange)="onFromChange($event)"
+                class="rounded-xl border border-line bg-surface py-1 px-2.5 text-xs text-ink focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            <!-- Filtro Fecha Hasta -->
+            <div class="flex items-center gap-1.5 text-xs text-ink-3">
+              <span>Hasta:</span>
+              <input
+                type="date"
+                [ngModel]="filterTo()"
+                (ngModelChange)="onToChange($event)"
+                class="rounded-xl border border-line bg-surface py-1 px-2.5 text-xs text-ink focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            @if (filterStatus() || filterFrom() || filterTo()) {
+              <button
+                type="button"
+                (click)="resetTurnFilters()"
+                class="text-xs text-emergency font-semibold hover:underline px-2 py-1"
+              >
+                Limpiar filtros
+              </button>
+            }
+          </div>
+
+          <!-- Mensaje de Error si falla -->
+          @if (turnsError()) {
+            <div class="rounded-2xl bg-red-50 border border-red-200 p-4 text-xs text-red-700">
+              {{ turnsError() }}
+            </div>
+          }
+
+          <!-- Lista de Turnos -->
+          @if (turnsLoading()) {
+            <div class="py-12 text-center text-sm text-ink-3">Cargando tus turnos médicos...</div>
+          } @else if (!myTurns()?.content || myTurns()!.content!.length === 0) {
+            <div class="py-12 text-center rounded-2xl border-2 border-dashed border-line bg-field p-8 space-y-3">
+              <div class="w-12 h-12 rounded-full bg-tint text-blue flex items-center justify-center text-xl mx-auto">
+                📋
+              </div>
+              <h3 class="font-display font-bold text-ink text-base">No tienes turnos agendados</h3>
+              <p class="text-xs text-ink-2 max-w-sm mx-auto">
+                Cuando reserves una cita médica en CliniCore, aparecerá en este listado con todos sus detalles.
+              </p>
+              <div class="pt-2">
+                <a
+                  routerLink="/agendar"
+                  class="inline-flex items-center gap-1.5 rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+                >
+                  <span>Agendar Cita Médica Ahora</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              @for (turn of myTurns()?.content; track turn.id) {
+                <div class="rounded-2xl border-2 border-line bg-surface p-4 shadow-sm hover:border-blue/60 transition-all flex flex-col justify-between space-y-3">
+                  <div>
+                    <!-- Header del Turno -->
+                    <div class="flex items-center justify-between border-b border-line/60 pb-2.5 mb-3">
+                      <span class="text-xs font-mono font-bold text-ink">
+                        Turno #{{ turn.id }}
+                      </span>
+
+                      <!-- Badge de Estado -->
+                      <span
+                        class="inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ring-1 ring-inset"
+                        [class.bg-amber-50]="turn.status === 'TURN_PENDING'"
+                        [class.text-amber-800]="turn.status === 'TURN_PENDING'"
+                        [class.ring-amber-600/20]="turn.status === 'TURN_PENDING'"
+                        [class.bg-emerald-50]="turn.status === 'TURN_TREATED'"
+                        [class.text-emerald-800]="turn.status === 'TURN_TREATED'"
+                        [class.ring-emerald-600/20]="turn.status === 'TURN_TREATED'"
+                        [class.bg-red-50]="turn.status === 'TURN_CANCELLED'"
+                        [class.text-red-800]="turn.status === 'TURN_CANCELLED'"
+                        [class.ring-red-600/20]="turn.status === 'TURN_CANCELLED'"
+                      >
+                        @if (turn.status === 'TURN_PENDING') { ● Pendiente }
+                        @else if (turn.status === 'TURN_TREATED') { ✓ Atendido }
+                        @else if (turn.status === 'TURN_CANCELLED') { ✕ Cancelado }
+                        @else { {{ turn.status }} }
+                      </span>
+                    </div>
+
+                    <!-- Fecha y Hora -->
+                    <div class="flex items-center gap-2 mb-2 text-ink">
+                      <span class="text-sm font-extrabold font-mono text-blue">
+                        🕐 {{ turn.schedule?.hour }}
+                      </span>
+                      <span class="text-xs text-ink-3">•</span>
+                      <span class="text-xs font-bold">
+                        📅 {{ turn.schedule?.date }}
+                      </span>
+                    </div>
+
+                    <!-- Especialidad -->
+                    <p class="text-xs font-bold text-ink truncate mb-2">
+                      {{ turn.schedule?.service?.name ?? 'Consulta Médica' }}
+                    </p>
+
+                    <!-- Doctor asignado -->
+                    @if (turn.schedule?.doctor) {
+                      <div class="flex items-center gap-2 p-2 rounded-xl bg-field border border-line mb-2">
+                        <div class="w-6 h-6 rounded-full bg-blue-100 text-blue font-bold flex items-center justify-center text-[10px] shrink-0">
+                          {{ turn.schedule?.doctor?.firstName?.charAt(0) }}
+                        </div>
+                        <div class="min-w-0">
+                          <p class="text-xs font-bold text-ink truncate">
+                            Dr. {{ turn.schedule?.doctor?.firstName }} {{ turn.schedule?.doctor?.lastName }}
+                          </p>
+                          <p class="text-[10px] text-ink-3 truncate">{{ turn.schedule?.doctor?.speciality }}</p>
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Sede / Establecimiento -->
+                    @if (turn.schedule?.stablishment) {
+                      <div class="flex items-center text-[11px] text-ink-3 gap-1 truncate mb-2">
+                        <span>🏥</span>
+                        <span class="truncate">{{ turn.schedule?.stablishment?.name }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Botón Cancelar Turno para el Paciente -->
+                  @if (turn.status === 'TURN_PENDING') {
+                    <div class="pt-2 border-t border-line/60">
+                      <button
+                        type="button"
+                        (click)="openCancelModal(turn)"
+                        class="w-full inline-flex items-center justify-center gap-1.5 rounded-pill border border-red-200 bg-red-50/70 py-1.5 px-3 text-xs font-bold text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Cancelar este Turno</span>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Paginación de Turnos -->
+            @if (myTurns() && (myTurns()!.totalPages > 1)) {
+              <div class="flex items-center justify-between border-t border-line pt-4 mt-4">
+                <p class="text-xs text-ink-3">
+                  Página {{ myTurns()!.number + 1 }} de {{ myTurns()!.totalPages }}
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    [disabled]="myTurns()!.first"
+                    (click)="loadMyTurns(myTurns()!.number - 1)"
+                    class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    [disabled]="myTurns()!.last"
+                    (click)="loadMyTurns(myTurns()!.number + 1)"
+                    class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Info -->
+  <div class="max-w-6xl mx-auto w-full text-center text-xs text-ink-3 pt-4">
+    CliniCore © 2026 · Sistema Médico y Gestión de Turnos Clínicos
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL CANCELACIÓN DE TURNO POR EL PACIENTE
+     ========================================================================= -->
+@if (isCancelModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeCancelModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-line">
+          
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-11 h-11 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-xl shadow-inner shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                ¿Cancelar tu turno médico?
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Turno #{{ turnToCancel()?.id }} • {{ turnToCancel()?.schedule?.service?.name ?? 'Consulta' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="rounded-xl bg-field p-3 border border-line text-xs space-y-1 text-ink mb-4">
+            <p><strong>📅 Fecha:</strong> {{ turnToCancel()?.schedule?.date }} a las {{ turnToCancel()?.schedule?.hour }}</p>
+            @if (turnToCancel()?.schedule?.doctor) {
+              <p><strong>👨‍⚕️ Médico:</strong> Dr. {{ turnToCancel()?.schedule?.doctor?.firstName }} {{ turnToCancel()?.schedule?.doctor?.lastName }}</p>
+            }
+            @if (turnToCancel()?.schedule?.stablishment) {
+              <p><strong>🏥 Sede:</strong> {{ turnToCancel()?.schedule?.stablishment?.name }}</p>
+            }
+          </div>
+
+          <p class="text-xs text-ink-3 mb-6">
+            Al confirmar la cancelación, este espacio quedará liberado automáticamente para otros pacientes y deberás agendar una nueva cita si la necesitas.
+          </p>
+
+          <div class="flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeCancelModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              No, mantener turno
+            </button>
+            <button
+              type="button"
+              [disabled]="cancellingTurn()"
+              (click)="confirmCancelTurn()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ cancellingTurn() ? 'Cancelando...' : 'Sí, Cancelar Turno' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}

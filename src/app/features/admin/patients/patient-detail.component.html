@@ -1,20 +1,21 @@
-<div class="px-4 sm:px-6 lg:px-8 space-y-6">
-  <!-- Botón Volver y Título -->
+<div class="px-4 sm:px-6 lg:px-8 space-y-6 max-w-7xl mx-auto">
+  <!-- Botón Volver y Encabezado -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div class="flex items-center gap-4">
-      <a
-        [routerLink]="['/admin/pacientes/informacion']"
-        class="inline-flex items-center justify-center rounded-lg border border-border bg-surface p-2 text-text-muted hover:bg-surface-muted hover:text-text-strong transition-colors"
-        title="Volver al listado de pacientes"
-      >
-        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <div>
+      <a routerLink="/admin/pacientes/informacion" class="inline-flex items-center text-xs font-bold text-ink-3 hover:text-ink mb-2 transition-colors">
+        <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
         </svg>
+        Volver a la lista de pacientes
       </a>
-      <div>
-        <h1 class="text-2xl font-bold text-text-strong">Detalles del Paciente y Turnos</h1>
-        <p class="text-sm text-text-muted">Consulta el historial de turnos y asigna nuevos turnos al paciente.</p>
-      </div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">
+        @if (patient()) {
+          Historial y Turnos: {{ patient()!.firstName }} {{ patient()!.lastName }}
+        } @else {
+          Detalle del Paciente
+        }
+      </h1>
+      <p class="text-xs text-ink-3 mt-0.5">Consulta el historial de atención, asigna nuevos turnos, reasigna fechas o cancela citas asignadas.</p>
     </div>
 
     <!-- Botón Asignar Turno -->
@@ -22,34 +23,49 @@
       <button
         (click)="openAssignTurnModal()"
         type="button"
-        class="inline-flex items-center rounded-pill bg-blue px-4 py-2.5 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
+        class="inline-flex items-center rounded-pill bg-blue px-4 py-2.5 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
       >
-        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <svg class="-ml-1 mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
-        Asignar Turno
+        + Asignar Nuevo Turno
       </button>
     </div>
   </div>
 
+  <!-- Feedback / Alerta de Acción -->
+  @if (actionMessage()) {
+    <div
+      [class]="actionMessage()!.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200'"
+      class="rounded-2xl p-3.5 text-xs font-bold flex items-center justify-between border shadow-sm transition-all"
+    >
+      <div class="flex items-center gap-2">
+        <span>{{ actionMessage()!.type === 'success' ? '✓' : '✕' }}</span>
+        <span>{{ actionMessage()!.text }}</span>
+      </div>
+      <button (click)="actionMessage.set(null)" class="text-ink-3 hover:text-ink font-bold text-sm">✕</button>
+    </div>
+  }
+
   <!-- Tarjeta de Información del Paciente -->
   @if (patient()) {
-    <div class="rounded-xl border border-border bg-surface p-6 shadow-sm">
+    <div class="rounded-2xl border border-line bg-surface p-5 shadow-sm">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-4">
-          <div class="h-12 w-12 rounded-full bg-blue/10 text-blue flex items-center justify-center font-bold text-lg">
+          <div class="h-12 w-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-extrabold text-lg shadow-inner shrink-0">
             {{ patient()!.firstName.charAt(0) }}{{ patient()!.lastName.charAt(0) }}
           </div>
           <div>
-            <h2 class="text-lg font-semibold text-text-strong">
+            <h2 class="font-display text-base font-extrabold text-ink">
               {{ patient()!.firstName }} {{ patient()!.lastName }}
             </h2>
-            <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-muted mt-1">
-              <span><strong>Cédula:</strong> {{ patient()!.ci }}</span>
-              <span><strong>Correo:</strong> {{ patient()!.email }}</span>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-3 mt-1">
+              <span><strong>Cédula:</strong> <span class="font-mono text-ink font-bold">{{ patient()!.ci }}</span></span>
+              <span><strong>Correo:</strong> <span class="text-ink">{{ patient()!.email }}</span></span>
               @if (patient()!.phone) {
-                <span><strong>Teléfono:</strong> {{ patient()!.phone }}</span>
+                <span><strong>Teléfono:</strong> <span class="text-ink">{{ patient()!.phone }}</span></span>
               }
+              <span><strong>UUID:</strong> <span class="font-mono text-[11px] text-ink-3">{{ patientId }}</span></span>
             </div>
           </div>
         </div>
@@ -58,17 +74,17 @@
   }
 
   <!-- Filtros de Búsqueda de Turnos Existentes -->
-  <div class="rounded-xl border border-border bg-surface p-5 shadow-sm">
-    <h3 class="text-sm font-semibold text-text-strong mb-4">Filtrar Turnos</h3>
-    <form [formGroup]="filterForm" (ngSubmit)="onFilterSubmit()" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
+  <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+    <h3 class="text-xs font-bold text-ink uppercase tracking-wider mb-3">Filtrar Historial de Turnos</h3>
+    <form [formGroup]="filterForm" (ngSubmit)="onFilterSubmit()" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 items-end">
       
       <!-- Estado -->
       <div>
-        <label for="status" class="block text-xs font-medium text-text-strong mb-1">Estado</label>
+        <label for="status" class="block text-[11px] font-bold text-ink mb-1">Estado</label>
         <select
           id="status"
           formControlName="status"
-          class="block w-full rounded-md border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+          class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
         >
           <option value="">Todos los estados</option>
           <option value="TURN_PENDING">Pendiente</option>
@@ -81,33 +97,33 @@
 
       <!-- Desde -->
       <div>
-        <label for="from" class="block text-xs font-medium text-text-strong mb-1">Desde (Fecha)</label>
+        <label for="from" class="block text-[11px] font-bold text-ink mb-1">Desde (Fecha)</label>
         <input
           type="date"
           id="from"
           formControlName="from"
-          class="block w-full rounded-md border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+          class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
         />
       </div>
 
       <!-- Hasta -->
       <div>
-        <label for="to" class="block text-xs font-medium text-text-strong mb-1">Hasta (Fecha)</label>
+        <label for="to" class="block text-[11px] font-bold text-ink mb-1">Hasta (Fecha)</label>
         <input
           type="date"
           id="to"
           formControlName="to"
-          class="block w-full rounded-md border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+          class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
         />
       </div>
 
       <!-- Orden -->
       <div>
-        <label for="sort" class="block text-xs font-medium text-text-strong mb-1">Ordenamiento</label>
+        <label for="sort" class="block text-[11px] font-bold text-ink mb-1">Ordenamiento</label>
         <select
           id="sort"
           formControlName="sort"
-          class="block w-full rounded-md border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+          class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
         >
           <option value="createdAt,desc">Más recientes primero</option>
           <option value="createdAt,asc">Más antiguos primero</option>
@@ -120,14 +136,14 @@
       <div class="flex items-center gap-2">
         <button
           type="submit"
-          class="inline-flex flex-1 justify-center items-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
+          class="inline-flex flex-1 justify-center items-center rounded-pill bg-blue py-2 px-3 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
         >
           Filtrar
         </button>
         <button
           type="button"
           (click)="onFilterReset()"
-          class="inline-flex justify-center items-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted"
+          class="inline-flex justify-center items-center rounded-pill border border-line bg-field px-3 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
         >
           Limpiar
         </button>
@@ -136,78 +152,114 @@
   </div>
 
   @if (error()) {
-    <div class="rounded-md bg-red-50 p-4">
-      <div class="flex">
-        <div class="ml-3">
-          <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
-        </div>
-      </div>
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
     </div>
   }
 
-  <!-- Tabla de Turnos -->
-  <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-    <table class="min-w-full divide-y divide-border">
-      <thead class="bg-surface-muted">
+  <!-- Tabla de Turnos Asignados con Acciones de Reasignar y Cancelar -->
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
         <tr>
-          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6"># Turno / ID</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Estado</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Fecha de Turno</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Doctor / Servicio</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Establecimiento</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Registrado</th>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3"># Turno</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Estado</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Fecha & Hora</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Doctor / Especialidad</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Establecimiento</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-border bg-surface">
+      <tbody class="divide-y divide-line bg-surface">
         @if (turnsLoading()) {
           <tr>
-            <td colspan="6" class="py-12 text-center text-sm text-text-muted">Cargando turnos del paciente...</td>
+            <td colspan="6" class="py-12 text-center text-xs text-ink-3">Cargando turnos del paciente...</td>
           </tr>
         } @else if (turnsData()?.content?.length === 0) {
           <tr>
-            <td colspan="6" class="py-12 text-center text-sm text-text-muted">No se encontraron turnos con los filtros seleccionados.</td>
+            <td colspan="6" class="py-12 text-center text-xs text-ink-3">No se encontraron turnos con los filtros seleccionados.</td>
           </tr>
         } @else {
           @for (turn of turnsData()?.content; track turn.id) {
-            <tr class="hover:bg-surface-muted/50 transition-colors">
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-strong sm:pl-6">
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-medium text-ink">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold text-base text-text-strong">#{{ turn.order }}</span>
-                  <span class="text-xs text-text-muted">(ID: {{ turn.id }})</span>
+                  <span class="font-extrabold text-sm text-blue">#{{ turn.order }}</span>
+                  <span class="text-[10px] text-ink-3 font-mono">(ID: {{ turn.id }})</span>
                 </div>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm">
-                <span [class]="'inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset ' + getStatusBadgeClass(turn.status)">
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + getStatusBadgeClass(turn.status)">
                   {{ getStatusLabel(turn.status) }}
                 </span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-strong">
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink font-bold">
                 @if (turn.schedule) {
                   <div>
-                    <span class="font-medium">{{ turn.schedule.date }}</span>
-                    <span class="ml-1.5 text-text-muted">{{ turn.schedule.hour }}</span>
+                    <span>📅 {{ turn.schedule.date }}</span>
+                    <span class="ml-1.5 text-blue">⏰ {{ turn.schedule.hour }}</span>
                   </div>
                 } @else {
-                  <span class="text-text-muted">-</span>
+                  <span class="text-ink-3">-</span>
                 }
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">
                 @if (turn.schedule?.doctor) {
-                  <div class="font-medium text-text-strong">
+                  <div class="font-bold text-ink">
                     Dr. {{ turn.schedule?.doctor?.firstName }} {{ turn.schedule?.doctor?.lastName }}
                   </div>
-                  <div class="text-xs text-text-muted">{{ turn.schedule?.doctor?.speciality }}</div>
+                  <div class="text-[11px] text-purple-700 font-semibold">{{ turn.schedule?.doctor?.speciality }}</div>
                 } @else if (turn.schedule?.service) {
-                  <div class="font-medium text-text-strong">{{ turn.schedule?.service?.name }}</div>
+                  <div class="font-bold text-ink">{{ turn.schedule?.service?.name }}</div>
                 } @else {
                   <span>-</span>
                 }
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
-                {{ turn.schedule?.stablishment?.name ?? '-' }}
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">
+                <span class="font-medium">🏥 {{ turn.schedule?.stablishment?.name ?? '-' }}</span>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
-                {{ turn.createdAt | date:'dd/MM/yyyy HH:mm' }}
+              <!-- Botones de Modificación: Reasignar, Cancelar por Personal, Atender -->
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <div class="flex items-center justify-end gap-1.5">
+                  @if (turn.status !== 'TURN_CANCELLED' && turn.status !== 'TURN_TREATED') {
+                    <!-- Botón Reasignar -->
+                    <button
+                      type="button"
+                      (click)="openReassignModal(turn)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
+                      title="Reasignar a otro horario disponible"
+                    >
+                      <span>🔄 Reasignar</span>
+                    </button>
+
+                    <!-- Botón Atender -->
+                    <button
+                      type="button"
+                      [disabled]="markingTreatedId() === turn.id"
+                      (click)="onMarkAsTreated(turn)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 text-xs font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm disabled:opacity-50"
+                      title="Marcar cita como atendida"
+                    >
+                      @if (markingTreatedId() === turn.id) {
+                        <span>⏳</span>
+                      } @else {
+                        <span>✓ Atendido</span>
+                      }
+                    </button>
+
+                    <!-- Botón Cancelar -->
+                    <button
+                      type="button"
+                      (click)="openCancelTurnModal(turn)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 text-xs font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                      title="Cancelar este turno"
+                    >
+                      <span>✕ Cancelar</span>
+                    </button>
+                  } @else {
+                    <span class="text-ink-3 text-[11px] italic font-normal">Sin acciones</span>
+                  }
+                </div>
               </td>
             </tr>
           }
@@ -217,39 +269,33 @@
 
     <!-- Paginación de Turnos -->
     @if (turnsData() && !turnsLoading()) {
-      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <div class="flex flex-1 items-center justify-between">
           <div>
-            <p class="text-sm text-text-muted">
-              Mostrando <span class="font-medium">{{ turnsData()!.pageable.offset + 1 }}</span> a
-              <span class="font-medium">{{ turnsData()!.pageable.offset + turnsData()!.numberOfElements }}</span> de
-              <span class="font-medium">{{ turnsData()!.totalElements }}</span> turnos
+            <p class="text-xs text-ink-3">
+              Mostrando <span class="font-bold text-ink">{{ turnsData()!.pageable.offset + 1 }}</span> a
+              <span class="font-bold text-ink">{{ turnsData()!.pageable.offset + turnsData()!.numberOfElements }}</span> de
+              <span class="font-bold text-ink">{{ turnsData()!.totalElements }}</span> turnos
             </p>
           </div>
           <div>
-            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <nav class="inline-flex items-center gap-1" aria-label="Pagination">
               <button
                 [disabled]="turnsData()!.first"
                 (click)="loadTurns(turnsData()!.number - 1)"
-                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
               >
-                <span class="sr-only">Anterior</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-                </svg>
+                Anterior
               </button>
-              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
-                Página {{ turnsData()!.number + 1 }} de {{ turnsData()!.totalPages === 0 ? 1 : turnsData()!.totalPages }}
+              <span class="px-2 text-xs font-bold text-ink">
+                Pág. {{ turnsData()!.number + 1 }} de {{ turnsData()!.totalPages === 0 ? 1 : turnsData()!.totalPages }}
               </span>
               <button
                 [disabled]="turnsData()!.last"
                 (click)="loadTurns(turnsData()!.number + 1)"
-                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
               >
-                <span class="sr-only">Siguiente</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                </svg>
+                Siguiente
               </button>
             </nav>
           </div>
@@ -259,248 +305,159 @@
   </div>
 </div>
 
-<!-- Modal Asignar Turno -->
+<!-- =========================================================================
+     MODAL ASIGNAR TURNO NUEVO A PACIENTE
+     ========================================================================= -->
 @if (isAssignTurnModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="assign-turn-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeAssignTurnModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-2xl bg-surface px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl sm:p-6 border border-border">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-line">
           
           <!-- Encabezado Modal -->
-          <div class="flex items-center justify-between border-b border-border pb-4">
-            <div class="flex items-center gap-3">
-              <div class="h-10 w-10 rounded-full bg-blue/10 text-blue flex items-center justify-center font-bold">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-lg font-bold text-text-strong" id="assign-turn-title">
-                  Asignar Turno a Paciente
-                </h3>
-                <p class="text-xs text-text-muted">
-                  Paciente: <span class="font-semibold text-text-strong">{{ patient()?.firstName }} {{ patient()?.lastName }}</span> (CI: {{ patient()?.ci }})
-                </p>
-              </div>
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Asignar Nuevo Turno
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Paciente: <strong class="text-ink">{{ patient()?.firstName }} {{ patient()?.lastName }}</strong> (CI: {{ patient()?.ci }})
+              </p>
             </div>
             <button
               type="button"
               (click)="closeAssignTurnModal()"
-              class="rounded-lg p-1.5 text-text-muted hover:bg-surface-muted hover:text-text-strong transition-colors"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
             >
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              ✕
             </button>
           </div>
 
           <!-- Filtros de Búsqueda de Horarios -->
-          <div class="mt-4 rounded-xl bg-surface-muted/60 p-4 border border-border/80">
-            <form [formGroup]="scheduleSearchForm" (ngSubmit)="onScheduleSearch()" class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-4 items-end">
-              <!-- Filtro por Fecha -->
-              <div>
-                <label for="sched-date" class="block text-xs font-semibold text-text-strong mb-1">
-                  📅 Por Fecha
-                </label>
-                <input
-                  type="date"
-                  id="sched-date"
-                  formControlName="date"
-                  class="block w-full rounded-lg border-0 bg-surface py-1.5 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-xs"
-                />
-              </div>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
+            <div class="sm:col-span-4">
+              <label class="block text-[11px] font-bold text-ink mb-1">📅 Por Fecha</label>
+              <input
+                type="date"
+                [ngModel]="scheduleSearchForm.get('date')?.value"
+                (ngModelChange)="scheduleSearchForm.patchValue({ date: $event })"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+              />
+            </div>
 
-              <!-- Filtro por Establecimiento -->
-              <div>
-                <label for="sched-est" class="block text-xs font-semibold text-text-strong mb-1">
-                  🏥 Por Establecimiento
-                </label>
-                <select
-                  id="sched-est"
-                  formControlName="stablishmentId"
-                  class="block w-full rounded-lg border-0 bg-surface py-1.5 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-xs"
-                >
-                  <option value="">Todos los establecimientos</option>
-                  @for (est of establishments(); track est.id) {
-                    <option [value]="est.id">{{ est.name }}</option>
-                  }
-                </select>
-              </div>
+            <div class="sm:col-span-4">
+              <label class="block text-[11px] font-bold text-ink mb-1">🏥 Por Sede</label>
+              <select
+                [ngModel]="scheduleSearchForm.get('stablishmentId')?.value"
+                (ngModelChange)="scheduleSearchForm.patchValue({ stablishmentId: $event })"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+              >
+                <option value="">Todas las sedes</option>
+                @for (est of establishments(); track est.id) {
+                  <option [value]="est.id">{{ est.name }}</option>
+                }
+              </select>
+            </div>
 
-              <!-- Filtro por Nombre de Doctor -->
-              <div>
-                <label for="sched-doc" class="block text-xs font-semibold text-text-strong mb-1">
-                  👨‍⚕️ Por Nombre de Doctor
-                </label>
-                <input
-                  type="text"
-                  id="sched-doc"
-                  formControlName="doctorName"
-                  placeholder="Ej. Carlos"
-                  class="block w-full rounded-lg border-0 bg-surface py-1.5 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue text-xs"
-                />
-              </div>
-
-              <!-- Botones de Búsqueda -->
-              <div class="flex items-center gap-2">
-                <button
-                  type="submit"
-                  class="inline-flex flex-1 justify-center items-center rounded-pill bg-blue px-3 py-1.5 text-xs font-semibold text-surface shadow-sm hover:bg-blue-strong"
-                >
-                  <svg class="-ml-1 mr-1.5 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                  </svg>
-                  Buscar
-                </button>
-                <button
-                  type="button"
-                  (click)="onScheduleSearchReset()"
-                  class="inline-flex justify-center items-center rounded-pill bg-surface px-2.5 py-1.5 text-xs font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted"
-                >
-                  Limpiar
-                </button>
-              </div>
-            </form>
+            <div class="sm:col-span-4 flex items-end gap-2">
+              <button
+                type="button"
+                (click)="onScheduleSearch()"
+                class="flex-1 rounded-pill bg-blue py-2 px-3 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+              >
+                Buscar
+              </button>
+              <button
+                type="button"
+                (click)="onScheduleSearchReset()"
+                class="rounded-pill border border-line bg-surface py-2 px-2.5 text-xs font-semibold text-ink-3 hover:bg-field"
+                title="Limpiar filtros"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           <!-- Mensaje de Error en Horarios -->
           @if (schedulesError()) {
-            <div class="mt-3 rounded-lg bg-red-50 p-3 text-xs text-red-800">
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200">
               {{ schedulesError() }}
             </div>
           }
 
-          <!-- Vista Interactiva de Horarios -->
-          <div class="mt-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-text-muted">
-                Horarios Disponibles
-              </span>
-              @if (selectedSchedule()) {
-                <span class="text-xs font-semibold text-blue flex items-center gap-1">
-                  <svg class="w-4 h-4 text-blue" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Horario seleccionado (ID: {{ selectedSchedule()!.id }})
-                </span>
-              }
+          <!-- Grid de Horarios -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs text-ink-3 px-1">
+              <span>Selecciona un horario disponible</span>
+              <span class="font-bold text-ink">{{ schedulesData()?.totalElements ?? 0 }} encontrados</span>
             </div>
 
             @if (schedulesLoading()) {
-              <div class="py-12 text-center text-sm text-text-muted flex flex-col items-center justify-center">
-                <svg class="animate-spin h-6 w-6 text-blue mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                </svg>
-                Cargando horarios disponibles...
-              </div>
-            } @else if (schedulesData()?.content?.length === 0) {
-              <div class="py-10 text-center rounded-xl border border-dashed border-border p-6 text-text-muted">
-                <svg class="mx-auto h-8 w-8 text-text-muted mb-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p class="text-sm font-medium">No se encontraron horarios para los filtros seleccionados.</p>
-                <p class="text-xs text-text-muted mt-1">Prueba cambiando la fecha, establecimiento o nombre de doctor.</p>
+              <div class="py-12 text-center text-xs text-ink-3">Buscando horarios disponibles...</div>
+            } @else if (!schedulesData()?.content || schedulesData()!.content!.length === 0) {
+              <div class="py-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/50 p-4">
+                No hay turnos disponibles para los filtros aplicados.
               </div>
             } @else {
-              <!-- Grid Interactivo de Tarjetas de Horarios -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[320px] overflow-y-auto pr-1">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
                 @for (sched of schedulesData()?.content; track sched.id) {
                   <div
                     (click)="selectSchedule(sched)"
                     [class.border-blue]="selectedSchedule()?.id === sched.id"
                     [class.ring-2]="selectedSchedule()?.id === sched.id"
                     [class.ring-blue]="selectedSchedule()?.id === sched.id"
-                    [class.bg-blue-50/40]="selectedSchedule()?.id === sched.id"
-                    [class.opacity-60]="sched.status === 'STATUS_OCCUPIED' || sched.status === 'STATUS_UNAVAILABLE'"
+                    [class.bg-tint/30]="selectedSchedule()?.id === sched.id"
+                    [class.opacity-50]="sched.status === 'STATUS_OCCUPIED' || sched.status === 'STATUS_UNAVAILABLE'"
                     [class.cursor-not-allowed]="sched.status === 'STATUS_OCCUPIED' || sched.status === 'STATUS_UNAVAILABLE'"
                     [class.cursor-pointer]="sched.status !== 'STATUS_OCCUPIED' && sched.status !== 'STATUS_UNAVAILABLE'"
-                    class="group relative rounded-xl border border-border bg-surface p-3.5 shadow-sm transition-all hover:border-blue/70 hover:shadow-md"
+                    class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/40 transition-all shadow-sm flex flex-col justify-between"
                   >
-                    <!-- Header Tarjeta: Hora y Estado -->
-                    <div class="flex items-center justify-between mb-2">
-                      <div class="flex items-center gap-1.5">
-                        <span class="inline-flex items-center rounded-md bg-blue/10 px-2 py-0.5 text-xs font-bold text-blue">
-                          🕒 {{ sched.hour }}
-                        </span>
-                        <span class="text-xs text-text-muted font-medium">
-                          {{ sched.date }}
+                    <div>
+                      <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-mono text-xs font-extrabold text-blue">⏰ {{ sched.hour }}</span>
+                        <span [class]="'inline-flex items-center rounded-pill px-2 py-0.5 text-[10px] font-bold ' + getScheduleStatusBadgeClass(sched.status)">
+                          {{ getScheduleStatusLabel(sched.status) }}
                         </span>
                       </div>
-                      <span [class]="'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ' + getScheduleStatusBadgeClass(sched.status)">
-                        {{ getScheduleStatusLabel(sched.status) }}
-                      </span>
+                      <p class="text-xs font-bold text-ink">
+                        Dr. {{ sched.doctor?.firstName }} {{ sched.doctor?.lastName }}
+                      </p>
+                      <p class="text-[11px] text-ink-3">
+                        🏥 {{ sched.stablishment?.name }} • 📅 {{ sched.date }}
+                      </p>
                     </div>
 
-                    <!-- Datos Doctor y Servicio -->
-                    <div class="space-y-1 text-xs">
-                      <div class="font-semibold text-text-strong flex items-center gap-1">
-                        👨‍⚕️
-                        <span>
-                          @if (sched.doctor) {
-                            Dr. {{ sched.doctor.firstName }} {{ sched.doctor.lastName }}
-                          } @else {
-                            Doctor por asignar
-                          }
-                        </span>
-                      </div>
-                      
-                      @if (sched.doctor?.speciality || sched.service?.name) {
-                        <div class="text-[11px] text-text-muted flex items-center gap-1">
-                          <span class="inline-block w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                          {{ sched.service?.name || sched.doctor?.speciality }}
-                        </div>
-                      }
-
-                      @if (sched.stablishment?.name) {
-                        <div class="text-[11px] text-text-muted truncate flex items-center gap-1">
-                          🏥 {{ sched.stablishment?.name }}
-                        </div>
-                      }
-                    </div>
-
-                    <!-- Indicador de Selección -->
-                    <div class="mt-3 pt-2 border-t border-border/60 flex items-center justify-between">
-                      <span class="text-[10px] text-text-muted">ID: {{ sched.id }}</span>
+                    <div class="mt-2 pt-2 border-t border-line flex items-center justify-between text-[11px]">
+                      <span class="text-ink-3">ID: #{{ sched.id }}</span>
                       @if (selectedSchedule()?.id === sched.id) {
-                        <span class="text-xs font-bold text-blue flex items-center gap-1">
-                          ✓ Seleccionado
-                        </span>
+                        <span class="font-bold text-blue">✓ Seleccionado</span>
                       } @else if (sched.status !== 'STATUS_OCCUPIED' && sched.status !== 'STATUS_UNAVAILABLE') {
-                        <span class="text-xs text-text-muted group-hover:text-blue font-medium">
-                          Seleccionar →
-                        </span>
+                        <span class="text-ink-3 hover:text-blue font-bold">Elegir →</span>
                       } @else {
-                        <span class="text-xs text-rose-600 font-medium">
-                          No disponible
-                        </span>
+                        <span class="text-red-600 font-bold">No disponible</span>
                       }
                     </div>
                   </div>
                 }
               </div>
 
-              <!-- Paginación de Horarios -->
+              <!-- Paginación -->
               @if (schedulesData() && schedulesData()!.totalPages > 1) {
-                <div class="mt-3 flex items-center justify-between border-t border-border pt-2">
-                  <span class="text-xs text-text-muted">
-                    Página {{ schedulesData()!.number + 1 }} de {{ schedulesData()!.totalPages }}
-                  </span>
-                  <div class="flex gap-1">
+                <div class="flex items-center justify-between pt-3 text-xs text-ink-3 border-t border-line">
+                  <span>Página {{ schedulesData()!.number + 1 }} de {{ schedulesData()!.totalPages }}</span>
+                  <div class="flex gap-2">
                     <button
-                      type="button"
                       [disabled]="schedulesData()!.first"
                       (click)="loadSchedules(schedulesData()!.number - 1)"
-                      class="rounded-md border border-border px-2 py-1 text-xs text-text-muted hover:bg-surface-muted disabled:opacity-40"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
                     >
                       Anterior
                     </button>
                     <button
-                      type="button"
                       [disabled]="schedulesData()!.last"
                       (click)="loadSchedules(schedulesData()!.number + 1)"
-                      class="rounded-md border border-border px-2 py-1 text-xs text-text-muted hover:bg-surface-muted disabled:opacity-40"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
                     >
                       Siguiente
                     </button>
@@ -510,31 +467,11 @@
             }
           </div>
 
-          <!-- Resumen de Horario Seleccionado -->
-          @if (selectedSchedule()) {
-            <div class="mt-4 rounded-xl bg-blue/5 border border-blue/20 p-3.5">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div class="text-xs">
-                  <span class="font-bold text-text-strong">Horario listo para asignación:</span>
-                  <span class="ml-1 text-blue font-medium">
-                    {{ selectedSchedule()!.date }} a las {{ selectedSchedule()!.hour }}
-                  </span>
-                  @if (selectedSchedule()!.doctor) {
-                    <span class="text-text-muted">
-                      con el Dr. {{ selectedSchedule()!.doctor?.firstName }} {{ selectedSchedule()!.doctor?.lastName }}
-                    </span>
-                  }
-                </div>
-              </div>
-            </div>
-          }
-
-          <!-- Footer Botones de Acción -->
-          <div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-border pt-4">
+          <div class="mt-5 flex justify-end gap-2 border-t border-line pt-3">
             <button
               type="button"
               (click)="closeAssignTurnModal()"
-              class="inline-flex w-full justify-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:w-auto"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
             >
               Cancelar
             </button>
@@ -542,17 +479,260 @@
               type="button"
               [disabled]="!selectedSchedule() || assigningTurn()"
               (click)="confirmAssignTurn()"
-              class="inline-flex w-full justify-center items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:w-auto disabled:opacity-50"
+              class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
             >
-              @if (assigningTurn()) {
-                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-surface" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                </svg>
-                Asignando...
-              } @else {
-                Confirmar Asignación
+              {{ assigningTurn() ? 'Asignando...' : 'Confirmar Asignación' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL REASIGNAR TURNO (PUT /api/turns/{id}/reassign)
+     ========================================================================= -->
+@if (isReassignModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeReassignModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-line">
+          
+          <!-- Encabezado Modal -->
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Reasignar Turno #{{ turnToReassign()?.order }} (ID: {{ turnToReassign()?.id }})
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Cita actual: <span class="font-bold text-ink">{{ turnToReassign()?.schedule?.date }} a las {{ turnToReassign()?.schedule?.hour }}</span> con 
+                Dr. {{ turnToReassign()?.schedule?.doctor?.firstName }} {{ turnToReassign()?.schedule?.doctor?.lastName }}
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="closeReassignModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Filtros de Búsqueda de Nuevo Horario -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
+            <div class="sm:col-span-4">
+              <label class="block text-[11px] font-bold text-ink mb-1">📅 Nueva Fecha</label>
+              <input
+                type="date"
+                [ngModel]="reassignSearchForm.get('date')?.value"
+                (ngModelChange)="reassignSearchForm.patchValue({ date: $event })"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block text-[11px] font-bold text-ink mb-1">🏥 Sede / Establecimiento</label>
+              <select
+                [ngModel]="reassignSearchForm.get('stablishmentId')?.value"
+                (ngModelChange)="reassignSearchForm.patchValue({ stablishmentId: $event })"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+              >
+                <option value="">Todas las sedes</option>
+                @for (est of establishments(); track est.id) {
+                  <option [value]="est.id">{{ est.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="sm:col-span-4 flex items-end gap-2">
+              <button
+                type="button"
+                (click)="onReassignSearch()"
+                class="flex-1 rounded-pill bg-blue py-2 px-3 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+              >
+                Buscar
+              </button>
+              <button
+                type="button"
+                (click)="onReassignSearchReset()"
+                class="rounded-pill border border-line bg-surface py-2 px-2.5 text-xs font-semibold text-ink-3 hover:bg-field"
+                title="Limpiar filtros"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- Mensaje de Error en Horarios de Reasignación -->
+          @if (reassignSchedulesError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200">
+              {{ reassignSchedulesError() }}
+            </div>
+          }
+
+          <!-- Grid de Nuevos Horarios Disponibles -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs text-ink-3 px-1">
+              <span>Selecciona el nuevo turno para el paciente</span>
+              <span class="font-bold text-ink">{{ reassignSchedulesData()?.totalElements ?? 0 }} disponibles</span>
+            </div>
+
+            @if (reassignSchedulesLoading()) {
+              <div class="py-12 text-center text-xs text-ink-3">Buscando horarios disponibles...</div>
+            } @else if (!reassignSchedulesData()?.content || reassignSchedulesData()!.content!.length === 0) {
+              <div class="py-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/50 p-4">
+                No hay turnos libres para los filtros especificados.
+              </div>
+            } @else {
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+                @for (sched of reassignSchedulesData()?.content; track sched.id) {
+                  <div
+                    (click)="selectReassignSchedule(sched)"
+                    [class.border-blue]="selectedReassignSchedule()?.id === sched.id"
+                    [class.ring-2]="selectedReassignSchedule()?.id === sched.id"
+                    [class.ring-blue]="selectedReassignSchedule()?.id === sched.id"
+                    [class.bg-tint/30]="selectedReassignSchedule()?.id === sched.id"
+                    [class.opacity-50]="sched.status === 'STATUS_OCCUPIED' || sched.status === 'STATUS_UNAVAILABLE'"
+                    [class.cursor-not-allowed]="sched.status === 'STATUS_OCCUPIED' || sched.status === 'STATUS_UNAVAILABLE'"
+                    [class.cursor-pointer]="sched.status !== 'STATUS_OCCUPIED' && sched.status !== 'STATUS_UNAVAILABLE'"
+                    class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/40 transition-all shadow-sm flex flex-col justify-between"
+                  >
+                    <div>
+                      <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-mono text-xs font-extrabold text-blue">⏰ {{ sched.hour }}</span>
+                        <span [class]="'inline-flex items-center rounded-pill px-2 py-0.5 text-[10px] font-bold ' + getScheduleStatusBadgeClass(sched.status)">
+                          {{ getScheduleStatusLabel(sched.status) }}
+                        </span>
+                      </div>
+                      <p class="text-xs font-bold text-ink">
+                        Dr. {{ sched.doctor?.firstName }} {{ sched.doctor?.lastName }}
+                      </p>
+                      <p class="text-[11px] text-ink-3">
+                        🏥 {{ sched.stablishment?.name }} • 📅 {{ sched.date }}
+                      </p>
+                    </div>
+
+                    <div class="mt-2 pt-2 border-t border-line flex items-center justify-between text-[11px]">
+                      <span class="text-ink-3">ID: #{{ sched.id }}</span>
+                      @if (selectedReassignSchedule()?.id === sched.id) {
+                        <span class="font-bold text-blue">✓ Seleccionado para Reasignar</span>
+                      } @else if (sched.status !== 'STATUS_OCCUPIED' && sched.status !== 'STATUS_UNAVAILABLE') {
+                        <span class="text-ink-3 hover:text-blue font-bold">Elegir nuevo →</span>
+                      } @else {
+                        <span class="text-red-600 font-bold">No disponible</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Paginación -->
+              @if (reassignSchedulesData() && reassignSchedulesData()!.totalPages > 1) {
+                <div class="flex items-center justify-between pt-3 text-xs text-ink-3 border-t border-line">
+                  <span>Página {{ reassignSchedulesData()!.number + 1 }} de {{ reassignSchedulesData()!.totalPages }}</span>
+                  <div class="flex gap-2">
+                    <button
+                      [disabled]="reassignSchedulesData()!.first"
+                      (click)="loadReassignSchedules(reassignSchedulesData()!.number - 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      [disabled]="reassignSchedulesData()!.last"
+                      (click)="loadReassignSchedules(reassignSchedulesData()!.number + 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
               }
+            }
+          </div>
+
+          <div class="mt-5 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeReassignModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="!selectedReassignSchedule() || reassigningTurn()"
+              (click)="confirmReassignTurn()"
+              class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+            >
+              {{ reassigningTurn() ? 'Reasignando...' : 'Confirmar Reasignación' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL CANCELAR TURNO POR PERSONAL (PUT /api/turns/{id}/staff-cancel)
+     ========================================================================= -->
+@if (isCancelModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeCancelTurnModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Cancelar Turno #{{ turnToCancel()?.order }}
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Cita: {{ turnToCancel()?.schedule?.date }} {{ turnToCancel()?.schedule?.hour }} con Dr. {{ turnToCancel()?.schedule?.doctor?.firstName }} {{ turnToCancel()?.schedule?.doctor?.lastName }}
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label for="cancelReason" class="block text-xs font-bold text-ink mb-1">
+                Motivo de la Cancelación (Opcional)
+              </label>
+              <textarea
+                id="cancelReason"
+                rows="3"
+                [ngModel]="cancelReason()"
+                (ngModelChange)="cancelReason.set($event)"
+                placeholder="Ej. Solicitud directa del paciente, reprogramación o emergencia médica..."
+                class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeCancelTurnModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cerrar
+            </button>
+            <button
+              type="button"
+              [disabled]="cancellingTurn()"
+              (click)="confirmCancelTurn()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ cancellingTurn() ? 'Cancelando...' : 'Confirmar Cancelación' }}
             </button>
           </div>
 

@@ -9,11 +9,15 @@ export class EstablishmentApiService {
   // URL base de la API, usando el nombre que proporcionó el usuario en los endpoints (stablishments)
   private readonly API_URL = 'http://localhost:8080/api/stablishments';
 
-  getAll(page: number = 0, size: number = 10): Observable<Page<Establishment>> {
-    const params = new HttpParams()
+  getAll(page: number = 0, size: number = 10, name?: string): Observable<Page<Establishment>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
-      
+
+    if (name && name.trim()) {
+      params = params.set('name', name.trim());
+    }
+
     return this.http.get<Page<Establishment>>(this.API_URL, { params, withCredentials: true });
   }
 

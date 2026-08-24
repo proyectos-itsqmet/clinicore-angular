@@ -8,11 +8,19 @@ export class DoctorApiService {
   private readonly http = inject(HttpClient);
   private readonly API_URL = 'http://localhost:8080/api/doctors';
 
-  getAll(page: number = 0, size: number = 10): Observable<Page<AdminDoctor>> {
-    const params = new HttpParams()
+  getAll(page: number = 0, size: number = 10, name?: string, ci?: string): Observable<Page<AdminDoctor>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
-      
+
+    if (name && name.trim()) {
+      params = params.set('name', name.trim());
+    }
+
+    if (ci && ci.trim()) {
+      params = params.set('ci', ci.trim());
+    }
+
     return this.http.get<Page<AdminDoctor>>(this.API_URL, { params, withCredentials: true });
   }
 

@@ -1,0 +1,591 @@
+<div class="min-h-screen bg-field flex flex-col justify-between py-6 px-4 sm:px-6 lg:px-8">
+  <!-- Top Navigation & Brand Header -->
+  <div class="max-w-5xl mx-auto w-full flex items-center justify-between pb-6 border-b border-line">
+    <a routerLink="/" class="flex items-center gap-2.5 group">
+      <div class="w-10 h-10 rounded-xl bg-blue flex items-center justify-center shadow-cta text-surface font-extrabold">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="10" class="fill-blue" />
+          <path d="M16 8.5v15M8.5 16h15" stroke="white" stroke-width="3.4" stroke-linecap="round" />
+        </svg>
+      </div>
+      <span class="font-display text-xl font-extrabold tracking-tight text-ink group-hover:text-blue transition-colors">
+        CliniCore
+      </span>
+    </a>
+
+    <div class="flex items-center gap-4">
+      @if (authService.currentUser()) {
+        <a
+          routerLink="/perfil"
+          class="flex items-center gap-2 text-xs font-semibold text-ink hover:text-blue transition-colors group"
+          title="Ver mi perfil y turnos"
+        >
+          <div class="w-7 h-7 rounded-full bg-tint text-blue font-bold flex items-center justify-center group-hover:bg-blue group-hover:text-surface transition-colors">
+            {{ authService.currentUser()?.firstName?.charAt(0) }}
+          </div>
+          <span class="hidden sm:inline">Hola, {{ authService.currentUser()?.firstName }} (Mi Perfil)</span>
+        </a>
+      } @else {
+        <a
+          routerLink="/login"
+          class="text-xs font-semibold text-blue-text hover:text-ink transition-colors"
+        >
+          Iniciar Sesión
+        </a>
+      }
+
+      <a
+        routerLink="/"
+        class="inline-flex items-center text-xs font-semibold text-ink-3 hover:text-ink transition-colors gap-1"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Inicio
+      </a>
+    </div>
+  </div>
+
+  <!-- Stepper de Progreso -->
+  <div class="max-w-5xl mx-auto w-full my-6">
+    <div class="bg-surface rounded-card p-4 sm:p-6 shadow-lift-1 border border-line">
+      <div class="grid grid-cols-4 gap-2 sm:gap-4">
+        <!-- Paso 1 -->
+        <button
+          type="button"
+          (click)="goToStep(1)"
+          [disabled]="currentStep() === 4"
+          class="flex flex-col sm:flex-row items-center gap-2 text-left p-2 rounded-xl transition-colors text-xs font-semibold"
+          [class.bg-tint]="currentStep() === 1"
+          [class.text-blue]="currentStep() >= 1"
+          [class.text-ink-3]="currentStep() < 1"
+        >
+          <div
+            class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold"
+            [class.bg-blue]="currentStep() >= 1"
+            [class.text-surface]="currentStep() >= 1"
+            [class.bg-line]="currentStep() < 1"
+          >
+            @if (currentStep() > 1) { ✓ } @else { 1 }
+          </div>
+          <span class="hidden sm:inline">1. Sede</span>
+        </button>
+
+        <!-- Paso 2 -->
+        <button
+          type="button"
+          (click)="goToStep(2)"
+          [disabled]="!selectedEstablishment() || currentStep() === 4"
+          class="flex flex-col sm:flex-row items-center gap-2 text-left p-2 rounded-xl transition-colors text-xs font-semibold"
+          [class.bg-tint]="currentStep() === 2"
+          [class.text-blue]="currentStep() >= 2"
+          [class.text-ink-3]="currentStep() < 2"
+        >
+          <div
+            class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold"
+            [class.bg-blue]="currentStep() >= 2"
+            [class.text-surface]="currentStep() >= 2"
+            [class.bg-line]="currentStep() < 2"
+          >
+            @if (currentStep() > 2) { ✓ } @else { 2 }
+          </div>
+          <span class="hidden sm:inline">2. Especialidad</span>
+        </button>
+
+        <!-- Paso 3 -->
+        <button
+          type="button"
+          (click)="goToStep(3)"
+          [disabled]="!selectedService() || currentStep() === 4"
+          class="flex flex-col sm:flex-row items-center gap-2 text-left p-2 rounded-xl transition-colors text-xs font-semibold"
+          [class.bg-tint]="currentStep() === 3"
+          [class.text-blue]="currentStep() >= 3"
+          [class.text-ink-3]="currentStep() < 3"
+        >
+          <div
+            class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold"
+            [class.bg-blue]="currentStep() >= 3"
+            [class.text-surface]="currentStep() >= 3"
+            [class.bg-line]="currentStep() < 3"
+          >
+            @if (currentStep() > 3) { ✓ } @else { 3 }
+          </div>
+          <span class="hidden sm:inline">3. Horario</span>
+        </button>
+
+        <!-- Paso 4 -->
+        <div
+          class="flex flex-col sm:flex-row items-center gap-2 text-left p-2 rounded-xl text-xs font-semibold"
+          [class.bg-tint]="currentStep() === 4"
+          [class.text-blue]="currentStep() === 4"
+          [class.text-ink-3]="currentStep() < 4"
+        >
+          <div
+            class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold"
+            [class.bg-blue]="currentStep() === 4"
+            [class.text-surface]="currentStep() === 4"
+            [class.bg-line]="currentStep() < 4"
+          >
+            4
+          </div>
+          <span class="hidden sm:inline">4. Confirmación</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido Principal del Flujo -->
+  <div class="max-w-5xl mx-auto w-full mb-8">
+    <!-- Error Alert si falla reserva -->
+    @if (bookingError()) {
+      <div class="mb-6 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700 flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <div class="flex-1">
+          <p class="font-semibold text-red-800">No se pudo confirmar el turno</p>
+          <p class="mt-0.5">{{ bookingError() }}</p>
+          @if (bookingError()?.includes('inicia sesión')) {
+            <a routerLink="/login" class="mt-2 inline-block font-bold text-blue hover:underline">
+              Ir a Iniciar Sesión →
+            </a>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- =========================================================================
+         PASO 1: SELECCIONA EL ESTABLECIMIENTO
+         ========================================================================= -->
+    @if (currentStep() === 1) {
+      <div class="bg-surface rounded-card p-6 sm:p-8 shadow-lift-1 border border-line space-y-6">
+        <div class="border-b border-line pb-4">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-tint text-xs font-bold text-blue uppercase tracking-wider mb-2">
+            Paso 1 de 3
+          </span>
+          <h2 class="text-2xl font-display font-extrabold text-ink">
+            Selecciona la Sede o Centro de Atención
+          </h2>
+          <p class="text-sm text-ink-2 mt-1">
+            Elige el establecimiento donde prefieres recibir tu atención médica.
+          </p>
+        </div>
+
+        @if (establishmentsLoading()) {
+          <div class="py-12 text-center text-sm text-ink-3">Cargando sedes disponibles...</div>
+        } @else if (establishments().length === 0) {
+          <div class="py-12 text-center text-sm text-ink-3 rounded-2xl border border-dashed border-line">
+            No se encontraron establecimientos disponibles en este momento.
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (est of establishments(); track est.id) {
+              <div
+                (click)="selectEstablishment(est)"
+                class="rounded-2xl border-2 border-line p-5 bg-surface hover:border-blue hover:shadow-lift-2 transition-all cursor-pointer flex flex-col justify-between group"
+              >
+                <div class="flex items-start gap-3.5">
+                  <div class="w-12 h-12 rounded-2xl bg-tint text-blue font-bold flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+                    🏥
+                  </div>
+                  <div>
+                    <h3 class="font-display font-bold text-ink text-base group-hover:text-blue transition-colors">
+                      {{ est.name }}
+                    </h3>
+                    <p class="text-xs text-ink-2 mt-1 leading-relaxed">
+                      {{ est.address }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-line/60 flex items-center justify-between">
+                  <span class="text-[11px] font-mono text-ink-3">Sede #{{ est.id }}</span>
+                  <span class="inline-flex items-center text-xs font-bold text-blue group-hover:translate-x-1 transition-transform">
+                    Seleccionar sede →
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- =========================================================================
+         PASO 2: SELECCIONA EL SERVICIO Y DOCTOR
+         ========================================================================= -->
+    @if (currentStep() === 2) {
+      <div class="bg-surface rounded-card p-6 sm:p-8 shadow-lift-1 border border-line space-y-6">
+        <!-- Header con Sede actual -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-tint text-xs font-bold text-blue uppercase tracking-wider mb-2">
+              Paso 2 de 3
+            </span>
+            <h2 class="text-2xl font-display font-extrabold text-ink">
+              Servicios y Especialidades Médicas
+            </h2>
+            <p class="text-sm text-ink-2 mt-1">
+              Sede seleccionada: <strong class="text-ink">{{ selectedEstablishment()?.name }}</strong>
+            </p>
+          </div>
+
+          <button
+            type="button"
+            (click)="goToStep(1)"
+            class="text-xs font-semibold text-blue-text hover:underline self-start sm:self-center"
+          >
+            ← Cambiar de sede
+          </button>
+        </div>
+
+        @if (servicesLoading()) {
+          <div class="py-12 text-center text-sm text-ink-3">Cargando servicios y doctores...</div>
+        } @else if (servicesWithDoctors().length === 0) {
+          <div class="py-12 text-center text-sm text-ink-3 rounded-2xl border border-dashed border-line">
+            No hay servicios habilitados para esta sede actualmente.
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            @for (item of servicesWithDoctors(); track item.service.id) {
+              <div class="rounded-2xl border-2 border-line p-5 bg-surface hover:border-blue/70 transition-all flex flex-col justify-between">
+                <div>
+                  <!-- Encabezado del Servicio -->
+                  <div class="flex items-start justify-between gap-2 mb-3">
+                    <div>
+                      <h3 class="font-display font-bold text-ink text-lg">
+                        {{ item.service.name }}
+                      </h3>
+                      <p class="text-xs text-ink-3">Consulta médica especializada</p>
+                    </div>
+
+                    <div class="text-right">
+                      <span class="text-lg font-extrabold text-blue font-mono">
+                        ${{ ((item.service.price ?? 0) - (item.service.discount ?? 0)) | number:'1.2-2' }}
+                      </span>
+                      @if (item.service.discount && item.service.discount > 0) {
+                        <p class="text-[11px] text-ink-3 line-through">${{ item.service.price | number:'1.2-2' }}</p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Doctores disponibles en este servicio -->
+                  <div class="mt-4 pt-3 border-t border-line/60">
+                    <p class="text-xs font-semibold text-ink mb-2">Doctores Disponibles:</p>
+
+                    @if (item.doctors.length === 0) {
+                      <p class="text-xs text-ink-3 italic">Cualquier doctor disponible en turno</p>
+                    } @else {
+                      <div class="space-y-2">
+                        @for (doc of item.doctors; track doc.uuid) {
+                          <div
+                            (click)="selectServiceAndDoctor(item.service, doc)"
+                            class="flex items-center justify-between p-2.5 rounded-xl border border-line bg-field hover:bg-tint hover:border-blue/50 transition-colors cursor-pointer group"
+                          >
+                            <div class="flex items-center gap-2.5 min-w-0">
+                              <div class="w-8 h-8 rounded-full bg-blue-100 text-blue font-bold flex items-center justify-center text-xs shrink-0">
+                                {{ doc.firstName.charAt(0) }}{{ doc.lastName.charAt(0) }}
+                              </div>
+                              <div class="min-w-0">
+                                <p class="text-xs font-bold text-ink truncate group-hover:text-blue">
+                                  Dr. {{ doc.firstName }} {{ doc.lastName }}
+                                </p>
+                                <p class="text-[11px] text-ink-3 truncate">{{ doc.speciality }}</p>
+                              </div>
+                            </div>
+
+                            <span class="text-xs font-bold text-blue shrink-0">
+                              Elegir →
+                            </span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Botón de cualquier doctor para este servicio -->
+                <div class="mt-4 pt-3 border-t border-line/60">
+                  <button
+                    type="button"
+                    (click)="selectServiceAndDoctor(item.service, null)"
+                    class="w-full flex items-center justify-center gap-2 rounded-pill border border-blue bg-surface text-blue py-2 px-4 text-xs font-bold hover:bg-blue hover:text-surface transition-colors"
+                  >
+                    <span>Ver todos los turnos para {{ item.service.name }}</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- =========================================================================
+         PASO 3: SELECCIONA HORARIO DISPONIBLE (STATUS_FREE)
+         ========================================================================= -->
+    @if (currentStep() === 3) {
+      <div class="bg-surface rounded-card p-6 sm:p-8 shadow-lift-1 border border-line space-y-6">
+        <!-- Header de resumen -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-4">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-tint text-xs font-bold text-blue uppercase tracking-wider mb-2">
+              Paso 3 de 3
+            </span>
+            <h2 class="text-2xl font-display font-extrabold text-ink">
+              Selecciona tu Horario de Atención
+            </h2>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-ink-2 mt-1">
+              <span>Sede: <strong>{{ selectedEstablishment()?.name }}</strong></span>
+              <span>•</span>
+              <span>Servicio: <strong>{{ selectedService()?.name }}</strong></span>
+              @if (selectedDoctor()) {
+                <span>•</span>
+                <span>Doctor: <strong>Dr. {{ selectedDoctor()?.firstName }} {{ selectedDoctor()?.lastName }}</strong></span>
+              }
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="goToStep(2)"
+            class="text-xs font-semibold text-blue-text hover:underline self-start sm:self-center"
+          >
+            ← Cambiar servicio/doctor
+          </button>
+        </div>
+
+        <!-- Barra de Filtros de Fecha -->
+        <div class="flex flex-wrap items-center gap-3 bg-field p-3.5 rounded-2xl border border-line">
+          <span class="text-xs font-bold text-ink">Filtrar por fecha:</span>
+          <div class="inline-flex rounded-pill border border-line overflow-hidden bg-surface">
+            <button
+              type="button"
+              (click)="clearDateFilter()"
+              [class.bg-blue]="filterDate() === ''"
+              [class.text-surface]="filterDate() === ''"
+              [class.text-ink-2]="filterDate() !== ''"
+              class="px-3 py-1 text-xs font-semibold transition-colors"
+            >
+              Todos los días
+            </button>
+            <button
+              type="button"
+              (click)="setTodayFilter()"
+              class="px-3 py-1 text-xs font-semibold border-l border-line hover:bg-tint transition-colors"
+            >
+              Hoy
+            </button>
+            <button
+              type="button"
+              (click)="setTomorrowFilter()"
+              class="px-3 py-1 text-xs font-semibold border-l border-line hover:bg-tint transition-colors"
+            >
+              Mañana
+            </button>
+          </div>
+
+          <input
+            type="date"
+            [ngModel]="filterDate()"
+            (ngModelChange)="onDateChange($event)"
+            class="rounded-pill border border-line bg-surface py-1 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+        </div>
+
+        <!-- Lista de Horarios Libres -->
+        @if (schedulesLoading()) {
+          <div class="py-12 text-center text-sm text-ink-3">Buscando turnos libres disponibles...</div>
+        } @else if (schedules().length === 0) {
+          <div class="py-12 text-center text-sm text-ink-3 rounded-2xl border border-dashed border-line p-6">
+            <p class="font-bold text-ink mb-1">No hay horarios libres para los filtros seleccionados</p>
+            <p class="text-xs">Prueba seleccionando otra fecha o un servicio diferente.</p>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (sch of schedules(); track sch.id) {
+              <div
+                (click)="selectSchedule(sch)"
+                class="rounded-2xl border-2 p-4 transition-all cursor-pointer flex flex-col justify-between"
+                [class.border-blue]="selectedSchedule()?.id === sch.id"
+                [class.bg-tint/40]="selectedSchedule()?.id === sch.id"
+                [class.border-line]="selectedSchedule()?.id !== sch.id"
+                [class.bg-surface]="selectedSchedule()?.id !== sch.id"
+                [class.hover:border-blue/60]="selectedSchedule()?.id !== sch.id"
+              >
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-base font-extrabold text-ink font-mono">
+                      🕐 {{ sch.hour }}
+                    </span>
+                    <span class="inline-flex items-center rounded-pill bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                      ● Disponible
+                    </span>
+                  </div>
+
+                  <p class="text-xs text-ink-2 mb-3">
+                    📅 Fecha: <strong class="text-ink">{{ sch.date }}</strong>
+                  </p>
+
+                  @if (sch.doctor) {
+                    <div class="flex items-center gap-2 p-2 rounded-xl bg-field border border-line">
+                      <div class="w-7 h-7 rounded-full bg-blue-100 text-blue font-bold flex items-center justify-center text-xs shrink-0">
+                        {{ sch.doctor.firstName.charAt(0) }}{{ sch.doctor.lastName.charAt(0) }}
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-bold text-ink truncate">
+                          Dr. {{ sch.doctor.firstName }} {{ sch.doctor.lastName }}
+                        </p>
+                        <p class="text-[11px] text-ink-3 truncate">{{ sch.doctor.speciality }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <div class="mt-3 pt-2 text-right">
+                  <span
+                    class="text-xs font-bold"
+                    [class.text-blue]="selectedSchedule()?.id === sch.id"
+                    [class.text-ink-3]="selectedSchedule()?.id !== sch.id"
+                  >
+                    @if (selectedSchedule()?.id === sch.id) {
+                      ✓ Seleccionado
+                    } @else {
+                      Hacer clic para elegir
+                    }
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Botón Flotante / Inferior de Confirmación -->
+          @if (selectedSchedule()) {
+            <div class="mt-8 pt-6 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4 bg-tint/30 p-5 rounded-2xl border border-blue/20">
+              <div>
+                <p class="text-xs text-ink-3">Horario seleccionado:</p>
+                <p class="text-base font-bold text-ink">
+                  {{ selectedSchedule()?.date }} a las {{ selectedSchedule()?.hour }}
+                </p>
+                <p class="text-xs text-ink-2">
+                  Dr. {{ selectedSchedule()?.doctor?.firstName }} {{ selectedSchedule()?.doctor?.lastName }} · {{ selectedEstablishment()?.name }}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                [disabled]="bookingLoading()"
+                (click)="confirmAndBookTurn()"
+                class="w-full sm:w-auto flex items-center justify-center gap-2 rounded-pill bg-blue py-3 px-8 text-sm font-bold text-surface shadow-cta hover:bg-blue-bright active:translate-y-px transition-all disabled:opacity-50"
+              >
+                @if (bookingLoading()) {
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-surface" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  Confirmando tu reserva...
+                } @else {
+                  <span>Confirmar y Agendar Turno</span>
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                }
+              </button>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- =========================================================================
+         PASO 4: TICKET DE CONFIRMACIÓN EXITOSA
+         ========================================================================= -->
+    @if (currentStep() === 4 && confirmedTurn()) {
+      <div class="max-w-xl mx-auto">
+        <div class="bg-surface rounded-card p-6 sm:p-8 shadow-lift-2 border border-line text-center space-y-6">
+          <!-- Icono Exitoso -->
+          <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl font-bold mx-auto shadow-inner">
+            ✓
+          </div>
+
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-emerald-50 text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">
+              ¡Cita Agendada con Éxito!
+            </span>
+            <h2 class="text-2xl font-display font-extrabold text-ink">
+              Turno Reservado #{{ confirmedTurn()?.id }}
+            </h2>
+            <p class="text-xs text-ink-2 mt-1">
+              Hemos registrado tu turno exitosamente en nuestro sistema clínico.
+            </p>
+          </div>
+
+          <!-- Ticket Card -->
+          <div class="rounded-2xl border-2 border-dashed border-line bg-field p-5 text-left space-y-3 font-sans">
+            <div class="flex justify-between border-b border-line/60 pb-2">
+              <span class="text-xs text-ink-3">Fecha y Hora:</span>
+              <span class="text-xs font-bold text-ink font-mono">
+                {{ confirmedTurn()?.schedule?.date }} — {{ confirmedTurn()?.schedule?.hour }}
+              </span>
+            </div>
+
+            <div class="flex justify-between border-b border-line/60 pb-2">
+              <span class="text-xs text-ink-3">Especialidad:</span>
+              <span class="text-xs font-bold text-ink">
+                {{ confirmedTurn()?.schedule?.service?.name }}
+              </span>
+            </div>
+
+            @if (confirmedTurn()?.schedule?.doctor) {
+              <div class="flex justify-between border-b border-line/60 pb-2">
+                <span class="text-xs text-ink-3">Doctor:</span>
+                <span class="text-xs font-bold text-ink">
+                  Dr. {{ confirmedTurn()?.schedule?.doctor?.firstName }} {{ confirmedTurn()?.schedule?.doctor?.lastName }}
+                </span>
+              </div>
+            }
+
+            <div class="flex justify-between border-b border-line/60 pb-2">
+              <span class="text-xs text-ink-3">Sede / Establecimiento:</span>
+              <span class="text-xs font-bold text-ink">
+                {{ confirmedTurn()?.schedule?.stablishment?.name }}
+              </span>
+            </div>
+
+            <div class="flex justify-between pt-1">
+              <span class="text-xs text-ink-3">Estado del Turno:</span>
+              <span class="inline-flex items-center rounded-pill bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue">
+                {{ confirmedTurn()?.status }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Acciones -->
+          <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              type="button"
+              (click)="resetBooking()"
+              class="rounded-pill bg-blue py-3 px-6 text-sm font-bold text-surface shadow-cta hover:bg-blue-bright transition-colors"
+            >
+              Agendar otro turno
+            </button>
+            <a
+              routerLink="/"
+              class="rounded-pill border border-line bg-surface py-3 px-6 text-sm font-bold text-ink hover:bg-field transition-colors"
+            >
+              Ir a la página principal
+            </a>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Footer Info -->
+  <div class="max-w-5xl mx-auto w-full text-center text-xs text-ink-3 pt-4">
+    CliniCore © 2026 · Sistema Médico y Gestión de Turnos Clínicos
+  </div>
+</div>

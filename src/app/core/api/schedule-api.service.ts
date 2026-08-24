@@ -17,6 +17,7 @@ export class ScheduleApiService {
     stablishmentId?: number;
     doctorId?: string;
     doctorName?: string;
+    serviceId?: number;
     page?: number;
     size?: number;
   } = {}): Observable<Page<ScheduleDTO>> {
@@ -38,6 +39,10 @@ export class ScheduleApiService {
 
     if (params.doctorName && params.doctorName.trim()) {
       httpParams = httpParams.set('doctorName', params.doctorName.trim());
+    }
+
+    if (params.serviceId != null) {
+      httpParams = httpParams.set('serviceId', params.serviceId.toString());
     }
 
     return this.http.get<Page<ScheduleDTO>>(this.API_URL, { params: httpParams, withCredentials: true });

@@ -1,17 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DoctorApiService } from '../../../core/api/doctor-api.service';
 import { EstablishmentApiService } from '../../../core/api/establishment-api.service';
 import { ServicioApiService } from '../../../core/api/servicio-api.service';
-import { ScheduleApiService } from '../../../core/api/schedule-api.service';
-import type { AdminDoctor, Establishment, Servicio, GenerateSchedulesRequest } from '../../../core/models';
+import type { AdminDoctor, Establishment, Servicio, Page } from '../../../core/models';
 
 @Component({
   selector: 'app-doctor-detail',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, DecimalPipe],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, DecimalPipe],
   templateUrl: './doctor-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -20,7 +18,6 @@ export class DoctorDetailComponent implements OnInit {
   private readonly doctorApi = inject(DoctorApiService);
   private readonly establishmentApi = inject(EstablishmentApiService);
   private readonly servicioApi = inject(ServicioApiService);
-  private readonly scheduleApi = inject(ScheduleApiService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly doctor = signal<AdminDoctor | null>(null);
@@ -31,16 +28,25 @@ export class DoctorDetailComponent implements OnInit {
   protected readonly isEditModalOpen = signal<boolean>(false);
   protected readonly isAssignEstModalOpen = signal<boolean>(false);
   protected readonly isAssignServiceModalOpen = signal<boolean>(false);
-  protected readonly isGenerateScheduleModalOpen = signal<boolean>(false);
-  protected readonly selectedServiceForSchedule = signal<Servicio | null>(null);
   protected readonly formLoading = signal<boolean>(false);
 
-  // Catálogos para asignación
-  protected readonly establishments = signal<Establishment[]>([]);
-  protected readonly establishmentsLoading = signal<boolean>(false);
-  protected readonly services = signal<Servicio[]>([]);
-  protected readonly servicesLoading = signal<boolean>(false);
-  protected readonly selectedServiceIds = signal<number[]>([]);
+  // Búsqueda y Asignación de Establecimientos al Doctor
+  protected readonly candidateEstName = signal<string>('');
+  protected readonly candidateEstablishments = signal<Page<Establishment> | null>(null);
+  protected readonly candidateEstLoading = signal<boolean>(false);
+  protected readonly candidateEstPage = signal<number>(0);
+  protected readonly assigningEstId = signal<number | null>(null);
+  protected readonly assignEstSuccess = signal<string | null>(null);
+  protected readonly assignEstError = signal<string | null>(null);
+
+  // Búsqueda y Asignación de Servicios al Doctor
+  protected readonly candidateServiceName = signal<string>('');
+  protected readonly candidateServices = signal<Page<Servicio> | null>(null);
+  protected readonly candidateServiceLoading = signal<boolean>(false);
+  protected readonly candidateServicePage = signal<number>(0);
+  protected readonly assigningServiceId = signal<number | null>(null);
+  protected readonly assignServiceSuccess = signal<string | null>(null);
+  protected readonly assignServiceError = signal<string | null>(null);
 
   // Formularios
   protected readonly editForm = this.fb.nonNullable.group({
@@ -50,16 +56,6 @@ export class DoctorDetailComponent implements OnInit {
     speciality: ['', Validators.required],
     gender: ['GENDER_MALE', Validators.required],
     ci: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]]
-  });
-
-  protected readonly assignEstForm = this.fb.nonNullable.group({
-    stablishmentId: [0, [Validators.required, Validators.min(1)]]
-  });
-
-  protected readonly scheduleForm = this.fb.nonNullable.group({
-    stablishmentId: [0, [Validators.required, Validators.min(1)]],
-    date: ['', Validators.required],
-    intervalMinutes: [60, [Validators.required]]
   });
 
   private doctorId: string = '';
@@ -132,163 +128,120 @@ export class DoctorDetailComponent implements OnInit {
     });
   }
 
-  // --- Modal Asignar Establecimiento ---
+  // --- Modal Asignar Establecimiento al Doctor ---
   openAssignEstModal(): void {
-    this.assignEstForm.reset({ stablishmentId: 0 });
+    this.candidateEstName.set('');
+    this.candidateEstablishments.set(null);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
     this.isAssignEstModalOpen.set(true);
-
-    if (this.establishments().length === 0) {
-      this.establishmentsLoading.set(true);
-      this.establishmentApi.getAll(0, 100).subscribe({
-        next: (page) => {
-          this.establishments.set(page.content);
-          this.establishmentsLoading.set(false);
-        },
-        error: () => {
-          this.establishmentsLoading.set(false);
-          alert('Error al cargar la lista de establecimientos.');
-        }
-      });
-    }
+    this.searchCandidateEst(0);
   }
 
   closeAssignEstModal(): void {
     this.isAssignEstModalOpen.set(false);
   }
 
-  onAssignEstSubmit(): void {
-    if (this.assignEstForm.invalid) {
-      this.assignEstForm.markAllAsTouched();
-      return;
-    }
+  searchCandidateEst(page: number = 0): void {
+    this.candidateEstLoading.set(true);
+    this.candidateEstPage.set(page);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
 
-    this.formLoading.set(true);
-    const estId = this.assignEstForm.getRawValue().stablishmentId;
+    const name = this.candidateEstName().trim() || undefined;
 
-    this.doctorApi.assignToStablishment(this.doctorId, estId).subscribe({
-      next: () => {
-        this.formLoading.set(false);
-        this.closeAssignEstModal();
-        alert('Establecimiento asignado correctamente.');
-        this.loadDoctor();
+    this.establishmentApi.getAll(page, 5, name).subscribe({
+      next: (data) => {
+        this.candidateEstablishments.set(data);
+        this.candidateEstLoading.set(false);
       },
       error: () => {
-        this.formLoading.set(false);
-        alert('Error al asignar el establecimiento.');
+        this.candidateEstLoading.set(false);
+        this.assignEstError.set('Error al consultar establecimientos.');
       }
     });
   }
 
-  // --- Modal Asignar Servicios ---
-  openAssignServiceModal(): void {
-    this.selectedServiceIds.set([]);
-    this.isAssignServiceModalOpen.set(true);
+  resetCandidateEstSearch(): void {
+    this.candidateEstName.set('');
+    this.searchCandidateEst(0);
+  }
 
-    if (this.services().length === 0) {
-      this.servicesLoading.set(true);
-      this.servicioApi.getAll(0, 100).subscribe({
-        next: (page) => {
-          this.services.set(page.content);
-          this.servicesLoading.set(false);
-        },
-        error: () => {
-          this.servicesLoading.set(false);
-          alert('Error al cargar la lista de servicios.');
-        }
-      });
-    }
+  onAssignEst(est: Establishment): void {
+    if (!est.id) return;
+    this.assigningEstId.set(est.id);
+    this.assignEstSuccess.set(null);
+    this.assignEstError.set(null);
+
+    this.doctorApi.assignToStablishment(this.doctorId, est.id).subscribe({
+      next: () => {
+        this.assigningEstId.set(null);
+        this.assignEstSuccess.set(`Sede "${est.name}" asignada correctamente.`);
+        this.loadDoctor();
+      },
+      error: (err) => {
+        this.assigningEstId.set(null);
+        const msg = err?.error?.message || err?.error?.Message || 'No se pudo asignar el establecimiento.';
+        this.assignEstError.set(msg);
+      }
+    });
+  }
+
+  // --- Modal Asignar Servicio al Doctor ---
+  openAssignServiceModal(): void {
+    this.candidateServiceName.set('');
+    this.candidateServices.set(null);
+    this.assignServiceSuccess.set(null);
+    this.assignServiceError.set(null);
+    this.isAssignServiceModalOpen.set(true);
+    this.searchCandidateServices(0);
   }
 
   closeAssignServiceModal(): void {
     this.isAssignServiceModalOpen.set(false);
-    this.selectedServiceIds.set([]);
   }
 
-  toggleServiceSelection(serviceId: number): void {
-    const current = this.selectedServiceIds();
-    if (current.includes(serviceId)) {
-      this.selectedServiceIds.set(current.filter(id => id !== serviceId));
-    } else {
-      this.selectedServiceIds.set([...current, serviceId]);
-    }
-  }
+  searchCandidateServices(page: number = 0): void {
+    this.candidateServiceLoading.set(true);
+    this.candidateServicePage.set(page);
+    this.assignServiceSuccess.set(null);
+    this.assignServiceError.set(null);
 
-  onAssignServiceSubmit(): void {
-    const serviceIds = this.selectedServiceIds();
-    if (serviceIds.length === 0) {
-      alert('Por favor selecciona al menos un servicio.');
-      return;
-    }
+    const name = this.candidateServiceName().trim() || undefined;
 
-    this.formLoading.set(true);
-    const requests$ = serviceIds.map(serviceId => this.doctorApi.assignToService(this.doctorId, serviceId));
-
-    forkJoin(requests$).subscribe({
-      next: () => {
-        this.formLoading.set(false);
-        this.closeAssignServiceModal();
-        alert(`${serviceIds.length} servicio(s) asignado(s) correctamente.`);
-        this.loadDoctor();
+    this.servicioApi.getAll(page, 5, name).subscribe({
+      next: (data) => {
+        this.candidateServices.set(data);
+        this.candidateServiceLoading.set(false);
       },
       error: () => {
-        this.formLoading.set(false);
-        alert('Error al asignar los servicios al doctor.');
+        this.candidateServiceLoading.set(false);
+        this.assignServiceError.set('Error al consultar servicios.');
       }
     });
   }
 
-  // --- Modal Generar Horarios ---
-  openGenerateScheduleModal(service: Servicio): void {
-    this.selectedServiceForSchedule.set(service);
-    const doctorEsts = this.doctor()?.stablishments || [];
-    const defaultEstId = doctorEsts.length > 0 ? doctorEsts[0].id : 0;
-    const today = new Date().toISOString().split('T')[0];
-
-    this.scheduleForm.reset({
-      stablishmentId: defaultEstId,
-      date: today,
-      intervalMinutes: 60
-    });
-
-    this.isGenerateScheduleModalOpen.set(true);
+  resetCandidateServiceSearch(): void {
+    this.candidateServiceName.set('');
+    this.searchCandidateServices(0);
   }
 
-  closeGenerateScheduleModal(): void {
-    this.isGenerateScheduleModalOpen.set(false);
-    this.selectedServiceForSchedule.set(null);
-  }
+  onAssignService(srv: Servicio): void {
+    if (!srv.id) return;
+    this.assigningServiceId.set(srv.id);
+    this.assignServiceSuccess.set(null);
+    this.assignServiceError.set(null);
 
-  onGenerateScheduleSubmit(): void {
-    if (this.scheduleForm.invalid) {
-      this.scheduleForm.markAllAsTouched();
-      return;
-    }
-
-    const service = this.selectedServiceForSchedule();
-    if (!service) return;
-
-    this.formLoading.set(true);
-    const formVal = this.scheduleForm.getRawValue();
-
-    const payload: GenerateSchedulesRequest = {
-      serviceId: service.id,
-      stablishmentId: Number(formVal.stablishmentId),
-      doctorId: this.doctor()?.uuid || this.doctorId,
-      date: formVal.date,
-      intervalMinutes: Number(formVal.intervalMinutes)
-    };
-
-    this.scheduleApi.generateSchedules(payload).subscribe({
-      next: (result) => {
-        this.formLoading.set(false);
-        this.closeGenerateScheduleModal();
-        const count = result?.length ?? 0;
-        alert(`Horarios generados correctamente (${count} cupo${count === 1 ? '' : 's'} creado${count === 1 ? '' : 's'}).`);
+    this.doctorApi.assignToService(this.doctorId, srv.id).subscribe({
+      next: () => {
+        this.assigningServiceId.set(null);
+        this.assignServiceSuccess.set(`Servicio "${srv.name}" asignado correctamente.`);
+        this.loadDoctor();
       },
       error: (err) => {
-        this.formLoading.set(false);
-        const msg = err?.error?.message || 'Error al generar los horarios para el servicio.';
-        alert(msg);
+        this.assigningServiceId.set(null);
+        const msg = err?.error?.message || err?.error?.Message || 'No se pudo asignar el servicio al doctor.';
+        this.assignServiceError.set(msg);
       }
     });
   }

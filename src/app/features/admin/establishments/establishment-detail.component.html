@@ -2,13 +2,13 @@
   <!-- Top Navigation & Actions -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <a routerLink="/admin/administracion/establecimientos" class="inline-flex items-center text-sm font-medium text-text-muted hover:text-text-strong mb-2">
+      <a routerLink="/admin/administracion/establecimientos" class="inline-flex items-center text-xs font-bold text-ink-3 hover:text-ink mb-2 transition-colors">
         <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
         </svg>
         Volver a la lista de establecimientos
       </a>
-      <h1 class="text-2xl font-bold text-text-strong">
+      <h1 class="font-display text-2xl font-extrabold text-ink">
         @if (establishment()) {
           {{ establishment()!.name }}
         } @else {
@@ -20,19 +20,27 @@
     @if (establishment()) {
       <div class="flex items-center gap-3">
         <button
+          (click)="openAssignPatientModal()"
+          type="button"
+          class="inline-flex items-center rounded-pill bg-purple-600 px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-purple-700 transition-all"
+        >
+          <span class="mr-1.5">👥</span>
+          Consultar Pacientes
+        </button>
+        <button
           (click)="openEditModal()"
           type="button"
-          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted transition-colors"
+          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-xs font-bold text-ink shadow-sm border border-line hover:bg-field transition-all"
         >
-          <svg class="w-4 h-4 mr-2 text-text-muted" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          <svg class="w-4 h-4 mr-2 text-ink-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
           </svg>
           Editar
         </button>
         <button
           (click)="openDeleteModal()"
           type="button"
-          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-200 hover:bg-red-50 transition-colors"
+          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-xs font-bold text-red-600 shadow-sm border border-red-200 hover:bg-red-50 transition-colors"
         >
           <svg class="w-4 h-4 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -44,31 +52,31 @@
   </div>
 
   @if (loading()) {
-    <div class="p-12 text-center text-text-muted">Cargando información del establecimiento...</div>
+    <div class="p-12 text-center text-xs text-ink-3">Cargando información del establecimiento...</div>
   } @else if (error()) {
-    <div class="rounded-md bg-red-50 p-4">
-      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
     </div>
   } @else if (establishment()) {
     <!-- Información General Card -->
-    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm">
-      <h2 class="text-base font-semibold text-text-strong mb-4">Información del Establecimiento</h2>
+    <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm">
+      <h2 class="font-display text-base font-extrabold text-ink mb-4">Información del Establecimiento</h2>
       <dl class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Identificador</dt>
+          <dt class="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Identificador</dt>
           <dd class="mt-1">
-            <span class="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue ring-1 ring-inset ring-blue/20">
+            <span class="inline-flex items-center rounded-pill bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue border border-blue/20">
               ID #{{ establishment()!.id }}
             </span>
           </dd>
         </div>
         <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Nombre</dt>
-          <dd class="mt-1 text-sm font-semibold text-text-strong">{{ establishment()!.name }}</dd>
+          <dt class="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Nombre de Sede</dt>
+          <dd class="mt-1 text-sm font-bold text-ink">{{ establishment()!.name }}</dd>
         </div>
         <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Dirección</dt>
-          <dd class="mt-1 text-sm text-text-strong">{{ establishment()!.address }}</dd>
+          <dt class="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Dirección</dt>
+          <dd class="mt-1 text-sm text-ink font-semibold">📍 {{ establishment()!.address }}</dd>
         </div>
       </dl>
     </div>
@@ -77,55 +85,53 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
       <!-- Card Doctores Asignados -->
-      <div class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
+      <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-base font-semibold text-text-strong">Doctores</h2>
-              <p class="text-xs text-text-muted">Profesionales de salud en esta sede</p>
+              <h2 class="font-display text-base font-extrabold text-ink">Doctores</h2>
+              <p class="text-xs text-ink-3">Profesionales en esta sede</p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="inline-flex items-center rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-text-strong ring-1 ring-inset ring-border">
+              <span class="inline-flex items-center rounded-full bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
                 {{ doctors().length }}
               </span>
               <button
                 (click)="openAssignDoctorModal()"
                 type="button"
-                class="inline-flex items-center rounded-pill bg-blue px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-blue-strong transition-colors"
+                class="inline-flex items-center rounded-pill bg-blue px-2.5 py-1 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
               >
                 + Asignar
               </button>
             </div>
           </div>
 
-          <div class="mt-4 divide-y divide-border border border-border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+          <div class="mt-4 space-y-2 max-h-96 overflow-y-auto pr-1">
             @if (doctorsLoading()) {
-              <div class="p-6 text-center text-sm text-text-muted">Cargando doctores...</div>
+              <div class="p-6 text-center text-xs text-ink-3">Cargando doctores...</div>
             } @else if (doctors().length === 0) {
-              <div class="p-6 text-center text-sm text-text-muted">
+              <div class="p-6 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40">
                 No hay doctores asignados a este establecimiento.
               </div>
             } @else {
               @for (doc of doctors(); track doc.uuid) {
-                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors gap-2">
+                <div class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/30 transition-all flex items-center justify-between gap-2 shadow-sm">
                   <div class="min-w-0">
-                    <h4 class="text-sm font-semibold text-text-strong truncate">
+                    <h4 class="text-xs font-bold text-ink truncate">
                       Dr. {{ doc.firstName }} {{ doc.lastName }}
                     </h4>
-                    <p class="text-xs text-text-muted mt-0.5">CI: {{ doc.ci }}</p>
-                    <span class="mt-1.5 inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
+                    <p class="text-[11px] text-ink-3 mt-0.5">CI: <span class="font-mono">{{ doc.ci }}</span></p>
+                    <span class="mt-1 inline-flex items-center rounded-pill bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-200">
                       {{ doc.speciality }}
                     </span>
                   </div>
                   <a
                     [routerLink]="['/admin/administracion/doctores', doc.uuid]"
-                    class="shrink-0 inline-flex items-center text-xs font-medium text-blue hover:text-blue-strong"
+                    class="shrink-0 inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
                     title="Ver detalle del doctor"
                   >
-                    Ver
-                    <svg class="w-3.5 h-3.5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
+                    <span>Ver</span>
+                    <span>→</span>
                   </a>
                 </div>
               }
@@ -134,47 +140,51 @@
         </div>
       </div>
 
-      <!-- Card Servicios Asignados -->
-      <div class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
+      <!-- Card Servicios Asignados (Con Redirección a Detalle de Servicio) -->
+      <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-base font-semibold text-text-strong">Servicios</h2>
-              <p class="text-xs text-text-muted">Tratamientos y consultas disponibles</p>
+              <h2 class="font-display text-base font-extrabold text-ink">Servicios</h2>
+              <p class="text-xs text-ink-3">Tratamientos y consultas</p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="inline-flex items-center rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-text-strong ring-1 ring-inset ring-border">
+              <span class="inline-flex items-center rounded-full bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
                 {{ services().length }}
               </span>
               <button
                 (click)="openAssignServiceModal()"
                 type="button"
-                class="inline-flex items-center rounded-pill bg-blue px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-blue-strong transition-colors"
+                class="inline-flex items-center rounded-pill bg-blue px-2.5 py-1 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
               >
                 + Asignar
               </button>
             </div>
           </div>
 
-          <div class="mt-4 divide-y divide-border border border-border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+          <div class="mt-4 space-y-2 max-h-96 overflow-y-auto pr-1">
             @if (servicesLoading()) {
-              <div class="p-6 text-center text-sm text-text-muted">Cargando servicios...</div>
+              <div class="p-6 text-center text-xs text-ink-3">Cargando servicios...</div>
             } @else if (services().length === 0) {
-              <div class="p-6 text-center text-sm text-text-muted">
+              <div class="p-6 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40">
                 No hay servicios asignados a este establecimiento.
               </div>
             } @else {
               @for (srv of services(); track srv.id) {
-                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors">
+                <div class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/30 transition-all flex items-center justify-between gap-2 shadow-sm">
                   <div class="min-w-0">
-                    <h4 class="text-sm font-semibold text-text-strong truncate">{{ srv.name }}</h4>
-                    @if (srv.discount) {
-                      <p class="text-xs text-green-600 mt-0.5 font-medium">Descuento: ${{ srv.discount | number:'1.2-2' }}</p>
-                    }
+                    <h4 class="text-xs font-bold text-ink truncate">{{ srv.name }}</h4>
+                    <p class="text-[11px] font-bold text-ink-2 mt-0.5">${{ srv.price | number:'1.2-2' }}</p>
                   </div>
-                  <span class="text-sm font-bold text-text-strong shrink-0 ml-2">
-                    ${{ srv.price | number:'1.2-2' }}
-                  </span>
+                  <!-- Redirección directa al detalle del servicio -->
+                  <a
+                    [routerLink]="['/admin/administracion/especialidades', srv.id]"
+                    class="shrink-0 inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
+                    title="Ver detalle del servicio"
+                  >
+                    <span>Ver Servicio</span>
+                    <span>→</span>
+                  </a>
                 </div>
               }
             }
@@ -183,55 +193,43 @@
       </div>
 
       <!-- Card Operadores Asignados -->
-      <div class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
+      <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-base font-semibold text-text-strong">Operadores</h2>
-              <p class="text-xs text-text-muted">Personal administrativo y de sala</p>
+              <h2 class="font-display text-base font-extrabold text-ink">Operadores</h2>
+              <p class="text-xs text-ink-3">Personal en ventanilla y sala</p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="inline-flex items-center rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-text-strong ring-1 ring-inset ring-border">
+              <span class="inline-flex items-center rounded-full bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
                 {{ operators().length }}
               </span>
-              <button
-                (click)="openAssignOperatorModal()"
-                type="button"
-                class="inline-flex items-center rounded-pill bg-blue px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-blue-strong transition-colors"
-              >
-                + Asignar
-              </button>
             </div>
           </div>
 
-          <div class="mt-4 divide-y divide-border border border-border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+          <div class="mt-4 space-y-2 max-h-96 overflow-y-auto pr-1">
             @if (operatorsLoading()) {
-              <div class="p-6 text-center text-sm text-text-muted">Cargando operadores...</div>
+              <div class="p-6 text-center text-xs text-ink-3">Cargando operadores...</div>
             } @else if (operators().length === 0) {
-              <div class="p-6 text-center text-sm text-text-muted">
+              <div class="p-6 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40">
                 No hay operadores asignados a este establecimiento.
               </div>
             } @else {
               @for (op of operators(); track op.uuid) {
-                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors gap-2">
+                <div class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/30 transition-all flex items-center justify-between gap-2 shadow-sm">
                   <div class="min-w-0">
-                    <h4 class="text-sm font-semibold text-text-strong truncate">
+                    <h4 class="text-xs font-bold text-ink truncate">
                       {{ op.firstName }} {{ op.lastName }}
                     </h4>
-                    <p class="text-xs text-text-muted mt-0.5 truncate">{{ op.email }}</p>
-                    <span class="mt-1 inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                      {{ op.role }}
-                    </span>
+                    <p class="text-[11px] text-ink-3 truncate">{{ op.email }}</p>
                   </div>
                   <a
                     [routerLink]="['/admin/administracion/operadores', op.uuid]"
-                    class="shrink-0 inline-flex items-center text-xs font-medium text-blue hover:text-blue-strong"
+                    class="shrink-0 inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
                     title="Ver detalle del operador"
                   >
-                    Ver
-                    <svg class="w-3.5 h-3.5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                    </svg>
+                    <span>Ver</span>
+                    <span>→</span>
                   </a>
                 </div>
               }
@@ -244,69 +242,75 @@
   }
 </div>
 
-<!-- Modal Editar Establecimiento -->
+<!-- =========================================================================
+     MODAL EDITAR ESTABLECIMIENTO
+     ========================================================================= -->
 @if (isEditModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeEditModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              Editar Establecimiento
+            </h3>
+            <button
+              type="button"
+              (click)="closeEditModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
           <form [formGroup]="editForm" (ngSubmit)="onEditSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
-                  Editar Establecimiento
-                </h3>
-                <div class="mt-6 space-y-6">
-                  <div>
-                    <label for="edit_name" class="block text-sm font-medium leading-6 text-text-strong">
-                      Nombre del Establecimiento
-                    </label>
-                    <div class="mt-2">
-                      <input
-                        type="text"
-                        id="edit_name"
-                        formControlName="name"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
-                      />
-                      @if (editForm.controls.name.touched && editForm.controls.name.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <label for="edit_address" class="block text-sm font-medium leading-6 text-text-strong">
-                      Dirección
-                    </label>
-                    <div class="mt-2">
-                      <input
-                        type="text"
-                        id="edit_address"
-                        formControlName="address"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
-                      />
-                      @if (editForm.controls.address.touched && editForm.controls.address.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La dirección es requerida.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
+            <div class="space-y-4">
+              <div>
+                <label for="edit_name" class="block text-xs font-bold text-ink mb-1">
+                  Nombre del Establecimiento
+                </label>
+                <input
+                  type="text"
+                  id="edit_name"
+                  formControlName="name"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (editForm.controls.name.touched && editForm.controls.name.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">El nombre es requerido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="edit_address" class="block text-xs font-bold text-ink mb-1">
+                  Dirección
+                </label>
+                <input
+                  type="text"
+                  id="edit_address"
+                  formControlName="address"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (editForm.controls.address.touched && editForm.controls.address.hasError('required')) {
+                  <p class="mt-1 text-xs text-red-600">La dirección es requerida.</p>
+                }
               </div>
             </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                [disabled]="formLoading()"
-                class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
-              >
-                {{ formLoading() ? 'Guardando...' : 'Guardar Cambios' }}
-              </button>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
               <button
                 type="button"
                 (click)="closeEditModal()"
-                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
               >
                 Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : 'Guardar Cambios' }}
               </button>
             </div>
           </form>
@@ -316,45 +320,44 @@
   </div>
 }
 
-<!-- Modal Borrado -->
+<!-- =========================================================================
+     MODAL ELIMINAR ESTABLECIMIENTO
+     ========================================================================= -->
 @if (isDeleteModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-delete-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeDeleteModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <div class="sm:flex sm:items-start">
-            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-              </svg>
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">
+              ⚠️
             </div>
-            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-              <h3 class="text-base font-semibold leading-6 text-text-strong" id="modal-delete-title">
-                Eliminar establecimiento
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Eliminar Establecimiento
               </h3>
-              <div class="mt-2">
-                <p class="text-sm text-text-muted">
-                  ¿Estás seguro de que deseas eliminar este establecimiento (<strong>{{ establishment()?.name }}</strong>)? Esta acción no se puede deshacer.
-                </p>
-              </div>
+              <p class="text-xs text-ink-3 mt-0.5">
+                ¿Estás seguro de que deseas eliminar este establecimiento (<strong>{{ establishment()?.name }}</strong>)?
+              </p>
             </div>
           </div>
-          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button
-              type="submit"
-              [disabled]="formLoading()"
-              (click)="confirmDelete()"
-              class="inline-flex w-full justify-center rounded-pill bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto disabled:opacity-50"
-            >
-              {{ formLoading() ? 'Eliminando...' : 'Eliminar' }}
-            </button>
+
+          <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
             <button
               type="button"
               (click)="closeDeleteModal()"
-              class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
             >
               Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="formLoading()"
+              (click)="confirmDelete()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ formLoading() ? 'Eliminando...' : 'Eliminar' }}
             </button>
           </div>
         </div>
@@ -363,186 +366,504 @@
   </div>
 }
 
-<!-- Modal Asignar Doctor -->
+<!-- =========================================================================
+     MODAL ASIGNAR DOCTOR AL ESTABLECIMIENTO (Búsqueda por Nombre o CI)
+     ========================================================================= -->
 @if (isAssignDoctorModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-assign-doctor-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeAssignDoctorModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <form [formGroup]="assignDoctorForm" (ngSubmit)="onAssignDoctorSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-assign-doctor-title">
-                  Asignar Doctor al Establecimiento
-                </h3>
-                <div class="mt-6 space-y-4">
-                  <div>
-                    <label for="assign_doctor_id" class="block text-sm font-medium leading-6 text-text-strong">
-                      Doctor
-                    </label>
-                    <div class="mt-2">
-                      <select
-                        id="assign_doctor_id"
-                        formControlName="doctorId"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
-                      >
-                        <option value="" disabled>Selecciona un doctor</option>
-                        @for (doc of availableDoctors(); track doc.uuid) {
-                          <option [value]="doc.uuid">
-                            Dr. {{ doc.firstName }} {{ doc.lastName }} ({{ doc.speciality }}) - CI: {{ doc.ci }}
-                          </option>
-                        }
-                      </select>
-                      @if (assignDoctorForm.controls.doctorId.touched && assignDoctorForm.controls.doctorId.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un doctor.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Asignar Doctor a la Sede: <span class="text-blue">{{ establishment()?.name }}</span>
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Busca médicos por nombre o número de cédula (CI) para asociarlos a este establecimiento.
+              </p>
             </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                [disabled]="formLoading() || availableDoctorsLoading()"
-                class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
-              >
-                {{ formLoading() ? 'Asignando...' : 'Asignar Doctor' }}
-              </button>
+            <button
+              type="button"
+              (click)="closeAssignDoctorModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Alertas -->
+          @if (assignDoctorSuccess()) {
+            <div class="mb-4 rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-800 flex items-center gap-2 border border-emerald-200">
+              <span>✓</span>
+              <span>{{ assignDoctorSuccess() }}</span>
+            </div>
+          }
+
+          @if (assignDoctorError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ assignDoctorError() }}</span>
+            </div>
+          }
+
+          <!-- Formulario de Búsqueda -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
+            <div class="sm:col-span-5">
+              <label class="block text-[11px] font-bold text-ink mb-1">Nombre del Doctor</label>
+              <input
+                type="text"
+                placeholder="Ej. Carlos o Perez"
+                [ngModel]="candidateDoctorName()"
+                (ngModelChange)="candidateDoctorName.set($event)"
+                (keyup.enter)="searchCandidateDoctors(0)"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block text-[11px] font-bold text-ink mb-1">Cédula (CI)</label>
+              <input
+                type="text"
+                placeholder="Ej. 1724037890"
+                [ngModel]="candidateDoctorCi()"
+                (ngModelChange)="candidateDoctorCi.set($event)"
+                (keyup.enter)="searchCandidateDoctors(0)"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            <div class="sm:col-span-3 flex items-end gap-2">
               <button
                 type="button"
-                (click)="closeAssignDoctorModal()"
-                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+                (click)="searchCandidateDoctors(0)"
+                class="flex-1 rounded-pill bg-blue py-2 px-3 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
               >
-                Cancelar
+                Buscar
               </button>
+              @if (candidateDoctorName() || candidateDoctorCi()) {
+                <button
+                  type="button"
+                  (click)="resetCandidateDoctorSearch()"
+                  class="rounded-pill border border-line bg-surface py-2 px-2.5 text-xs font-semibold text-ink-3 hover:bg-field"
+                  title="Limpiar búsqueda"
+                >
+                  ✕
+                </button>
+              }
             </div>
-          </form>
+          </div>
+
+          <!-- Resultados -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs text-ink-3 px-1">
+              <span>Doctores disponibles</span>
+              <span class="font-bold text-ink">{{ candidateDoctors()?.totalElements ?? 0 }} encontrados</span>
+            </div>
+
+            @if (candidateDoctorsLoading()) {
+              <div class="py-12 text-center text-xs text-ink-3">Buscando médicos en el sistema...</div>
+            } @else if (!candidateDoctors()?.content || candidateDoctors()!.content!.length === 0) {
+              <div class="py-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/50 p-4">
+                No se encontraron médicos con los filtros ingresados.
+              </div>
+            } @else {
+              <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                @for (doc of candidateDoctors()?.content; track doc.uuid) {
+                  <div class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/40 hover:bg-tint/20 transition-all flex items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-10 h-10 rounded-2xl bg-tint text-blue font-extrabold flex items-center justify-center text-sm shadow-inner shrink-0">
+                        {{ doc.firstName?.charAt(0) }}
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-bold text-ink truncate">
+                          Dr. {{ doc.firstName }} {{ doc.lastName }}
+                        </p>
+                        <p class="text-[11px] text-ink-3 truncate">
+                          CI: <span class="font-mono text-ink">{{ doc.ci }}</span> • Especialidad: {{ doc.speciality }}
+                        </p>
+                        <p class="text-[10px] text-ink-3 truncate">{{ doc.email }}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      [disabled]="assigningDoctorUuid() === doc.uuid"
+                      (click)="onAssignDoctor(doc)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-blue px-3.5 py-1.5 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 shrink-0 transition-all"
+                    >
+                      @if (assigningDoctorUuid() === doc.uuid) {
+                        <span class="animate-spin text-xs">⏳</span>
+                        <span>Asignando...</span>
+                      } @else {
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span>Asignar</span>
+                      }
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Paginación -->
+              @if (candidateDoctors() && candidateDoctors()!.totalPages > 1) {
+                <div class="flex items-center justify-between pt-3 text-xs text-ink-3 border-t border-line">
+                  <span>Página {{ candidateDoctors()!.number + 1 }} de {{ candidateDoctors()!.totalPages }}</span>
+                  <div class="flex gap-2">
+                    <button
+                      [disabled]="candidateDoctors()!.first"
+                      (click)="searchCandidateDoctors(candidateDoctors()!.number - 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      [disabled]="candidateDoctors()!.last"
+                      (click)="searchCandidateDoctors(candidateDoctors()!.number + 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="mt-5 flex justify-end border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeAssignDoctorModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 }
 
-<!-- Modal Asignar Servicio -->
+<!-- =========================================================================
+     MODAL ASIGNAR SERVICIO AL ESTABLECIMIENTO (Búsqueda por Nombre)
+     ========================================================================= -->
 @if (isAssignServiceModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-assign-service-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeAssignServiceModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <form [formGroup]="assignServiceForm" (ngSubmit)="onAssignServiceSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-assign-service-title">
-                  Asignar Servicio al Establecimiento
-                </h3>
-                <div class="mt-6 space-y-4">
-                  <div>
-                    <label for="assign_service_id" class="block text-sm font-medium leading-6 text-text-strong">
-                      Servicio
-                    </label>
-                    <div class="mt-2">
-                      <select
-                        id="assign_service_id"
-                        formControlName="serviceId"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
-                      >
-                        <option [value]="0" disabled>Selecciona un servicio</option>
-                        @for (srv of availableServices(); track srv.id) {
-                          <option [value]="srv.id">
-                            {{ srv.name }} - ${{ srv.price | number:'1.2-2' }}
-                          </option>
-                        }
-                      </select>
-                      @if (assignServiceForm.controls.serviceId.touched && assignServiceForm.controls.serviceId.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un servicio válido.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Asignar Servicio a la Sede: <span class="text-blue">{{ establishment()?.name }}</span>
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Busca especialidades y tratamientos para brindar en este centro médico.
+              </p>
             </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                [disabled]="formLoading() || availableServicesLoading()"
-                class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
-              >
-                {{ formLoading() ? 'Asignando...' : 'Asignar Servicio' }}
-              </button>
+            <button
+              type="button"
+              (click)="closeAssignServiceModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Alertas -->
+          @if (assignServiceSuccess()) {
+            <div class="mb-4 rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-800 flex items-center gap-2 border border-emerald-200">
+              <span>✓</span>
+              <span>{{ assignServiceSuccess() }}</span>
+            </div>
+          }
+
+          @if (assignServiceError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ assignServiceError() }}</span>
+            </div>
+          }
+
+          <!-- Formulario de Búsqueda -->
+          <div class="flex items-center gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
+            <div class="flex-1">
+              <label class="block text-[11px] font-bold text-ink mb-1">Nombre del Servicio</label>
+              <input
+                type="text"
+                placeholder="Ej. Odontología, Pediatría o Consulta General"
+                [ngModel]="candidateServiceName()"
+                (ngModelChange)="candidateServiceName.set($event)"
+                (keyup.enter)="searchCandidateServices(0)"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            <div class="flex items-end gap-2 pt-4">
               <button
                 type="button"
-                (click)="closeAssignServiceModal()"
-                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+                (click)="searchCandidateServices(0)"
+                class="rounded-pill bg-blue py-2 px-4 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
               >
-                Cancelar
+                Buscar
               </button>
+              @if (candidateServiceName()) {
+                <button
+                  type="button"
+                  (click)="resetCandidateServiceSearch()"
+                  class="rounded-pill border border-line bg-surface py-2 px-2.5 text-xs font-semibold text-ink-3 hover:bg-field"
+                  title="Limpiar búsqueda"
+                >
+                  ✕
+                </button>
+              }
             </div>
-          </form>
+          </div>
+
+          <!-- Resultados -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs text-ink-3 px-1">
+              <span>Servicios disponibles</span>
+              <span class="font-bold text-ink">{{ candidateServices()?.totalElements ?? 0 }} encontrados</span>
+            </div>
+
+            @if (candidateServiceLoading()) {
+              <div class="py-12 text-center text-xs text-ink-3">Buscando servicios...</div>
+            } @else if (!candidateServices()?.content || candidateServices()!.content!.length === 0) {
+              <div class="py-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/50 p-4">
+                No se encontraron servicios con los filtros ingresados.
+              </div>
+            } @else {
+              <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                @for (srv of candidateServices()?.content; track srv.id) {
+                  <div class="p-3 rounded-2xl border border-line bg-surface hover:border-blue/40 hover:bg-tint/20 transition-all flex items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-10 h-10 rounded-2xl bg-tint text-blue font-extrabold flex items-center justify-center text-base shadow-inner shrink-0">
+                        🩺
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-bold text-ink truncate">{{ srv.name }}</p>
+                        <p class="text-[11px] text-ink-3 font-semibold">${{ srv.price | number:'1.2-2' }}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      [disabled]="assigningServiceId() === srv.id"
+                      (click)="onAssignService(srv)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-blue px-3.5 py-1.5 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 shrink-0 transition-all"
+                    >
+                      @if (assigningServiceId() === srv.id) {
+                        <span class="animate-spin text-xs">⏳</span>
+                        <span>Asignando...</span>
+                      } @else {
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span>Asignar</span>
+                      }
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Paginación -->
+              @if (candidateServices() && candidateServices()!.totalPages > 1) {
+                <div class="flex items-center justify-between pt-3 text-xs text-ink-3 border-t border-line">
+                  <span>Página {{ candidateServices()!.number + 1 }} de {{ candidateServices()!.totalPages }}</span>
+                  <div class="flex gap-2">
+                    <button
+                      [disabled]="candidateServices()!.first"
+                      (click)="searchCandidateServices(candidateServices()!.number - 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      [disabled]="candidateServices()!.last"
+                      (click)="searchCandidateServices(candidateServices()!.number + 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="mt-5 flex justify-end border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeAssignServiceModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 }
 
-<!-- Modal Asignar Operador -->
-@if (isAssignOperatorModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-assign-operator-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+<!-- =========================================================================
+     MODAL CONSULTAR PACIENTES (Búsqueda por Nombre o CI)
+     ========================================================================= -->
+@if (isAssignPatientModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeAssignPatientModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <form [formGroup]="assignOperatorForm" (ngSubmit)="onAssignOperatorSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-assign-operator-title">
-                  Asignar Operador al Establecimiento
-                </h3>
-                <div class="mt-6 space-y-4">
-                  <div>
-                    <label for="assign_operator_id" class="block text-sm font-medium leading-6 text-text-strong">
-                      Operador
-                    </label>
-                    <div class="mt-2">
-                      <select
-                        id="assign_operator_id"
-                        formControlName="operatorId"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
-                      >
-                        <option value="" disabled>Selecciona un operador</option>
-                        @for (op of availableOperators(); track op.uuid) {
-                          <option [value]="op.uuid">
-                            {{ op.firstName }} {{ op.lastName }} ({{ op.role }}) - {{ op.email }}
-                          </option>
-                        }
-                      </select>
-                      @if (assignOperatorForm.controls.operatorId.touched && assignOperatorForm.controls.operatorId.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un operador.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Pacientes Registrados en el Sistema
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                Búsqueda rápida de pacientes por nombres o cédula (CI) para atención en {{ establishment()?.name }}.
+              </p>
             </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button
-                type="submit"
-                [disabled]="formLoading() || availableOperatorsLoading()"
-                class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
-              >
-                {{ formLoading() ? 'Asignando...' : 'Asignar Operador' }}
-              </button>
+            <button
+              type="button"
+              (click)="closeAssignPatientModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Formulario de Búsqueda -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
+            <div class="sm:col-span-5">
+              <label class="block text-[11px] font-bold text-ink mb-1">Nombre o Apellido</label>
+              <input
+                type="text"
+                placeholder="Ej. Maria o Lopez"
+                [ngModel]="candidatePatientName()"
+                (ngModelChange)="candidatePatientName.set($event)"
+                (keyup.enter)="searchCandidatePatients(0)"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block text-[11px] font-bold text-ink mb-1">Cédula (CI)</label>
+              <input
+                type="text"
+                placeholder="Ej. 1724037890"
+                [ngModel]="candidatePatientCi()"
+                (ngModelChange)="candidatePatientCi.set($event)"
+                (keyup.enter)="searchCandidatePatients(0)"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+              />
+            </div>
+
+            <div class="sm:col-span-3 flex items-end gap-2">
               <button
                 type="button"
-                (click)="closeAssignOperatorModal()"
-                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+                (click)="searchCandidatePatients(0)"
+                class="flex-1 rounded-pill bg-purple-600 py-2 px-3 text-xs font-bold text-surface shadow-cta hover:bg-purple-700 transition-all"
               >
-                Cancelar
+                Buscar
               </button>
+              @if (candidatePatientName() || candidatePatientCi()) {
+                <button
+                  type="button"
+                  (click)="resetCandidatePatientSearch()"
+                  class="rounded-pill border border-line bg-surface py-2 px-2.5 text-xs font-semibold text-ink-3 hover:bg-field"
+                  title="Limpiar búsqueda"
+                >
+                  ✕
+                </button>
+              }
             </div>
-          </form>
+          </div>
+
+          <!-- Resultados -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs text-ink-3 px-1">
+              <span>Pacientes registrados</span>
+              <span class="font-bold text-ink">{{ candidatePatients()?.totalElements ?? 0 }} encontrados</span>
+            </div>
+
+            @if (candidatePatientLoading()) {
+              <div class="py-12 text-center text-xs text-ink-3">Consultando pacientes...</div>
+            } @else if (!candidatePatients()?.content || candidatePatients()!.content!.length === 0) {
+              <div class="py-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/50 p-4">
+                No se encontraron pacientes con los filtros ingresados.
+              </div>
+            } @else {
+              <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                @for (pat of candidatePatients()?.content; track pat.uuid) {
+                  <div class="p-3 rounded-2xl border border-line bg-surface hover:border-purple-300 transition-all flex items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 font-extrabold flex items-center justify-center text-sm shadow-inner shrink-0">
+                        {{ pat.firstName?.charAt(0) }}
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-bold text-ink truncate">
+                          {{ pat.firstName }} {{ pat.lastName }}
+                        </p>
+                        <p class="text-[11px] text-ink-3 truncate">
+                          CI: <span class="font-mono text-ink">{{ pat.ci }}</span> • {{ pat.email }}
+                        </p>
+                        @if (pat.phone) {
+                          <p class="text-[10px] text-ink-3">📞 {{ pat.phone }}</p>
+                        }
+                      </div>
+                    </div>
+
+                    <a
+                      [routerLink]="['/admin/administracion/pacientes', pat.uuid]"
+                      class="inline-flex items-center gap-1 rounded-pill bg-purple-50 text-purple-700 px-3 py-1.5 text-xs font-bold hover:bg-purple-700 hover:text-white shrink-0 border border-purple-200 transition-all"
+                    >
+                      <span>Ver Ficha</span>
+                      <span>→</span>
+                    </a>
+                  </div>
+                }
+              </div>
+
+              <!-- Paginación -->
+              @if (candidatePatients() && candidatePatients()!.totalPages > 1) {
+                <div class="flex items-center justify-between pt-3 text-xs text-ink-3 border-t border-line">
+                  <span>Página {{ candidatePatients()!.number + 1 }} de {{ candidatePatients()!.totalPages }}</span>
+                  <div class="flex gap-2">
+                    <button
+                      [disabled]="candidatePatients()!.first"
+                      (click)="searchCandidatePatients(candidatePatients()!.number - 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      [disabled]="candidatePatients()!.last"
+                      (click)="searchCandidatePatients(candidatePatients()!.number + 1)"
+                      class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="mt-5 flex justify-end border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeAssignPatientModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>

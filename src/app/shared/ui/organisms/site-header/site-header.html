@@ -49,7 +49,18 @@
           <app-icon name="phone" [size]="17" />
           <span>{{ site().contact.phone }}</span>
         </a>
-        <app-button variant="primary" href="#agenda">
+        @if (authService.currentUser()) {
+          <a
+            routerLink="/perfil"
+            class="inline-flex min-h-11 items-center gap-2 rounded-pill border border-surface/30 bg-surface/16 px-4 text-[14px] font-bold text-surface hover:bg-surface/30 transition-colors"
+          >
+            <div class="w-6 h-6 rounded-full bg-blue text-surface text-xs flex items-center justify-center font-bold">
+              {{ authService.currentUser()?.firstName?.charAt(0) }}
+            </div>
+            <span>Mi Perfil</span>
+          </a>
+        }
+        <app-button variant="primary" [href]="bookingHref()">
           <span>Agenda tu cita</span>
           <app-icon name="arrow" [size]="17" />
         </app-button>
@@ -117,7 +128,16 @@
           <app-icon name="phone" [size]="17" />
           <span>{{ site().contact.phone }}</span>
         </a>
-        <app-button variant="primary" href="#agenda" [fullWidth]="true">
+        @if (authService.currentUser()) {
+          <a
+            routerLink="/perfil"
+            (click)="closeMenu()"
+            class="inline-flex min-h-11 items-center gap-2 rounded-pill border border-surface/30 bg-surface/16 px-3.5 text-[15px] font-bold text-surface"
+          >
+            <span>👤 Mi Perfil y Turnos</span>
+          </a>
+        }
+        <app-button variant="primary" [href]="bookingHref()" [fullWidth]="true">
           <span>Agenda tu cita</span>
           <app-icon name="arrow" [size]="17" />
         </app-button>

@@ -51,9 +51,17 @@ export const adminRoutes: Routes = [
     loadChildren: () => import('./patients/patients.routes').then(m => m.patientRoutes),
     data: { crumbGroup: 'Pacientes', crumbLeaf: 'Información' }
   },
+  {
+    path: 'turnos',
+    loadChildren: () => import('./turns/turns.routes').then(m => m.turnRoutes),
+    data: { crumbGroup: 'Turnos', crumbLeaf: 'Gestión de turnos' }
+  },
 
   ...ADMIN_NAV.flatMap((entry) => {
     if (entry.children.length === 0) {
+      if (entry.path === 'turnos') {
+        return [];
+      }
       return [
         {
           path: entry.path,
