@@ -1,0 +1,95 @@
+<div class="flex flex-col gap-5">
+  <app-page-header
+    [kicker]="view().kicker"
+    [heading]="view().heading"
+    [description]="view().description"
+  />
+
+  <app-date-range-filter
+    [from]="range().from"
+    [to]="range().to"
+    [disabled]="loading()"
+    (rangeChange)="onRangeChange($event)"
+  />
+
+  @if (loadError()) {
+    <app-error-state message="No pudimos cargar las métricas." minHeight="320px" (retry)="load()" />
+  } @else {
+    <!-- El periodo, escrito. Sin esto la pantalla muestra numeros sin decir de
+         cuando son, y "24 turnos" no significa nada sin su ventana. -->
+    <p class="font-sans text-[12.5px] text-ink-3">{{ periodLabel() }}</p>
+
+    @if (tiles().length > 0) {
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        @for (tile of tiles(); track tile.key) {
+          <app-metric-tile
+            [label]="tile.label"
+            [value]="tile.value"
+            [hint]="tile.hint"
+            [loading]="loading()"
+          />
+        }
+      </div>
+    }
+
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      @if (view().showDaily) {
+        <section
+          class="flex flex-col gap-4 rounded-card rounded-br-card-nub border border-line bg-surface p-5 shadow-lift-1"
+        >
+          <h2 class="font-display text-[16px] font-extrabold tracking-[-.008em] text-ink">
+            Turnos por día
+          </h2>
+          <!-- Solo los dias CON turnos: rellenar los ceros es trabajo del
+               grafico, que es el unico que sabe que granularidad dibuja. -->
+          <app-bar-list
+            [items]="dailyItems()"
+            [loading]="loading()"
+            [limit]="31"
+            emptyMessage="No hubo turnos en este período."
+          />
+        </section>
+      }
+
+      @if (view().showByStatus) {
+        <section
+          class="flex flex-col gap-4 rounded-card rounded-br-card-nub border border-line bg-surface p-5 shadow-lift-1"
+        >
+          <h2 class="font-display text-[16px] font-extrabold tracking-[-.008em] text-ink">
+            Turnos por estado
+          </h2>
+          <app-bar-list [items]="statusItems()" [loading]="loading()" />
+        </section>
+      }
+
+      @if (view().showByStablishment) {
+        <section
+          class="flex flex-col gap-4 rounded-card rounded-br-card-nub border border-line bg-surface p-5 shadow-lift-1"
+        >
+          <h2 class="font-display text-[16px] font-extrabold tracking-[-.008em] text-ink">
+            Turnos por sede
+          </h2>
+          <app-bar-list [items]="stablishmentItems()" [loading]="loading()" [limit]="15" />
+        </section>
+      }
+
+      @if (view().showByDoctor) {
+        <section
+          class="flex flex-col gap-4 rounded-card rounded-br-card-nub border border-line bg-surface p-5 shadow-lift-1"
+        >
+          <h2 class="font-display text-[16px] font-extrabold tracking-[-.008em] text-ink">
+            Turnos por doctor
+          </h2>
+          <!-- Por DOCTOR y no por especialidad: `Doctor.speciality` sigue siendo
+               texto libre para las filas viejas, y agrupar por ahi cuenta
+               "Cardiologia" y "cardiologia" como dos. -->
+          <p class="-mt-2 font-sans text-[12px] text-ink-3">
+            Agrupado por doctor. Agrupar por especialidad requiere terminar de normalizar el
+            catálogo.
+          </p>
+          <app-bar-list [items]="doctorItems()" [loading]="loading()" [limit]="15" />
+        </section>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,112 @@
+<div class="flex flex-col gap-5">
+  <app-page-header
+    kicker="Panel"
+    heading="Gestión de turnos"
+    description="Los turnos del sistema. Se marcan como atendidos o se cancelan desde acá."
+  />
+
+  @if (list.notice(); as message) {
+    <app-inline-alert tone="ok" [message]="message" (dismiss)="list.notice.set(null)" />
+  }
+  @if (list.pageError(); as message) {
+    <app-inline-alert tone="error" [message]="message" (dismiss)="list.pageError.set(null)" />
+  }
+
+  @if (list.loadError()) {
+    <app-error-state
+      message="No pudimos cargar los turnos."
+      minHeight="320px"
+      (retry)="list.loadPage()"
+    />
+  } @else {
+    <app-data-table
+      caption="Turnos registrados"
+      [columns]="columns"
+      [rows]="list.rows()"
+      [rowKey]="rowKey"
+      [loading]="list.loading()"
+      emptyMessage="Todavía no hay turnos registrados."
+    >
+      <ng-template #cell let-item let-column="column">
+        @switch (column.key) {
+          @case ('order') {
+            #{{ item.order }}
+          }
+          @case ('patient') {
+            {{ patientName(item) }}
+          }
+          @case ('service') {
+            {{ item.schedule?.service?.name ?? '—' }}
+          }
+          @case ('when') {
+            @if (item.schedule) {
+              {{ item.schedule.date | date: 'dd MMM y' }} · {{ item.schedule.hour }}
+            } @else {
+              —
+            }
+          }
+          @case ('stablishment') {
+            {{ item.schedule?.stablishment?.name ?? '—' }}
+          }
+          @case ('status') {
+            <app-pill size="sm" [tone]="statusTone(item.status)">{{
+              statusLabel(item.status)
+            }}</app-pill>
+          }
+          @case ('actions') {
+            <div class="flex items-center justify-end gap-1">
+              <!-- Sin confirmacion: es la accion esperada al cerrar cada turno, y
+                   confirmarla cincuenta veces por dia entrena a confirmar sin leer. -->
+              <app-button
+                variant="quiet"
+                size="sm"
+                [disabled]="list.pending() || isClosed(item.status)"
+                (click)="markTreated(item)"
+              >
+                <app-icon name="check" [size]="15" [strokeWidth]="2" />
+                Atendido
+              </app-button>
+              <app-button
+                variant="danger"
+                size="sm"
+                [disabled]="list.pending() || isClosed(item.status)"
+                (click)="openCancel(item)"
+              >
+                <app-icon name="ban" [size]="15" [strokeWidth]="1.9" />
+                Cancelar
+              </app-button>
+            </div>
+          }
+        }
+      </ng-template>
+
+      @if (list.pagination(); as state) {
+        <app-pagination
+          tableFooter
+          [state]="state"
+          itemLabel="turnos"
+          (pageChange)="list.loadPage($event)"
+        />
+      }
+    </app-data-table>
+  }
+</div>
+
+@if (cancelling(); as turn) {
+  <app-confirm-dialog
+    heading="Cancelar turno"
+    [message]="
+      'Se cancelará el turno #' +
+      turn.order +
+      ' de ' +
+      patientName(turn) +
+      '. El cupo NO vuelve a quedar disponible automáticamente.'
+    "
+    confirmLabel="Cancelar turno"
+    cancelLabel="Volver"
+    pendingLabel="Cancelando…"
+    [pending]="list.pending()"
+    (confirm)="confirmCancel()"
+    (cancel)="closeCancel()"
+  />
+}

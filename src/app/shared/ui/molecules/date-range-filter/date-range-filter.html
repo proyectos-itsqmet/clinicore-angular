@@ -1,0 +1,45 @@
+<form
+  class="flex flex-col gap-3 rounded-card rounded-br-card-nub border border-line bg-surface px-4 py-3.5 sm:flex-row sm:items-end sm:gap-4"
+  (submit)="$event.preventDefault(); apply()"
+>
+  <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+    <label for="range-from" class="font-sans text-[12.5px] font-semibold text-ink">Desde</label>
+    <input
+      id="range-from"
+      type="date"
+      class="min-h-11 w-full rounded-tile-sm border border-line bg-surface px-3.5 font-sans text-[14px] text-ink"
+      [value]="currentFrom()"
+      [disabled]="disabled()"
+      (change)="onFrom($any($event.target).value)"
+    />
+  </div>
+
+  <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+    <label for="range-to" class="font-sans text-[12.5px] font-semibold text-ink">Hasta</label>
+    <input
+      id="range-to"
+      type="date"
+      class="min-h-11 w-full rounded-tile-sm border border-line bg-surface px-3.5 font-sans text-[14px] text-ink"
+      [value]="currentTo()"
+      [disabled]="disabled()"
+      [attr.aria-invalid]="invalid() ? 'true' : null"
+      [attr.aria-describedby]="invalid() ? 'range-error' : null"
+      (change)="onTo($any($event.target).value)"
+    />
+  </div>
+
+  <div class="flex shrink-0 items-center gap-2">
+    <app-button variant="primary" size="sm" type="submit" [disabled]="disabled() || invalid()">
+      Aplicar
+    </app-button>
+    <app-button variant="quiet" size="sm" [disabled]="disabled()" (click)="clear()"
+      >Limpiar</app-button
+    >
+  </div>
+</form>
+
+@if (invalid()) {
+  <p id="range-error" role="alert" class="font-sans text-[12.5px] text-emergency">
+    La fecha «desde» no puede ser posterior a la fecha «hasta».
+  </p>
+}

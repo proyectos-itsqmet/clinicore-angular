@@ -1,0 +1,92 @@
+<div class="flex flex-col gap-5">
+  <app-page-header
+    kicker="Panel"
+    heading="Calendario"
+    description="Los cupos de agenda, filtrables por período, doctor, sede y estado."
+  />
+
+  @if (list.pageError(); as message) {
+    <app-inline-alert tone="error" [message]="message" (dismiss)="list.pageError.set(null)" />
+  }
+
+  <div class="flex flex-col gap-3">
+    <app-date-range-filter
+      [from]="filters().from"
+      [to]="filters().to"
+      [disabled]="list.loading()"
+      (rangeChange)="onRangeChange($event)"
+    />
+
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <app-select-field
+        label="Doctor"
+        [control]="filterForm.controls.doctorId"
+        [options]="doctorOptions()"
+        [loading]="doctorsLoading()"
+      />
+      <app-select-field
+        label="Sede"
+        [control]="filterForm.controls.stablishmentId"
+        [options]="establishmentOptions()"
+        [loading]="establishmentsLoading()"
+      />
+      <app-select-field
+        label="Estado"
+        [control]="filterForm.controls.status"
+        [options]="statusOptions"
+      />
+    </div>
+  </div>
+
+  @if (list.loadError()) {
+    <app-error-state
+      message="No pudimos cargar la agenda."
+      minHeight="320px"
+      (retry)="list.loadPage()"
+    />
+  } @else {
+    <app-data-table
+      caption="Cupos de agenda"
+      [columns]="columns"
+      [rows]="list.rows()"
+      [rowKey]="rowKey"
+      [loading]="list.loading()"
+      [skeletonRows]="8"
+      emptyMessage="No hay cupos de agenda para estos filtros."
+    >
+      <ng-template #cell let-item let-column="column">
+        @switch (column.key) {
+          @case ('date') {
+            {{ item.date | date: 'EEE dd MMM y' }}
+          }
+          @case ('hour') {
+            {{ item.hour }}
+          }
+          @case ('doctor') {
+            {{ doctorName(item) }}
+          }
+          @case ('service') {
+            {{ item.service?.name ?? '—' }}
+          }
+          @case ('stablishment') {
+            {{ item.stablishment?.name ?? '—' }}
+          }
+          @case ('status') {
+            <app-pill size="sm" [tone]="statusTone(item.status)">{{
+              statusLabel(item.status)
+            }}</app-pill>
+          }
+        }
+      </ng-template>
+
+      @if (list.pagination(); as state) {
+        <app-pagination
+          tableFooter
+          [state]="state"
+          itemLabel="cupos"
+          (pageChange)="list.loadPage($event)"
+        />
+      }
+    </app-data-table>
+  }
+</div>

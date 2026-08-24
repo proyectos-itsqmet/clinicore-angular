@@ -1,9 +1,9 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 
 export const operatorRoutes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./operator-list.component').then(m => m.OperatorListComponent),
-    title: 'Operadores · CliniCore',
-  }
+    loadComponent: () =>
+      import('./operator-list.component').then((module) => module.OperatorListComponent),
+  },
 ];

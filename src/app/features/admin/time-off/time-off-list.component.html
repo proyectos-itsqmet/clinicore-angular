@@ -1,0 +1,182 @@
+<div class="flex flex-col gap-5">
+  <app-page-header kicker="Bloqueo de citas" [heading]="heading()" [description]="description()">
+    <app-button headerActions variant="primary" size="sm" (click)="openCreate()">
+      <app-icon name="plus" [size]="17" [strokeWidth]="2.2" />
+      {{ isPermission() ? 'Nuevo permiso' : 'Nuevas vacaciones' }}
+    </app-button>
+  </app-page-header>
+
+  @if (list.notice(); as message) {
+    <app-inline-alert tone="ok" [message]="message" (dismiss)="list.notice.set(null)" />
+  }
+  @if (list.pageError(); as message) {
+    <app-inline-alert tone="error" [message]="message" (dismiss)="list.pageError.set(null)" />
+  }
+
+  <div class="flex flex-col gap-3">
+    <app-date-range-filter
+      [from]="filters().from"
+      [to]="filters().to"
+      [disabled]="list.loading()"
+      (rangeChange)="onRangeChange($event)"
+    />
+
+    <!-- El rango filtra por SOLAPAMIENTO: una ausencia del 1 al 30 aparece si
+         preguntas por el 15. El texto lo dice para que nadie dude del resultado. -->
+    <div class="max-w-md">
+      <app-select-field
+        label="Doctor"
+        hint="El período muestra las ausencias que se cruzan con el rango, no solo las que empiezan ahí."
+        [control]="filterForm.controls.doctorUuid"
+        [options]="doctorFilterOptions()"
+        [loading]="doctorsLoading()"
+      />
+    </div>
+  </div>
+
+  @if (list.loadError()) {
+    <app-error-state
+      [message]="'No pudimos cargar ' + itemLabel() + '.'"
+      minHeight="320px"
+      (retry)="list.loadPage()"
+    />
+  } @else {
+    <app-data-table
+      [caption]="heading() + ' registradas'"
+      [columns]="columns"
+      [rows]="list.rows()"
+      [rowKey]="rowKey"
+      [loading]="list.loading()"
+      emptyMessage="No hay ausencias cargadas para este período."
+    >
+      <ng-template #cell let-item let-column="column">
+        @switch (column.key) {
+          @case ('doctor') {
+            {{ doctorName(item) }}
+          }
+          @case ('range') {
+            {{ item.startDate | date: 'dd MMM y' }} — {{ item.endDate | date: 'dd MMM y' }}
+          }
+          @case ('days') {
+            {{ dayCount(item) }}
+          }
+          @case ('reason') {
+            {{ item.reason?.name ?? item.notes ?? '—' }}
+          }
+          @case ('actions') {
+            <div class="flex items-center justify-end gap-1">
+              <app-button variant="quiet" size="sm" (click)="openEdit(item)">
+                <app-icon name="pencil" [size]="15" [strokeWidth]="1.9" />
+                Editar
+              </app-button>
+              <app-button variant="danger" size="sm" (click)="openDelete(item)">
+                <app-icon name="trash" [size]="15" [strokeWidth]="1.9" />
+                Eliminar
+              </app-button>
+            </div>
+          }
+        }
+      </ng-template>
+
+      @if (list.pagination(); as state) {
+        <app-pagination
+          tableFooter
+          [state]="state"
+          [itemLabel]="itemLabel()"
+          (pageChange)="list.loadPage($event)"
+        />
+      }
+    </app-data-table>
+  }
+</div>
+
+@if (dialog() === 'form') {
+  <app-modal
+    [heading]="
+      editing() ? 'Editar ausencia' : isPermission() ? 'Nuevo permiso' : 'Nuevas vacaciones'
+    "
+    description="Las fechas son inclusivas: para un solo día, pon la misma en las dos."
+    size="lg"
+    (close)="closeDialog()"
+  >
+    <form
+      id="time-off-form"
+      class="flex flex-col gap-4"
+      [formGroup]="form"
+      (ngSubmit)="submitForm()"
+    >
+      @if (list.dialogError(); as message) {
+        <app-inline-alert tone="error" [message]="message" [dismissible]="false" />
+      }
+
+      <app-select-field
+        label="Doctor"
+        placeholder="Selecciona un doctor"
+        placeholderValue=""
+        [control]="form.controls.doctorUuid"
+        [options]="doctorOptions()"
+        [loading]="doctorsLoading()"
+        [messages]="messages.doctor"
+      />
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-input-field
+          label="Desde"
+          type="date"
+          [control]="form.controls.startDate"
+          [messages]="messages.startDate"
+        />
+        <app-input-field
+          label="Hasta"
+          type="date"
+          [control]="form.controls.endDate"
+          [messages]="messages.endDate"
+        />
+      </div>
+
+      <app-select-field
+        label="Motivo"
+        [control]="form.controls.reasonId"
+        [options]="reasonOptions()"
+        [loading]="reasonsLoading()"
+        hint="Se administra en Bloqueo de citas → Motivos."
+      />
+
+      <app-input-field label="Notas (opcional)" [maxLength]="500" [control]="form.controls.notes" />
+    </form>
+
+    <app-button
+      modalActions
+      variant="quiet"
+      size="sm"
+      [disabled]="list.pending()"
+      (click)="closeDialog()"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      modalActions
+      variant="primary"
+      size="sm"
+      type="submit"
+      form="time-off-form"
+      [disabled]="list.pending()"
+    >
+      {{ list.pending() ? 'Guardando…' : 'Guardar' }}
+    </app-button>
+  </app-modal>
+}
+
+@if (dialog() === 'delete') {
+  <app-confirm-dialog
+    heading="Eliminar ausencia"
+    [message]="
+      'Se eliminará la ausencia de ' +
+      doctorName(editing()!) +
+      '. La agenda de esas fechas vuelve a quedar disponible.'
+    "
+    [pending]="list.pending()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDialog()"
+  />
+}

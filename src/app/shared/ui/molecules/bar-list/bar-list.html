@@ -1,0 +1,40 @@
+@if (loading()) {
+  <ul class="flex flex-col gap-3.5" aria-busy="true">
+    @for (placeholder of placeholders(); track placeholder) {
+      <li class="flex flex-col gap-1.5">
+        <app-skeleton variant="text" width="42%" height="12px" />
+        <app-skeleton variant="text" width="100%" height="8px" radius="9999px" />
+      </li>
+    }
+  </ul>
+} @else if (items().length === 0) {
+  <p class="py-8 text-center font-sans text-[13.5px] text-ink-3">{{ emptyMessage() }}</p>
+} @else {
+  <ul class="flex flex-col gap-3.5">
+    @for (item of visible(); track item.id) {
+      <li class="flex flex-col gap-1.5">
+        <div class="flex items-baseline justify-between gap-3">
+          <span class="min-w-0 truncate font-sans text-[13.5px] font-medium text-ink">{{
+            item.label
+          }}</span>
+          <span class="shrink-0 font-sans text-[13.5px] font-bold tabular-nums text-ink">
+            {{ format(item.total) }}
+          </span>
+        </div>
+
+        <!-- Decorativa: el numero ya esta arriba en texto, asi que un lector de
+             pantalla no gana nada leyendo un ancho. -->
+        <div class="h-2 w-full overflow-hidden rounded-pill bg-field" aria-hidden="true">
+          <div
+            class="h-full rounded-pill bg-blue transition-[width] duration-300 ease-brand"
+            [style.width.%]="percent(item.total)"
+          ></div>
+        </div>
+      </li>
+    }
+  </ul>
+
+  @if (hidden() > 0) {
+    <p class="pt-3 font-sans text-[12px] text-ink-3">y {{ hidden() }} más fuera de este listado.</p>
+  }
+}

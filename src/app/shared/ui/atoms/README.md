@@ -11,10 +11,10 @@ Geometry, colors and motion come from `shared/tokens/theme.css` and
 
 | Atom | Inputs | Variants / tones | Used for |
 | --- | --- | --- | --- |
-| `app-button` | `variant`, `size`, `href?`, `disabled`, `fullWidth`, `type` | variant: `primary` (spinning beam) · `whatsapp` · `glass` · `ghost` · `emergency` — size: `md` (52px) · `lg` (58px) | Every CTA: "Agenda tu cita", WhatsApp contact, nav "Llamar", "Emergencia 24/7" |
-| `app-pill` | `tone` | `tint` (default) · `glass` · `ok` · `gold` · `plain` | Specialty counts, prices, dates, review quotes, nav status pills. Project `<app-icon>` before the text for an icon prefix |
+| `app-button` | `variant`, `size`, `href?`, `disabled`, `fullWidth`, `type`, `form?` | variant: `primary` (spinning beam) · `whatsapp` · `glass` · `ghost` · `emergency` · `quiet` · `danger` — size: `sm` (44px) · `md` (52px) · `lg` (58px) | Every CTA: "Agenda tu cita", WhatsApp contact, nav "Llamar", "Emergencia 24/7" — plus every table-row action and dialog button in the admin panel |
+| `app-pill` | `tone`, `size` | tone: `tint` (default) · `glass` · `ok` · `gold` · `plain` — size: `md` (44px) · `sm` (32px, in-table badge) | Specialty counts, prices, dates, review quotes, nav status pills. Project `<app-icon>` before the text for an icon prefix |
 | `app-chip` | `selected`, `disabled` | — (radius morphs 16px ↔ pill on `selected`) | Doctor / day / time-slot pickers in the booking widget |
-| `app-icon` | `name` (required), `size` (20), `strokeWidth` (2), `label?` | `calendar` · `document` · `capsule` · `phone` · `check` · `arrow` · `whatsapp` · `shield` · `star` · `plus` · `menu` · `clock` · `location` · `user` · `grid` · `chart` · `box` · `droplet` · `tag` · `ban` · `banknote` · `chevron` | Every inline glyph in the system. Decorative (`aria-hidden`) unless `label` is set |
+| `app-icon` | `name` (required), `size` (20), `strokeWidth` (2), `label?` | `calendar` · `document` · `capsule` · `phone` · `check` · `arrow` · `whatsapp` · `shield` · `star` · `plus` · `menu` · `clock` · `location` · `user` · `grid` · `chart` · `box` · `droplet` · `tag` · `ban` · `banknote` · `chevron` · `pencil` · `trash` · `warning` | Every inline glyph in the system. Decorative (`aria-hidden`) unless `label` is set |
 | `app-skeleton` | `variant`, `width`, `height?`, `lines`, `radius?` | `text` · `block` · `circle` · `pill` | Loading placeholder for any endpoint-fed organism. Always `aria-hidden`; **the loading container must set `aria-busy="true"`** |
 | `app-progress-ring` | `percent`, `size` (124), `color`, `delayMs` | color: `blue` · `ok` | The stats-row counters ("médicos disponibles", "% satisfacción", ...). Project an `<app-figure>` for the centered number |
 | `app-star-rating` | `value` (required), `max` (5), `size` (20) | — | Review scores. `role="img"` + spoken `aria-label`, fills fractional stars via gradient |
@@ -92,8 +92,55 @@ scales to any 16:9 panel, and dark-field. Three atoms grew for it, all additivel
   solid gold tile whose only legible ink is `--gold-ink` (the pair theme.css
   declares as "ink on top of gold").
 
+## Extended for the admin panel's CRUD sections
+
+Four sections of `/admin` stopped being placeholders (sedes, operadores,
+doctores, servicios), and three atoms grew for them. All three are additive —
+every existing default is byte-for-byte what it was, so no landing consumer
+changed.
+
+- **`app-button` `size: 'sm'`** — 44px, the project LEY's tap floor and not one
+  pixel under. It exists as a NAMED size precisely so a caller cannot reach the
+  same visual result by shrinking the atom with utilities and land at 38px: a
+  table row with three actions has no room for a 52px control, and that pressure
+  is exactly how tap targets get quietly broken.
+- **`app-button` `quiet` / `danger`** — a row with three actions cannot carry
+  three bordered buttons. `quiet` is the neutral one (transparent, `ink-2`,
+  `field` on hover), `danger` its destructive twin (transparent, `emergency`).
+  `danger` is NOT a duplicate of `emergency`: that variant is the solid red 24/7
+  CTA on the landing, and a solid red fill repeated three times down a table
+  reads as an error state, not as a delete button.
+- **`app-button` `form`** — the native `form` attribute. `app-modal` projects the
+  form into its scrolling body and the actions into its fixed footer, so the
+  submit button is not a descendant of the form it submits. The alternatives were
+  a click handler (which kills submit-on-Enter, since a form with no submit
+  button inside it has no implicit submission) or putting the actions back inside
+  the scrolling region, where "Guardar" sits below the fold on a phone.
+- **`app-pill` `size: 'sm'`** — 32px / 13px. This closes a gap the previous
+  version of `../molecules/README.md` flagged and declined to fix: "the board's
+  in-card badges are smaller than the standard pill (32–34px tall, 13px type) —
+  `app-pill` has no `size` variant to match". It does now, and the reason it is
+  allowed to go under the 44px floor is that a pill is a `<span>`, never a
+  target; everything clickable is an `app-button` or an `app-chip`, and both keep
+  the floor.
+- **`app-icon` — `pencil`, `trash`, `warning`** — a row that can be edited and
+  deleted needs both verbs legible at a glance in a dense table, and a
+  destructive confirmation needs a glyph that says stop before the copy does.
+  Not in any board; drawn in the same 24x24 / 2px-stroke / round-cap language as
+  the rest, like the eight the panel's nav already needed.
+
 ## Not requested, not built
 
 Nothing in the brief was skipped. If a future atom needs a color or radius
 that isn't already a token in `shared/tokens/theme.css`, that's a gap to
 flag, not a value to invent inline.
+
+One gap is open and named rather than papered over: **`app-button` has no
+router-aware link mode.** Given `href` it renders an `<a href>`, which inside an
+authenticated SPA is a full document load. `features/admin/doctors` therefore
+hand-writes its "Ver detalles" `<a [routerLink]>` with this atom's own
+`quiet`/`sm` recipe, hoisted into one constant. `app-card` has the same hole.
+The fix is a `routerLink` branch in both — note that `button.html` and `card.html`
+each carry a doc comment about keeping exactly ONE textual `ng-content`
+occurrence, so a third branch has to reuse the existing `ng-template`, not
+duplicate the slot.

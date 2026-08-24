@@ -1,0 +1,134 @@
+<div class="flex flex-col gap-5">
+  <app-page-header
+    kicker="Bloqueo de citas"
+    heading="Motivos"
+    description="El catálogo de razones por las que se bloquea un espacio de agenda."
+  >
+    <app-button headerActions variant="primary" size="sm" (click)="openCreate()">
+      <app-icon name="plus" [size]="17" [strokeWidth]="2.2" />
+      Nuevo motivo
+    </app-button>
+  </app-page-header>
+
+  @if (list.notice(); as message) {
+    <app-inline-alert tone="ok" [message]="message" (dismiss)="list.notice.set(null)" />
+  }
+  @if (list.pageError(); as message) {
+    <app-inline-alert tone="error" [message]="message" (dismiss)="list.pageError.set(null)" />
+  }
+
+  @if (list.loadError()) {
+    <app-error-state
+      message="No pudimos cargar los motivos."
+      minHeight="320px"
+      (retry)="list.loadPage()"
+    />
+  } @else {
+    <app-data-table
+      caption="Motivos de bloqueo registrados"
+      [columns]="columns"
+      [rows]="list.rows()"
+      [rowKey]="rowKey"
+      [loading]="list.loading()"
+      emptyMessage="Todavía no hay motivos cargados."
+    >
+      <ng-template #cell let-item let-column="column">
+        @switch (column.key) {
+          @case ('name') {
+            {{ item.name }}
+          }
+          @case ('kind') {
+            <app-pill size="sm" tone="tint">{{ kindLabel(item.kind) }}</app-pill>
+          }
+          @case ('state') {
+            <app-pill size="sm" [tone]="item.active ? 'ok' : 'plain'">
+              {{ item.active ? 'Activo' : 'Inactivo' }}
+            </app-pill>
+          }
+          @case ('actions') {
+            <div class="flex items-center justify-end gap-1">
+              <app-button variant="quiet" size="sm" (click)="openEdit(item)">
+                <app-icon name="pencil" [size]="15" [strokeWidth]="1.9" />
+                Editar
+              </app-button>
+              <!-- "Desactivar", no "Eliminar": es lo que hace de verdad, y es
+                   reversible con este mismo boton. Por eso tampoco pide
+                   confirmacion — confirmar algo que se deshace con un clic es
+                   ruido. -->
+              <app-button
+                [variant]="item.active ? 'danger' : 'quiet'"
+                size="sm"
+                [disabled]="list.pending()"
+                (click)="toggleActive(item)"
+              >
+                <app-icon [name]="item.active ? 'ban' : 'check'" [size]="15" [strokeWidth]="1.9" />
+                {{ item.active ? 'Desactivar' : 'Reactivar' }}
+              </app-button>
+            </div>
+          }
+        }
+      </ng-template>
+
+      @if (list.pagination(); as state) {
+        <app-pagination
+          tableFooter
+          [state]="state"
+          itemLabel="motivos"
+          (pageChange)="list.loadPage($event)"
+        />
+      }
+    </app-data-table>
+  }
+</div>
+
+@if (dialog() === 'form') {
+  <app-modal
+    [heading]="editing() ? 'Editar motivo' : 'Nuevo motivo'"
+    size="md"
+    (close)="closeDialog()"
+  >
+    <form
+      id="block-reason-form"
+      class="flex flex-col gap-4"
+      [formGroup]="form"
+      (ngSubmit)="submitForm()"
+    >
+      @if (list.dialogError(); as message) {
+        <app-inline-alert tone="error" [message]="message" [dismissible]="false" />
+      }
+
+      <app-input-field
+        label="Nombre del motivo"
+        [control]="form.controls.name"
+        [messages]="messages.name"
+      />
+      <app-select-field
+        label="Se usa en"
+        hint="Define en qué pantallas aparece este motivo."
+        [control]="form.controls.kind"
+        [options]="kindOptions"
+        [messages]="messages.kind"
+      />
+    </form>
+
+    <app-button
+      modalActions
+      variant="quiet"
+      size="sm"
+      [disabled]="list.pending()"
+      (click)="closeDialog()"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      modalActions
+      variant="primary"
+      size="sm"
+      type="submit"
+      form="block-reason-form"
+      [disabled]="list.pending()"
+    >
+      {{ list.pending() ? 'Guardando…' : 'Guardar' }}
+    </app-button>
+  </app-modal>
+}

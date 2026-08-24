@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
+import { PageHeader } from '../../shared/ui/molecules/page-header/page-header';
+
 /**
  * app-admin-placeholder-page — the body of every admin section that has not
  * been designed yet, which right now is all 31 of them.
@@ -21,6 +23,7 @@ import { ActivatedRoute } from '@angular/router';
  */
 @Component({
   selector: 'app-admin-placeholder-page',
+  imports: [PageHeader],
   templateUrl: './admin-placeholder-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },

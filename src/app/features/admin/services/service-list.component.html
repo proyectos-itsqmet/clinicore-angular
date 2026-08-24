@@ -1,0 +1,154 @@
+<div class="flex flex-col gap-5">
+  <app-page-header
+    kicker="Admin"
+    heading="Servicios"
+    description="El catálogo de prestaciones, con su precio de lista y su descuento."
+  >
+    <app-button headerActions variant="primary" size="sm" (click)="openCreate()">
+      <app-icon name="plus" [size]="17" [strokeWidth]="2.2" />
+      Nuevo servicio
+    </app-button>
+  </app-page-header>
+
+  @if (list.notice(); as message) {
+    <app-inline-alert tone="ok" [message]="message" (dismiss)="list.notice.set(null)" />
+  }
+
+  @if (list.loadError()) {
+    <app-error-state
+      message="No pudimos cargar los servicios."
+      minHeight="320px"
+      (retry)="list.loadPage(list.currentPage)"
+    />
+  } @else {
+    <app-data-table
+      caption="Servicios registrados"
+      [columns]="columns"
+      [rows]="list.rows()"
+      [rowKey]="rowKey"
+      [loading]="list.loading()"
+      emptyMessage="Todavía no hay servicios registrados."
+    >
+      <ng-template #cell let-item let-column="column">
+        @switch (column.key) {
+          @case ('id') {
+            {{ item.id }}
+          }
+          @case ('name') {
+            {{ item.name }}
+          }
+          @case ('price') {
+            {{ item.price | currency: 'USD' : 'symbol' : '1.2-2' }}
+          }
+          @case ('discount') {
+            <!-- Guion largo y no un cero: "sin descuento" y "descuento de $0"
+                 son la misma fila para el ojo si las dos dicen un numero. -->
+            @if (item.discount) {
+              {{ item.discount | currency: 'USD' : 'symbol' : '1.2-2' }}
+            } @else {
+              <span class="text-ink-3">—</span>
+            }
+          }
+          @case ('actions') {
+            <div class="flex items-center justify-end gap-1">
+              <app-button variant="quiet" size="sm" (click)="openEdit(item)">
+                <app-icon name="pencil" [size]="15" [strokeWidth]="1.9" />
+                Editar
+              </app-button>
+              <app-button variant="danger" size="sm" (click)="openDelete(item)">
+                <app-icon name="trash" [size]="15" [strokeWidth]="1.9" />
+                Eliminar
+              </app-button>
+            </div>
+          }
+        }
+      </ng-template>
+
+      @if (list.pagination(); as state) {
+        <app-pagination
+          tableFooter
+          [state]="state"
+          itemLabel="servicios"
+          (pageChange)="list.loadPage($event)"
+        />
+      }
+    </app-data-table>
+  }
+</div>
+
+@if (dialog() === 'form') {
+  <app-modal
+    [heading]="editing() ? 'Editar servicio' : 'Nuevo servicio'"
+    size="md"
+    (close)="closeDialog()"
+  >
+    <form
+      id="service-form"
+      class="flex flex-col gap-4"
+      [formGroup]="form"
+      (ngSubmit)="submitForm()"
+    >
+      @if (list.dialogError(); as message) {
+        <app-inline-alert tone="error" [message]="message" [dismissible]="false" />
+      }
+
+      <app-input-field
+        label="Nombre del servicio"
+        [control]="form.controls.name"
+        [messages]="messages.name"
+      />
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-input-field
+          label="Precio"
+          type="number"
+          prefix="$"
+          step="0.01"
+          min="0"
+          [control]="form.controls.price"
+          [messages]="messages.price"
+        />
+        <app-input-field
+          label="Descuento (opcional)"
+          type="number"
+          prefix="$"
+          step="0.01"
+          min="0"
+          hint="Deja 0 si el servicio no tiene descuento."
+          [control]="form.controls.discount"
+          [messages]="messages.discount"
+        />
+      </div>
+    </form>
+
+    <app-button
+      modalActions
+      variant="quiet"
+      size="sm"
+      [disabled]="list.pending()"
+      (click)="closeDialog()"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      modalActions
+      variant="primary"
+      size="sm"
+      type="submit"
+      form="service-form"
+      [disabled]="list.pending()"
+    >
+      {{ list.pending() ? 'Guardando…' : 'Guardar' }}
+    </app-button>
+  </app-modal>
+}
+
+@if (dialog() === 'delete') {
+  <app-confirm-dialog
+    heading="Eliminar servicio"
+    [message]="'Se eliminará «' + (editing()?.name ?? '') + '». Esta acción no se puede deshacer.'"
+    [pending]="list.pending()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDialog()"
+  />
+}

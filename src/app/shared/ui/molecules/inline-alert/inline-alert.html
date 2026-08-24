@@ -1,0 +1,20 @@
+<div [class]="rootClasses()" [attr.role]="role()">
+  <span class="mt-px flex shrink-0 items-center" aria-hidden="true">
+    <app-icon [name]="icon()" [size]="17" [strokeWidth]="2" />
+  </span>
+
+  <p class="flex-1 font-sans text-[13.5px] font-medium leading-[1.5]">{{ message() }}</p>
+
+  @if (dismissible()) {
+    <!-- `-my-2 -mr-2` compensa el padding del contenedor: el area tactil mide
+         los 44px de la LEY sin engordar la banda ni descentrar el texto. -->
+    <button
+      type="button"
+      class="-my-2 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-tile-sm text-current opacity-70 transition-opacity duration-150 ease-brand hover:opacity-100"
+      aria-label="Descartar mensaje"
+      (click)="dismiss.emit()"
+    >
+      <app-icon name="plus" [size]="16" [strokeWidth]="2.2" class="rotate-45" />
+    </button>
+  }
+</div>

@@ -1,0 +1,68 @@
+/**
+ * A native `<dialog>` arrives with user-agent styles that fight every layout
+ * put inside it: `width: fit-content`, an auto margin, a border, padding, and
+ * `max-width/height: calc(100% - 6px - 2em)`. All of it is reset here so the
+ * panel inside owns its own size, the way every other surface in the system
+ * already does.
+ *
+ * The dialog element itself is the FULL-VIEWPORT centring box, not the panel.
+ * That is what makes "the click target is the dialog" a reliable test for "the
+ * click landed on the backdrop" — see modal.ts.
+ *
+ * No literal colors: the scrim reaches --color-navy-deep through the same rgb()
+ * form `shared/tokens/theme.css` writes its own shadows in.
+ */
+:host {
+  display: contents;
+}
+
+.modal-dialog {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.modal-dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* `::backdrop` cannot be reached from a utility on the element. The color is
+   the same scrim the shell's drawer paints (`bg-navy-deep/50`), so the panel's
+   two overlays read as one material. */
+.modal-dialog::backdrop {
+  background-color: rgb(12 43 75 / 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* The only entrance in the panel, and it is 140ms: a dialog that animates
+   longer than that reads as slow precisely because it blocks the task behind
+   it. `base.css` kills animations by class name and this is not one of those
+   classes, so the damping lives here — the same shape `card.css` uses. */
+.modal-dialog[open] > * {
+  animation: modal-in 140ms var(--ease-brand);
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-dialog[open] > * {
+    animation: none;
+  }
+}

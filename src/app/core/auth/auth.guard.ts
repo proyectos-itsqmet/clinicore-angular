@@ -9,7 +9,7 @@ export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   const authService = inject(AuthService);
   const platformId = inject(PLATFORM_ID);
-  
+
   // Si se ejecuta en el servidor (SSR), Node.js no tiene las cookies del navegador.
   // Dejamos que pase la validación en el servidor. El cliente (navegador) re-ejecutará
   // esto al hidratar la página y hará la verdadera petición /auth/me con las cookies.
@@ -23,6 +23,6 @@ export const authGuard: CanActivateFn = () => {
         return true;
       }
       return router.createUrlTree(['/login']);
-    })
+    }),
   );
 };

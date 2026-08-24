@@ -1,18 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from './api-base-url';
 import type { Page, AdminDoctor, DoctorCreate } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class DoctorApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/doctors';
+  private readonly API_URL = inject(API_BASE_URL) + '/api/doctors';
 
   getAll(page: number = 0, size: number = 10): Observable<Page<AdminDoctor>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-      
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
     return this.http.get<Page<AdminDoctor>>(this.API_URL, { params, withCredentials: true });
   }
 
@@ -21,7 +20,9 @@ export class DoctorApiService {
   }
 
   create(doctor: DoctorCreate): Observable<AdminDoctor> {
-    return this.http.post<AdminDoctor>(`${this.API_URL}/register`, doctor, { withCredentials: true });
+    return this.http.post<AdminDoctor>(`${this.API_URL}/register`, doctor, {
+      withCredentials: true,
+    });
   }
 
   update(id: string, doctor: DoctorCreate): Observable<AdminDoctor> {
@@ -29,11 +30,19 @@ export class DoctorApiService {
   }
 
   assignToStablishment(doctorId: string, stablishmentId: number): Observable<AdminDoctor> {
-    return this.http.post<AdminDoctor>(`${this.API_URL}/${doctorId}/stablishments/${stablishmentId}`, {}, { withCredentials: true });
+    return this.http.post<AdminDoctor>(
+      `${this.API_URL}/${doctorId}/stablishments/${stablishmentId}`,
+      {},
+      { withCredentials: true },
+    );
   }
 
   assignToService(doctorId: string, serviceId: number): Observable<AdminDoctor> {
-    return this.http.post<AdminDoctor>(`${this.API_URL}/${doctorId}/services/${serviceId}`, {}, { withCredentials: true });
+    return this.http.post<AdminDoctor>(
+      `${this.API_URL}/${doctorId}/services/${serviceId}`,
+      {},
+      { withCredentials: true },
+    );
   }
 
   delete(id: string): Observable<void> {

@@ -1,0 +1,32 @@
+<app-form-field
+  [label]="label()"
+  [controlId]="controlId"
+  [messageId]="messageId"
+  [error]="error()"
+  [hint]="hint()"
+>
+  <!-- `relative` solo cuando hay prefijo: sin el, este div extra no aporta
+       nada y el input hereda el ancho del campo igual. -->
+  <div [class]="prefix() ? 'relative' : ''">
+    @if (prefix(); as unit) {
+      <span
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 font-sans text-[14.5px] text-ink-3"
+        >{{ unit }}</span
+      >
+    }
+    <input
+      [id]="controlId"
+      [type]="type()"
+      [formControl]="control()"
+      [class]="inputClasses()"
+      [attr.placeholder]="placeholder() ?? null"
+      [attr.autocomplete]="autocomplete() ?? null"
+      [attr.maxlength]="maxLength() ?? null"
+      [attr.step]="step() ?? null"
+      [attr.min]="min() ?? null"
+      [attr.aria-invalid]="error() ? 'true' : null"
+      [attr.aria-describedby]="error() || hint() ? messageId : null"
+    />
+  </div>
+</app-form-field>

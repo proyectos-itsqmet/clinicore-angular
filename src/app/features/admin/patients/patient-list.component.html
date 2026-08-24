@@ -1,0 +1,57 @@
+<div class="flex flex-col gap-5">
+  <app-page-header
+    kicker="Pacientes"
+    heading="Información"
+    description="Los pacientes registrados. Sus datos los edita cada paciente desde la app."
+  />
+
+  @if (list.pageError(); as message) {
+    <app-inline-alert tone="error" [message]="message" (dismiss)="list.pageError.set(null)" />
+  }
+
+  @if (list.loadError()) {
+    <app-error-state
+      message="No pudimos cargar los pacientes."
+      minHeight="320px"
+      (retry)="list.loadPage()"
+    />
+  } @else {
+    <app-data-table
+      caption="Pacientes registrados"
+      [columns]="columns"
+      [rows]="list.rows()"
+      [rowKey]="rowKey"
+      [loading]="list.loading()"
+      emptyMessage="Todavía no hay pacientes registrados."
+    >
+      <ng-template #cell let-item let-column="column">
+        @switch (column.key) {
+          @case ('name') {
+            {{ fullName(item) }}
+          }
+          @case ('ci') {
+            {{ item.ci }}
+          }
+          @case ('email') {
+            {{ item.email }}
+          }
+          @case ('phone') {
+            {{ item.phone || '—' }}
+          }
+          @case ('birthday') {
+            {{ item.birthday ? (item.birthday | date: 'dd MMM y') : '—' }}
+          }
+        }
+      </ng-template>
+
+      @if (list.pagination(); as state) {
+        <app-pagination
+          tableFooter
+          [state]="state"
+          itemLabel="pacientes"
+          (pageChange)="list.loadPage($event)"
+        />
+      }
+    </app-data-table>
+  }
+</div>

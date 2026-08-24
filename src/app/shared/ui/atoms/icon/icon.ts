@@ -16,7 +16,12 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * `chevron` is the eighth, and its absence until now was a real hole: it is
  * the disclosure glyph every expandable row needs. `arrow` is not a
  * substitute — it carries a shaft and reads as "go", not as "open".
- * See atoms/README.md.
+ *
+ * `pencil`, `trash` and `warning` are the ninth through eleventh, drawn for the
+ * panel's CRUD sections: a table row that can be edited and deleted needs both
+ * of its verbs readable at a glance, and a destructive confirmation needs a
+ * glyph that says stop before the copy does. Same 24x24 / 2px-stroke /
+ * round-cap language as the rest. See atoms/README.md.
  */
 export type IconName =
   | 'calendar'
@@ -40,7 +45,10 @@ export type IconName =
   | 'tag'
   | 'ban'
   | 'banknote'
-  | 'chevron';
+  | 'chevron'
+  | 'pencil'
+  | 'trash'
+  | 'warning';
 
 /**
  * app-icon — a single component that draws every icon in the system

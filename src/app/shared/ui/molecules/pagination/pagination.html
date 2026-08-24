@@ -1,0 +1,49 @@
+<!-- `flex-col-reverse` bajo `sm:`: los controles arriba, el conteo abajo. El
+     pulgar llega antes a lo que se toca y el texto queda de contexto. -->
+<div
+  class="flex flex-col-reverse items-center justify-between gap-3 border-t border-line px-4 py-3 sm:flex-row sm:px-5"
+>
+  <p class="font-sans text-[13px] leading-[1.4] text-ink-3">
+    Mostrando
+    <span class="font-semibold text-ink">{{ state().rangeStart }}</span>
+    a
+    <span class="font-semibold text-ink">{{ state().rangeEnd }}</span>
+    de
+    <span class="font-semibold text-ink">{{ state().totalElements }}</span>
+    {{ itemLabel() }}
+  </p>
+
+  @if (hasPages()) {
+    <nav class="flex shrink-0 items-center gap-1" aria-label="Paginación">
+      <button
+        type="button"
+        class="flex h-11 w-11 items-center justify-center rounded-tile-sm border border-line bg-surface text-ink-2 transition-colors duration-150 ease-brand hover:bg-field hover:text-ink disabled:pointer-events-none disabled:opacity-40"
+        [disabled]="state().first"
+        aria-label="Página anterior"
+        (click)="goTo(state().page - 1)"
+      >
+        <app-icon name="chevron" [size]="16" [strokeWidth]="2.2" class="rotate-180" />
+      </button>
+
+      <!-- `aria-live` y no un `<span>` mudo: cambiar de pagina no mueve el foco,
+           asi que sin esto un lector de pantalla no se entera de que la tabla
+           que tiene delante ya es otra. -->
+      <span
+        class="min-w-[9.5rem] px-2 text-center font-sans text-[13px] font-semibold text-ink"
+        aria-live="polite"
+      >
+        Página {{ state().page + 1 }} de {{ state().totalPages }}
+      </span>
+
+      <button
+        type="button"
+        class="flex h-11 w-11 items-center justify-center rounded-tile-sm border border-line bg-surface text-ink-2 transition-colors duration-150 ease-brand hover:bg-field hover:text-ink disabled:pointer-events-none disabled:opacity-40"
+        [disabled]="state().last"
+        aria-label="Página siguiente"
+        (click)="goTo(state().page + 1)"
+      >
+        <app-icon name="chevron" [size]="16" [strokeWidth]="2.2" />
+      </button>
+    </nav>
+  }
+</div>

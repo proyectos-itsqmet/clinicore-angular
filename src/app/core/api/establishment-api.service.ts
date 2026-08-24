@@ -1,19 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from './api-base-url';
 import type { Page, Establishment, EstablishmentCreate } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class EstablishmentApiService {
   private readonly http = inject(HttpClient);
-  // URL base de la API, usando el nombre que proporcionó el usuario en los endpoints (stablishments)
-  private readonly API_URL = 'http://localhost:8080/api/stablishments';
+  private readonly API_URL = inject(API_BASE_URL) + '/api/stablishments';
 
   getAll(page: number = 0, size: number = 10): Observable<Page<Establishment>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-      
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
     return this.http.get<Page<Establishment>>(this.API_URL, { params, withCredentials: true });
   }
 
@@ -22,15 +20,23 @@ export class EstablishmentApiService {
   }
 
   create(establishment: EstablishmentCreate): Observable<Establishment> {
-    return this.http.post<Establishment>(`${this.API_URL}/save`, establishment, { withCredentials: true });
+    return this.http.post<Establishment>(`${this.API_URL}/save`, establishment, {
+      withCredentials: true,
+    });
   }
 
   update(id: number, establishment: EstablishmentCreate): Observable<Establishment> {
-    return this.http.put<Establishment>(`${this.API_URL}/${id}`, establishment, { withCredentials: true });
+    return this.http.put<Establishment>(`${this.API_URL}/${id}`, establishment, {
+      withCredentials: true,
+    });
   }
 
   assignService(id: number, serviceId: number): Observable<Establishment> {
-    return this.http.post<Establishment>(`${this.API_URL}/${id}/services/${serviceId}`, {}, { withCredentials: true });
+    return this.http.post<Establishment>(
+      `${this.API_URL}/${id}/services/${serviceId}`,
+      {},
+      { withCredentials: true },
+    );
   }
 
   delete(id: number): Observable<void> {

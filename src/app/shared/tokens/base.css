@@ -21,7 +21,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, p {
+h1,
+h2,
+h3,
+h4,
+p {
   margin: 0;
 }
 
@@ -118,11 +122,30 @@ html.signage router-outlet {
  * gets a 3px outline with 3px offset. `.on-dark` is the contract
  * a component wraps around itself when it sits on a dark surface
  * (navy, navy-deep, emergency, ...) so the outline stays visible.
+ *
+ * Form controls joined the list when the admin panel's CRUD forms
+ * arrived: until then the app had no `<input>`, `<select>` or
+ * `<textarea>` anywhere, so "every interactive target" was covered
+ * by links and buttons alone. The alternative — each field atom
+ * painting its own focus ring with utilities — is how a system ends
+ * up with four different focus rings, and the LEY says one.
+ *
+ * `offset: 2px` on the controls and not 3px: a field sits inside a
+ * form column with tighter vertical rhythm than a CTA, and at 3px
+ * the ring of one field touches the label of the next. It is still
+ * a 3px ring, still clearly outside the border.
  * ============================================================ */
 a:focus-visible,
 button:focus-visible {
   outline: 3px solid var(--color-blue);
   outline-offset: 3px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 2px;
 }
 
 .on-dark a:focus-visible,
@@ -140,57 +163,105 @@ button:focus-visible {
 
 /* M1 — hero Ken Burns */
 @keyframes kb {
-  from { transform: scale(1); }
-  to { transform: scale(1.09); }
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.09);
+  }
 }
 
 /* M2 — the document's only entrance, restricted to the hero */
 @keyframes rise {
-  from { opacity: 0; transform: translateY(24px) scale(.97); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* M3 — border beam spin on every primary CTA */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* M4 — live dot pulse */
 @keyframes ping {
-  from { transform: scale(1); opacity: .85; }
-  to { transform: scale(2.2); opacity: 0; }
+  from {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
 
 /* M5 / M6 — counter-rotating marquees (convenios / reseñas) */
 @keyframes sc-l {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(-100% - 32px)); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - 32px));
+  }
 }
 @keyframes sc-r {
-  from { transform: translateX(calc(-100% - 32px)); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(calc(-100% - 32px));
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 /* M7 — counter rings */
 @keyframes draw {
-  to { stroke-dashoffset: var(--off); }
+  to {
+    stroke-dashoffset: var(--off);
+  }
 }
 
 /* M8 — turno odometer */
 @keyframes roll {
-  0%, 32% { transform: translateY(0); }
-  34%, 66% { transform: translateY(-1.05em); }
-  68%, 100% { transform: translateY(-2.1em); }
+  0%,
+  32% {
+    transform: translateY(0);
+  }
+  34%,
+  66% {
+    transform: translateY(-1.05em);
+  }
+  68%,
+  100% {
+    transform: translateY(-2.1em);
+  }
 }
 @keyframes qshift {
-  0%, 32% { transform: translateY(0); }
-  34%, 66% { transform: translateY(-38px); }
-  68%, 100% { transform: translateY(-76px); }
+  0%,
+  32% {
+    transform: translateY(0);
+  }
+  34%,
+  66% {
+    transform: translateY(-38px);
+  }
+  68%,
+  100% {
+    transform: translateY(-76px);
+  }
 }
 
 /* M10 — confirmation check draw */
 @keyframes tickdraw {
-  to { stroke-dashoffset: 0; }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 /* New — skeleton shimmer. The app-skeleton atom applies the
@@ -198,8 +269,12 @@ button:focus-visible {
  * design boards because they predate the endpoints it stands in
  * for. */
 @keyframes shimmer {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 
 /* New — the waiting-room display's called-turns loop
@@ -219,8 +294,12 @@ button:focus-visible {
  * `app-vertical-marquee` can expose it, and the three places it has to
  * match (container gap, strip gap, this offset) cannot drift apart. */
 @keyframes vq-roll {
-  from { transform: translateY(0); }
-  to { transform: translateY(calc(-100% - var(--vq-gap))); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--vq-gap)));
+  }
 }
 
 /* ============================================================

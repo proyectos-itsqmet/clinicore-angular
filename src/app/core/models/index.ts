@@ -23,3 +23,14 @@ export * from './establishment.model';
 export * from './operator.model';
 export * from './doctor.model';
 export * from './servicio.model';
+
+// Panel administrativo. Estas ocho no son contrato de la landing ni de la
+// pantalla de sala: son las tablas reales del backend QMS.
+export * from './patient.model';
+export * from './schedule.model';
+export * from './turn.model';
+export * from './speciality.model';
+export * from './holiday.model';
+export * from './block-reason.model';
+export * from './time-off.model';
+export * from './metrics.model';

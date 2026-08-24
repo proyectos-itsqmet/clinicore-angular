@@ -1,18 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from './api-base-url';
 import type { Page, Operator, OperatorCreate } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class OperatorApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/operators';
+  private readonly API_URL = inject(API_BASE_URL) + '/api/operators';
 
   getAll(page: number = 0, size: number = 10): Observable<Page<Operator>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-      
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
     return this.http.get<Page<Operator>>(this.API_URL, { params, withCredentials: true });
   }
 
@@ -21,7 +20,9 @@ export class OperatorApiService {
   }
 
   create(operator: OperatorCreate): Observable<Operator> {
-    return this.http.post<Operator>(`${this.API_URL}/register`, operator, { withCredentials: true });
+    return this.http.post<Operator>(`${this.API_URL}/register`, operator, {
+      withCredentials: true,
+    });
   }
 
   update(id: string, operator: OperatorCreate): Observable<Operator> {
@@ -29,7 +30,11 @@ export class OperatorApiService {
   }
 
   assignToStablishment(operatorId: string, stablishmentId: number): Observable<Operator> {
-    return this.http.post<Operator>(`${this.API_URL}/${operatorId}/stablishments/${stablishmentId}`, {}, { withCredentials: true });
+    return this.http.post<Operator>(
+      `${this.API_URL}/${operatorId}/stablishments/${stablishmentId}`,
+      {},
+      { withCredentials: true },
+    );
   }
 
   delete(id: string): Observable<void> {

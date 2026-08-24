@@ -1,0 +1,24 @@
+<!-- `items-start` y no `items-center`: cuando hay descripcion el bloque de
+     texto crece hacia abajo, y con `center` los botones bailan verticalmente
+     entre una seccion y otra. Anclados arriba quedan siempre a la misma altura. -->
+<div class="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+  <div class="flex min-w-0 flex-col gap-1.5">
+    @if (kicker(); as group) {
+      <span class="font-sans text-[12px] font-medium text-ink-3 lg:hidden">{{ group }}</span>
+    }
+    <h1
+      class="font-display text-[23px] font-extrabold leading-[1.18] tracking-[-.014em] text-ink lg:text-[27px] lg:leading-[1.16]"
+    >
+      {{ heading() }}
+    </h1>
+    @if (description(); as lead) {
+      <p class="max-w-[62ch] font-sans text-[14px] leading-[1.5] text-ink-3">{{ lead }}</p>
+    }
+  </div>
+
+  <!-- `flex-wrap` y no `shrink-0`: dos acciones largas a 390px tienen que poder
+       bajar de linea en vez de comprimir el titulo. -->
+  <div class="flex flex-wrap items-center gap-2.5">
+    <ng-content select="[headerActions]" />
+  </div>
+</div>

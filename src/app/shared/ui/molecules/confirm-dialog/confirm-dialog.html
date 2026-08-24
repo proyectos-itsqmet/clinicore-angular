@@ -1,0 +1,27 @@
+<app-modal [heading]="heading()" size="md" (close)="cancel.emit()">
+  <div class="flex items-start gap-4">
+    <span
+      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-pill bg-emergency/10 text-emergency"
+      aria-hidden="true"
+    >
+      <app-icon name="warning" [size]="21" [strokeWidth]="1.9" />
+    </span>
+    <p class="font-sans text-[14.5px] leading-[1.55] text-ink-2">{{ message() }}</p>
+  </div>
+
+  <!-- Cancelar PRIMERO en el DOM: en movil las acciones se apilan con
+       `flex-col-reverse`, asi que la destructiva queda arriba a la vista y el
+       orden de tabulacion sigue llegando antes a la salida segura. -->
+  <app-button modalActions variant="quiet" size="sm" [disabled]="pending()" (click)="cancel.emit()">
+    {{ cancelLabel() }}
+  </app-button>
+  <app-button
+    modalActions
+    variant="emergency"
+    size="sm"
+    [disabled]="pending()"
+    (click)="confirm.emit()"
+  >
+    {{ pending() ? pendingLabel() : confirmLabel() }}
+  </app-button>
+</app-modal>

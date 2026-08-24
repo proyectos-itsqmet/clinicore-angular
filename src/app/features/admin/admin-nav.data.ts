@@ -5,7 +5,7 @@ import type { AdminNavEntry } from '../../shared/ui/molecules/admin-nav/admin-na
  * `app-admin-nav` renders from this, and `admin.routes.ts` GENERATES the route
  * table from it. Add an entry here and both the menu and its route exist.
  *
- * That is the point. Thirty-one destinations declared twice — once as menu
+ * That is the point. Thirty-three destinations declared twice — once as menu
  * markup and once as routes — is a guarantee that they will drift, and the
  * failure is silent: a menu item that 404s, or a page nothing links to.
  *
@@ -15,7 +15,20 @@ import type { AdminNavEntry } from '../../shared/ui/molecules/admin-nav/admin-na
  * Estilo, Turnos → Gestión de turnos) are direct links, like Calendario
  * already was. An empty `children` is what makes a row a link.
  *
- * 8 groups + 4 links = 12 first-level rows, 31 destinations.
+ * 8 groups + 4 links = 12 first-level rows, 33 destinations.
+ *
+ * THE 32ND AND 33RD ARE "Servicios" and "Especialidades", both added under Admin
+ * as the CRUD sections arrived. `design/panel-admin/` specifies 31; these are the
+ * only two additions on top of it, and they live HERE and not in the route table
+ * because that is the rule this file exists to enforce.
+ * `admin.routes.spec.ts` locks the count, so growing the menu without meaning to
+ * fails a test instead of shipping.
+ *
+ * Eighteen of the 33 are BUILT; the rest still resolve to
+ * `app-admin-placeholder-page`. Which ones are built is NOT recorded here — see
+ * the `IMPLEMENTED` map in `admin.routes.ts`. A menu entry has no business
+ * knowing whether its page exists yet, and keeping that list in two files is the
+ * exact drift this whole design avoids.
  *
  * ONE URL DEVIATION: the group labelled "Admin" uses the `administracion`
  * segment, because it lives under `/admin` and `/admin/admin/usuarios` is a
@@ -44,7 +57,13 @@ export const ADMIN_NAV: readonly AdminNavEntry[] = [
     ],
   },
   { id: 'modulos', label: 'Módulos', icon: 'box', path: 'modulos', children: [] },
-  { id: 'personalizacion', label: 'Personalización', icon: 'droplet', path: 'personalizacion', children: [] },
+  {
+    id: 'personalizacion',
+    label: 'Personalización',
+    icon: 'droplet',
+    path: 'personalizacion',
+    children: [],
+  },
   {
     id: 'administracion',
     label: 'Admin',
@@ -54,7 +73,14 @@ export const ADMIN_NAV: readonly AdminNavEntry[] = [
       { path: 'establecimientos', label: 'Gestor de establecimientos' },
       { path: 'operadores', label: 'Operadores' },
       { path: 'doctores', label: 'Doctores' },
-      { path: 'especialidades', label: 'Servicios' },
+      // Estas dos estuvieron cruzadas y ya no lo están. `servicios` administra
+      // `services` — nombre y precio — y `especialidades` el catálogo de
+      // especialidades médicas. Antes la primera vivía en `especialidades` con la
+      // etiqueta "Servicios", así que la URL decía una cosa y la pantalla hacía
+      // otra, y la segunda tuvo que nacer en `especialidades-medicas` porque el
+      // segmento estaba ocupado por quien no le correspondía.
+      { path: 'servicios', label: 'Servicios' },
+      { path: 'especialidades', label: 'Especialidades' },
       { path: 'planes-de-cobertura', label: 'Planes de cobertura' },
       { path: 'horarios', label: 'Horarios de atención' },
     ],

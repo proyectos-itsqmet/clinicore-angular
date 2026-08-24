@@ -23,7 +23,12 @@
     <ng-container [ngTemplateOutlet]="label" />
   </a>
 } @else {
-  <button [type]="type()" [class]="rootClasses()" [disabled]="disabled()">
+  <button
+    [type]="type()"
+    [class]="rootClasses()"
+    [disabled]="disabled()"
+    [attr.form]="form() ?? null"
+  >
     <ng-container [ngTemplateOutlet]="label" />
   </button>
 }

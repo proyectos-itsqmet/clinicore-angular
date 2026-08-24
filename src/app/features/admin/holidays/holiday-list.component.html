@@ -1,0 +1,164 @@
+<div class="flex flex-col gap-5">
+  <app-page-header
+    kicker="Bloqueo de citas"
+    heading="Días feriados"
+    description="Los días en los que no se agenda. Sin sede, el feriado aplica a toda la institución."
+  >
+    <app-button headerActions variant="primary" size="sm" (click)="openCreate()">
+      <app-icon name="plus" [size]="17" [strokeWidth]="2.2" />
+      Nuevo feriado
+    </app-button>
+  </app-page-header>
+
+  @if (list.notice(); as message) {
+    <app-inline-alert tone="ok" [message]="message" (dismiss)="list.notice.set(null)" />
+  }
+
+  <div class="flex flex-col gap-3">
+    <app-date-range-filter
+      [from]="filters().from"
+      [to]="filters().to"
+      [disabled]="list.loading()"
+      (rangeChange)="onRangeChange($event)"
+    />
+
+    <!-- La etiqueta dice lo que el backend hace de verdad. Filtrar por sede
+         devuelve los de esa sede Y los nacionales, porque un feriado nacional
+         le afecta igual — sin decirlo, el usuario ve filas que no cargó ahí.
+         El filtro se dispara desde `valueChanges` en el componente, no con un
+         `(change)` acá: el evento nativo del `<select>` burbujea y funcionaría,
+         pero depender del burbujeo a través de un host `display: contents` es
+         implícito y se rompe sin ruido si el átomo cambia por dentro. -->
+    <div class="max-w-md">
+      <app-select-field
+        label="Sede"
+        hint="Incluye siempre los feriados nacionales."
+        [control]="filterForm.controls.stablishmentId"
+        [options]="filterEstablishmentOptions()"
+        [loading]="establishmentsLoading()"
+      />
+    </div>
+  </div>
+
+  @if (list.loadError()) {
+    <app-error-state
+      message="No pudimos cargar los feriados."
+      minHeight="320px"
+      (retry)="list.loadPage()"
+    />
+  } @else {
+    <app-data-table
+      caption="Días feriados registrados"
+      [columns]="columns"
+      [rows]="list.rows()"
+      [rowKey]="rowKey"
+      [loading]="list.loading()"
+      emptyMessage="No hay feriados cargados para este período."
+    >
+      <ng-template #cell let-item let-column="column">
+        @switch (column.key) {
+          @case ('date') {
+            {{ item.date | date: 'longDate' }}
+          }
+          @case ('name') {
+            {{ item.name }}
+          }
+          @case ('scope') {
+            <app-pill size="sm" [tone]="item.stablishment ? 'tint' : 'gold'">
+              {{ scopeLabel(item) }}
+            </app-pill>
+          }
+          @case ('actions') {
+            <div class="flex items-center justify-end gap-1">
+              <app-button variant="quiet" size="sm" (click)="openEdit(item)">
+                <app-icon name="pencil" [size]="15" [strokeWidth]="1.9" />
+                Editar
+              </app-button>
+              <app-button variant="danger" size="sm" (click)="openDelete(item)">
+                <app-icon name="trash" [size]="15" [strokeWidth]="1.9" />
+                Eliminar
+              </app-button>
+            </div>
+          }
+        }
+      </ng-template>
+
+      @if (list.pagination(); as state) {
+        <app-pagination
+          tableFooter
+          [state]="state"
+          itemLabel="feriados"
+          (pageChange)="list.loadPage($event)"
+        />
+      }
+    </app-data-table>
+  }
+</div>
+
+@if (dialog() === 'form') {
+  <app-modal
+    [heading]="editing() ? 'Editar feriado' : 'Nuevo feriado'"
+    size="md"
+    (close)="closeDialog()"
+  >
+    <form
+      id="holiday-form"
+      class="flex flex-col gap-4"
+      [formGroup]="form"
+      (ngSubmit)="submitForm()"
+    >
+      @if (list.dialogError(); as message) {
+        <app-inline-alert tone="error" [message]="message" [dismissible]="false" />
+      }
+
+      <app-input-field
+        label="Fecha"
+        type="date"
+        [control]="form.controls.date"
+        [messages]="messages.date"
+      />
+      <app-input-field
+        label="Nombre del feriado"
+        [control]="form.controls.name"
+        [messages]="messages.name"
+      />
+      <app-select-field
+        label="Alcance"
+        hint="Nacional aplica a todas las sedes."
+        [control]="form.controls.stablishmentId"
+        [options]="formEstablishmentOptions()"
+        [loading]="establishmentsLoading()"
+      />
+    </form>
+
+    <app-button
+      modalActions
+      variant="quiet"
+      size="sm"
+      [disabled]="list.pending()"
+      (click)="closeDialog()"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      modalActions
+      variant="primary"
+      size="sm"
+      type="submit"
+      form="holiday-form"
+      [disabled]="list.pending()"
+    >
+      {{ list.pending() ? 'Guardando…' : 'Guardar' }}
+    </app-button>
+  </app-modal>
+}
+
+@if (dialog() === 'delete') {
+  <app-confirm-dialog
+    heading="Eliminar feriado"
+    [message]="'Se eliminará «' + (editing()?.name ?? '') + '». Esta acción no se puede deshacer.'"
+    [pending]="list.pending()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDialog()"
+  />
+}

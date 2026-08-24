@@ -39,7 +39,7 @@ export interface AdminNavEntry {
  * longest one open. The real cost of the tall version is not the scrollbar: it
  * is that the user stops seeing that the other groups exist.
  *
- * THE TREE IS AN INPUT, not a template. Thirty-one destinations written out by
+ * THE TREE IS AN INPUT, not a template. Thirty-three destinations written out by
  * hand in HTML is where inconsistencies accumulate — and it keeps this molecule
  * presentational, per the layer rules: it never imports from `features/`, the
  * feature hands it the data.

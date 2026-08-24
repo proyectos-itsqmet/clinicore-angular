@@ -1,18 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE_URL } from './api-base-url';
 import type { Page, Servicio, ServicioCreate } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class ServicioApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/services';
+  private readonly API_URL = inject(API_BASE_URL) + '/api/services';
 
   getAll(page: number = 0, size: number = 10): Observable<Page<Servicio>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-      
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+
     return this.http.get<Page<Servicio>>(this.API_URL, { params, withCredentials: true });
   }
 

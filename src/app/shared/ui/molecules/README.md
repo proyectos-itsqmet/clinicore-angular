@@ -29,6 +29,19 @@ Geometry, colors and motion come from `shared/tokens/theme.css` and
 | `app-photo-frame` | `src`, `alt`, `radius`, `bordered`, `animate`, `transformOrigin`, `referenceCaption?` | radius: `sm` (28px) · `lg` (32px) | Framed photo panels: the hero inset, bento tiles, any Ken-Burns photo |
 | `app-skeleton-grid` | `count`, `columns`, `gap`, `variant`, `width`, `height?`, `radius?` | variant: same as `app-skeleton` | Reserves a `count`-item, `columns`-wide grid of placeholder shapes so organisms don't hand-write the same loading `@for` fourteen times |
 | `app-error-state` | `message` (default `'No pudimos cargar esta información.'`), `minHeight` (default `'220px'`), `retry` output | — | The retryable failure state for any section fed by a remote resource, so a failed fetch never leaves a section stuck on its skeleton forever. It knows nothing about the resource: the feature container reads `error()` and calls `reload()` on `(retry)` |
+| `app-page-header` | `heading` (required), `kicker?`, `description?` + `[headerActions]` slot | — | The title block of every admin section: the `lg:hidden` group label, the `<h1>`, an optional lead, and that section own actions. Asked for BY NAME by `admin-layout.ts` and `admin-placeholder-page.html`, both of which said the board page-header actions belong in "un `app-page-header` compartido cuando existan las secciones reales" |
+| `app-data-table` | `columns`, `rows`, `rowKey`, `caption` (all required), `loading`, `emptyMessage`, `skeletonRows` + `#cell` template + `[tableFooter]` slot | — | The card-shaped table surface of every list section: header row, body, loading skeleton, empty state, footer slot for the pager. It draws every `<td>` itself — see below, the reason is a cascade one |
+| `app-pagination` | `state: PaginationState` (required), `itemLabel` | `pageChange: number` | The pager under every table. VISIBLE AT EVERY WIDTH — the four hand-written pagers it replaces were all `hidden sm:flex`, so page two was unreachable on a phone |
+| `app-modal` | `heading` (required), `description?`, `size` + default and `[modalActions]` slots | `close` | Every dialog in the panel. A native `<dialog>` on `showModal()`, which is where the focus trap, the inert background, Escape, focus restoration and the top layer come from |
+| `app-confirm-dialog` | `heading`, `message` (required), `confirmLabel`, `cancelLabel`, `pendingLabel`, `pending` | `confirm`, `cancel` | "Are you sure" for a destructive action, composing `app-modal`. Asked three times in the panel and it has to look and behave the same all three |
+| `app-form-field` | `label`, `controlId`, `messageId` (required), `error?`, `hint?` + default slot | — | The label / control / message shell both field molecules compose. Owns the `for` and `aria-describedby` wiring, i.e. the part where a11y bugs live |
+| `app-input-field` | `label`, `control` (required), `type`, `placeholder?`, `autocomplete?`, `maxLength?`, `step?`, `min?`, `prefix?`, `hint?`, `messages` | — | A labelled text/number input bound to a reactive `FormControl`, with its own error line |
+| `app-select-field` | `label`, `control`, `options` (required), `placeholder?`, `placeholderValue`, `hint?`, `loading`, `messages` | — | The same, for a `<select>`. Native element, system `chevron` instead of the OS triangle |
+| `app-inline-alert` | `message` (required), `tone`, `dismissible` | `dismiss` | One line of feedback about something the user just did. Replaces nine `window.alert()` calls. `role` follows the tone: `alert` for a failure, `status` for anything else |
+| `app-list-row` | `title` (required), `subtitle?`, `interactive` + `[rowLeading]` / `[rowTrailing]` slots | — | One entry in a panel divided list — a sede attached to a doctor, a service with its price, a checkbox row in a dialog. The vertical twin of a table row |
+| `app-metric-tile` | `label` (required), `value`, `hint?`, `tone`, `loading` | — | Un numero del panel con su etiqueta: las tarjetas del Dashboard y de Metricas. Compone `app-figure`, asi las cifras son tabulares y una fila de tarjetas no baila cuando un contador pasa de 99 a 100. NO tiene flecha de tendencia: el backend no devuelve el periodo anterior, y una flecha inventada es un dato inventado |
+| `app-bar-list` | `items` (required), `loading`, `emptyMessage`, `skeletonRows`, `limit` | — | Un agrupamiento como barras horizontales. Es el grafico de barras del panel, no un sustituto de uno: la barra se mide contra el MAXIMO de la lista y no contra el total, porque contra el total cinco categorias parejas dan cinco barras del 20% y no se ve nada. Con `limit`, avisa cuantas filas quedaron afuera |
+| `app-date-range-filter` | `from?`, `to?`, `disabled` | `rangeChange: DateRange` | El par desde/hasta de Metricas, Calendario, Feriados y Ausencias. `<input type="date">` nativo, y NO aplica al tipear: escribir una fecha pasa por estados intermedios (el año a medio escribir es `0002`) y cada uno dispararia un request por un rango sin sentido |
 
 ## `app-vertical-marquee` vs `app-marquee`, and the gap that is an input here
 
@@ -93,6 +106,97 @@ waiting-room TV — the poll already retries every 5s. And `app-skeleton` is not
 used at all there, deliberately against the skeleton contract below: a shimmering
 ghost of a 240px turn number reads as a broken screen, not as loading.
 
+## The admin panel's CRUD layer — ten molecules, and why each one exists
+
+Four sections of `/admin` became real (sedes, operadores, doctores, servicios).
+They arrived as six files of hand-written markup that composed **nothing** from
+this directory: the dialog shell was copy-pasted nine times, the pager four
+times, the label-input-error triplet twenty-two times, and the table surface
+four times — roughly 1,900 lines of template for four screens.
+
+The ten molecules above are that markup, deduplicated. Three of them are not
+just deduplication, and those are the ones worth reading before touching:
+
+### `app-modal` — the whole component is one decision
+
+It is a native `<dialog>` opened with `showModal()`. The browser then owns the
+focus trap, the inert background, Escape, focus RETURNING to whatever opened it,
+and the top layer. The nine dialogs it replaces declared `role="dialog"` and
+`aria-modal="true"` and shipped none of that — no Escape, no focus management,
+no trap, and a scrim that was a plain `<div>`. `app-segmented`'s own doc already
+names the rule that breaks: half a pattern is worse than none.
+
+Two consequences to know:
+
+- **The actions live outside the form.** The dialog projects the form into its
+  scrolling body and the buttons into its fixed footer, so a submit button is not
+  a descendant of the form it submits. That is why `app-button` grew a `form`
+  input, and why every call site passes `form="…"` with a matching `id`.
+- **The happy path destroys this component instead of closing it** — a save
+  succeeds and the parent flips its `@if`. Ripping an OPEN dialog out of the top
+  layer drops focus on `<body>`, so `Modal` closes itself in an `onDestroy` hook
+  and guards the resulting `close` event from emitting an output mid-teardown.
+
+### `app-data-table` — the table owns every `<td>`, and that is a cascade fix
+
+The obvious API is a per-ROW template where the caller writes its own `<td>`s.
+It is the wrong one here, for a reason that is invisible until it bites:
+
+> Angular emits component styles UNLAYERED, and Tailwind v4 puts its utilities in
+> `@layer utilities`. Unlayered rules beat layered ones regardless of specificity.
+
+So anything `data-table.css` declared on `td` would silently override any utility
+a caller put on that same `td` — right-aligning one column would just stop
+working, with no error and no warning. Rendering the cells here instead means
+alignment, emphasis and wrapping come off the `columns` definition and there is
+no cascade to lose. The cost is real and named: `let-item` in a
+content-projected template is `any`, because Angular has no way to type such a
+context.
+
+Two other decisions in it: **no responsive column hiding** — a narrow screen
+scrolls the table sideways, because a phone showing less DATA than the desktop is
+how someone deletes the wrong row. And **loading is a skeleton, not the word
+"Cargando"**, per the contract below.
+
+### `app-input-field` / `app-select-field` — they take the control, not a CVA
+
+Writing a `ControlValueAccessor` would buy the caller `formControlName` and cost
+these two an indirection layer plus a `touched` bridge to re-implement. They take
+the `FormControl` directly instead.
+
+The load-bearing detail is the `control.events` subscription. `FormControl.touched`
+and `.errors` are plain properties, so a `computed()` reading them never re-runs.
+`events` emits on value, status, touched and pristine changes — which includes the
+`markAllAsTouched()` a submit handler fires. Drop that subscription and the form
+silently stops reporting errors on submit, which is the failure mode you notice
+last.
+
+Error copy resolves through `form-field/field-state.ts`, which also owns the id
+counter. It is a MODULE COUNTER and not `randomUUID()` on purpose: `/login` is
+prerendered (`app.routes.server.ts` only carves out `/sala` and `/admin`), so the
+server render and the hydrating client render have to agree on `<label for>`.
+
+One trap worth knowing before you touch either field: **`[disabled]` does nothing
+on an element that also has `[formControl]`.** `FormControlDirective` declares an
+input aliased to `disabled` whose setter only `console.warn`s and throws the
+value away, so the DOM property is never written and the control stays
+interactive — silently. `app-select-field` therefore writes
+`[attr.disabled]="loading() ? '' : null"`, which is the native attribute and
+actually disables the element. The reactive-forms way is `control.disable()`, but
+a shared field has no business mutating a control its caller owns.
+
+### Two failure channels, not one
+
+`app-error-state` and `app-inline-alert` are not interchangeable, and every CRUD
+section wires both:
+
+- the LIST never arrived → `app-error-state` **replaces** the table. Nothing to
+  show, retry is the only useful action.
+- a WRITE failed → `app-inline-alert` **inside the still-open dialog**. The page
+  behind it is still true — and since the dialog is in the browser's top layer, a
+  banner painted on the page would be invisible under the backdrop. That is the
+  whole reason the features keep `dialogError` as a separate signal from `notice`.
+
 ## Skeleton contract
 
 Every molecule that renders data sourced from a landing endpoint —
@@ -105,6 +209,13 @@ boilerplate copy, never actually spinner-loaded in practice, and an
 accordion mid-load has no meaningful half-open geometry to reserve — an
 organism using it can wrap it in `app-skeleton-grid` while its data is
 in flight instead.
+
+`app-data-table` honours the same contract from the other side: it paints
+`skeletonRows` placeholder rows with the real column count, the real cell padding
+and one `app-skeleton` bar per cell, so the table does not jump when the rows
+land — and it marks that `<tbody>` `aria-busy="true"` so a screen reader is not
+read a grid of empty bars. The four tables it replaces printed the word
+"Cargando…" in a single centred cell, which reserves nothing.
 
 ## Asset resolution — the single place it happens
 
@@ -310,10 +421,15 @@ offender.
   sighted users.
 - **Pill sizing inside `app-specialty-card` / `app-doctor-card`**: the
   board's in-card badges are smaller than the standard pill (32–34px tall,
-  13px type) — `app-pill` has no `size` variant to match, only `tone`. Used
+  13px type) — `app-pill` had no `size` variant to match, only `tone`. Used
   the standard `app-pill` as-is rather than hand-rolling a smaller pill
   next to it; flagged as a gap in the atom, not fixed here (atoms are out
   of a molecule's scope to change).
+  **That gap is now closed**: `app-pill` has `size: 'sm'` (32px / 13px), added
+  when the admin panel needed the same badge in a table row. These two molecules
+  deliberately still pass nothing and keep the 44px default, so the landing
+  renders exactly as it did — but whoever next revisits those two cards against
+  the boards can now match them without touching the atom.
 - **`app-segmented` generalizes beyond 3 options**: the board's thumb math
   (`width: calc((100% - 8px) / 3)`, `translateX(i * 100%)`) is written for
   exactly three tabs. Both formulas are expressed in terms of the option

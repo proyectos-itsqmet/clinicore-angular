@@ -1,362 +1,359 @@
-<div class="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
-  <!-- Top Navigation & Actions -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <a routerLink="/admin/administracion/doctores" class="inline-flex items-center text-sm font-medium text-text-muted hover:text-text-strong mb-2">
-        <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-        </svg>
-        Volver a la lista de doctores
-      </a>
-      <h1 class="text-2xl font-bold text-text-strong">
-        @if (doctor()) {
-          Dr. {{ doctor()!.firstName }} {{ doctor()!.lastName }}
-        } @else {
-          Detalle del Doctor
-        }
-      </h1>
-    </div>
+<div class="flex flex-col gap-5">
+  <!-- La vuelta a la lista va ARRIBA del titulo, no en las acciones: es
+       navegacion, no una operacion sobre el doctor. -->
+  <a
+    [routerLink]="listPath"
+    class="inline-flex min-h-11 w-fit items-center gap-1.5 -ml-2 rounded-tile-sm px-2 font-sans text-[13px] font-semibold text-ink-3 no-underline transition-colors duration-150 ease-brand hover:bg-field hover:text-ink"
+  >
+    <app-icon name="chevron" [size]="14" [strokeWidth]="2.2" class="rotate-180" />
+    Volver a doctores
+  </a>
 
+  <app-page-header kicker="Admin · Doctores" [heading]="fullName()">
     @if (doctor()) {
-      <div class="flex items-center gap-3">
-        <button
-          (click)="openEditModal()"
-          type="button"
-          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted transition-colors"
-        >
-          <svg class="w-4 h-4 mr-2 text-text-muted" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-          </svg>
-          Editar Información
-        </button>
-      </div>
+      <app-button headerActions variant="quiet" size="sm" (click)="openEdit()">
+        <app-icon name="pencil" [size]="15" [strokeWidth]="1.9" />
+        Editar información
+      </app-button>
     }
-  </div>
+  </app-page-header>
+
+  @if (notice(); as message) {
+    <app-inline-alert tone="ok" [message]="message" (dismiss)="notice.set(null)" />
+  }
 
   @if (loading()) {
-    <div class="p-12 text-center text-text-muted">Cargando información del doctor...</div>
-  } @else if (error()) {
-    <div class="rounded-md bg-red-50 p-4">
-      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    <!-- El esqueleto reserva la geometria real: una tarjeta de datos y dos
+         paneles, que es exactamente lo que llega despues. -->
+    <div class="flex flex-col gap-5" aria-busy="true">
+      <div class="rounded-card rounded-br-card-nub border border-line bg-surface p-5 shadow-lift-1">
+        <app-skeleton variant="text" width="38%" height="15px" />
+        <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          @for (slot of [0, 1, 2, 3]; track slot) {
+            <div class="flex flex-col gap-2">
+              <app-skeleton variant="text" width="52%" height="11px" />
+              <app-skeleton variant="text" width="78%" height="14px" />
+            </div>
+          }
+        </div>
+      </div>
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        @for (slot of [0, 1]; track slot) {
+          <app-skeleton variant="block" height="248px" radius="24px" />
+        }
+      </div>
     </div>
-  } @else if (doctor()) {
-    <!-- Informacion General Card -->
-    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm">
-      <h2 class="text-base font-semibold text-text-strong mb-4">Información Personal y Profesional</h2>
-      <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Cédula</dt>
-          <dd class="mt-1 text-sm font-semibold text-text-strong">{{ doctor()!.ci }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Correo Electrónico</dt>
-          <dd class="mt-1 text-sm font-semibold text-text-strong">{{ doctor()!.email }}</dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Especialidad</dt>
-          <dd class="mt-1">
-            <span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
-              {{ doctor()!.speciality }}
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt class="text-xs font-medium text-text-muted uppercase tracking-wider">Género</dt>
-          <dd class="mt-1 text-sm font-semibold text-text-strong">
-            {{ doctor()!.gender === 'GENDER_MALE' ? 'Masculino' : doctor()!.gender === 'GENDER_FEMALE' ? 'Femenino' : 'Otro' }}
-          </dd>
-        </div>
+  } @else if (loadError()) {
+    <app-error-state
+      message="No pudimos cargar la información de este doctor."
+      minHeight="320px"
+      (retry)="loadDoctor()"
+    />
+  } @else if (doctor(); as doc) {
+    <app-card [interactive]="false" padding="1.25rem">
+      <h2 class="font-display text-[16px] font-extrabold tracking-[-.008em] text-ink">
+        Información personal y profesional
+      </h2>
+
+      <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        @for (detail of details(); track detail.label) {
+          <div class="flex min-w-0 flex-col gap-1.5">
+            <dt class="font-sans text-[11.5px] font-bold uppercase tracking-[.1em] text-ink-3">
+              {{ detail.label }}
+            </dt>
+            <dd class="min-w-0">
+              @if (detail.pill) {
+                <app-pill size="sm" tone="tint">{{ detail.value }}</app-pill>
+              } @else {
+                <span class="block truncate font-sans text-[14px] font-semibold text-ink">{{
+                  detail.value
+                }}</span>
+              }
+            </dd>
+          </div>
+        }
       </dl>
-    </div>
+    </app-card>
 
-    <!-- Secciones de Establecimientos y Servicios -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      
-      <!-- Card Establecimientos Asignados -->
-      <div class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h2 class="text-base font-semibold text-text-strong">Establecimientos Asignados</h2>
-              <p class="text-xs text-text-muted">Sedes donde este doctor brinda atención</p>
-            </div>
-            <button
-              (click)="openAssignEstModal()"
-              type="button"
-              class="inline-flex items-center rounded-pill bg-blue px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-strong transition-colors"
-            >
-              + Asignar Establecimiento
-            </button>
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <!-- ============ SEDES ============ -->
+      <app-card [interactive]="false">
+        <div class="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+          <div class="flex min-w-0 flex-col gap-0.5">
+            <h2 class="font-display text-[16px] font-extrabold tracking-[-.008em] text-ink">
+              Establecimientos asignados
+            </h2>
+            <p class="font-sans text-[12.5px] text-ink-3">Sedes donde este doctor atiende.</p>
           </div>
-
-          <div class="mt-4 divide-y divide-border border border-border rounded-lg overflow-hidden">
-            @if (!doctor()!.stablishments || doctor()!.stablishments!.length === 0) {
-              <div class="p-6 text-center text-sm text-text-muted">
-                No tiene establecimientos asignados actualmente.
-              </div>
-            } @else {
-              @for (est of doctor()!.stablishments; track est.id) {
-                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors">
-                  <div>
-                    <h4 class="text-sm font-semibold text-text-strong">{{ est.name }}</h4>
-                    <p class="text-xs text-text-muted mt-0.5">{{ est.address }}</p>
-                  </div>
-                  <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue ring-1 ring-inset ring-blue/20">
-                    ID #{{ est.id }}
-                  </span>
-                </div>
-              }
-            }
-          </div>
+          <app-button variant="quiet" size="sm" (click)="openAssignEstablishment()">
+            <app-icon name="plus" [size]="15" [strokeWidth]="2.1" />
+            Asignar
+          </app-button>
         </div>
-      </div>
 
-      <!-- Card Servicios Asignados -->
-      <div class="bg-surface rounded-xl border border-border p-6 shadow-sm flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h2 class="text-base font-semibold text-text-strong">Servicios Asignados</h2>
-              <p class="text-xs text-text-muted">Tratamientos o consultas que puede realizar</p>
-            </div>
-            <button
-              (click)="openAssignServiceModal()"
-              type="button"
-              class="inline-flex items-center rounded-pill bg-blue px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-strong transition-colors"
-            >
-              + Asignar Servicios
-            </button>
-          </div>
-
-          <div class="mt-4 divide-y divide-border border border-border rounded-lg overflow-hidden">
-            @if (!doctor()!.services || doctor()!.services!.length === 0) {
-              <div class="p-6 text-center text-sm text-text-muted">
-                No tiene servicios asignados actualmente.
-              </div>
-            } @else {
-              @for (srv of doctor()!.services; track srv.id) {
-                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors">
-                  <div>
-                    <h4 class="text-sm font-semibold text-text-strong">{{ srv.name }}</h4>
-                    @if (srv.discount) {
-                      <p class="text-xs text-green-600 mt-0.5 font-medium">Descuento: ${{ srv.discount | number:'1.2-2' }}</p>
-                    }
-                  </div>
-                  <span class="text-sm font-bold text-text-strong">
-                    ${{ srv.price | number:'1.2-2' }}
-                  </span>
-                </div>
-              }
+        @if (assignedEstablishments().length === 0) {
+          <p class="px-5 py-10 text-center font-sans text-[13.5px] text-ink-3">
+            Todavía no tiene establecimientos asignados.
+          </p>
+        } @else {
+          <ul class="divide-y divide-line">
+            @for (item of assignedEstablishments(); track item.id) {
+              <li>
+                <app-list-row [title]="item.name" [subtitle]="item.address">
+                  <app-pill rowTrailing size="sm" tone="plain">#{{ item.id }}</app-pill>
+                </app-list-row>
+              </li>
             }
-          </div>
-        </div>
-      </div>
+          </ul>
+        }
+      </app-card>
 
+      <!-- ============ SERVICIOS ============ -->
+      <app-card [interactive]="false">
+        <div class="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+          <div class="flex min-w-0 flex-col gap-0.5">
+            <h2 class="font-display text-[16px] font-extrabold tracking-[-.008em] text-ink">
+              Servicios asignados
+            </h2>
+            <p class="font-sans text-[12.5px] text-ink-3">Prestaciones que puede realizar.</p>
+          </div>
+          <app-button variant="quiet" size="sm" (click)="openAssignServices()">
+            <app-icon name="plus" [size]="15" [strokeWidth]="2.1" />
+            Asignar
+          </app-button>
+        </div>
+
+        @if (assignedServices().length === 0) {
+          <p class="px-5 py-10 text-center font-sans text-[13.5px] text-ink-3">
+            Todavía no tiene servicios asignados.
+          </p>
+        } @else {
+          <ul class="divide-y divide-line">
+            @for (item of assignedServices(); track item.id) {
+              <li>
+                <app-list-row
+                  [title]="item.name"
+                  [subtitle]="
+                    item.discount
+                      ? 'Descuento de ' + (item.discount | currency: 'USD' : 'symbol' : '1.2-2')
+                      : undefined
+                  "
+                >
+                  <span rowTrailing class="font-sans text-[14px] font-bold text-ink">
+                    {{ item.price | currency: 'USD' : 'symbol' : '1.2-2' }}
+                  </span>
+                </app-list-row>
+              </li>
+            }
+          </ul>
+        }
+      </app-card>
     </div>
   }
 </div>
 
-<!-- Modal Editar Doctor -->
-@if (isEditModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
-      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
-          <form [formGroup]="editForm" (ngSubmit)="onEditSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
-                  Editar Doctor
-                </h3>
-                <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                  
-                  <div>
-                    <label for="edit_firstName" class="block text-sm font-medium leading-6 text-text-strong">Nombre</label>
-                    <div class="mt-2">
-                      <input type="text" id="edit_firstName" formControlName="firstName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.firstName.touched && editForm.controls.firstName.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
-                      }
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label for="edit_lastName" class="block text-sm font-medium leading-6 text-text-strong">Apellido</label>
-                    <div class="mt-2">
-                      <input type="text" id="edit_lastName" formControlName="lastName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.lastName.touched && editForm.controls.lastName.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El apellido es requerido.</p>
-                      }
-                    </div>
-                  </div>
+@if (dialog() === 'edit') {
+  <app-modal heading="Editar doctor" size="lg" (close)="closeDialog()">
+    <form
+      id="doctor-edit-form"
+      class="flex flex-col gap-4"
+      [formGroup]="editForm"
+      (ngSubmit)="submitEdit()"
+    >
+      @if (dialogError(); as message) {
+        <app-inline-alert tone="error" [message]="message" [dismissible]="false" />
+      }
 
-                  <div>
-                    <label for="edit_email" class="block text-sm font-medium leading-6 text-text-strong">Correo Electrónico</label>
-                    <div class="mt-2">
-                      <input type="email" id="edit_email" formControlName="email" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.email.touched && editForm.controls.email.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Debe ser un correo válido.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="edit_ci" class="block text-sm font-medium leading-6 text-text-strong">Cédula (10 dígitos)</label>
-                    <div class="mt-2">
-                      <input type="text" id="edit_ci" formControlName="ci" maxlength="10" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.ci.touched && editForm.controls.ci.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La cédula es requerida.</p>
-                      } @else if (editForm.controls.ci.touched && editForm.controls.ci.hasError('pattern')) {
-                        <p class="mt-1 text-sm text-red-600">Debe tener 10 dígitos numéricos.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="edit_speciality" class="block text-sm font-medium leading-6 text-text-strong">Especialidad</label>
-                    <div class="mt-2">
-                      <input type="text" id="edit_speciality" formControlName="speciality" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (editForm.controls.speciality.touched && editForm.controls.speciality.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La especialidad es requerida.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="edit_gender" class="block text-sm font-medium leading-6 text-text-strong">Género</label>
-                    <div class="mt-2">
-                      <select id="edit_gender" formControlName="gender" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6">
-                        <option [value]="'GENDER_MALE'">Masculino</option>
-                        <option [value]="'GENDER_FEMALE'">Femenino</option>
-                        <option [value]="'GENDER_OTHER'">Otro</option>
-                      </select>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-            <div class="mt-8 sm:flex sm:flex-row-reverse">
-              <button type="submit" [disabled]="formLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
-                {{ formLoading() ? 'Guardando...' : 'Guardar Cambios' }}
-              </button>
-              <button type="button" (click)="closeEditModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-input-field
+          label="Nombre"
+          [control]="editForm.controls.firstName"
+          [messages]="messages.firstName"
+        />
+        <app-input-field
+          label="Apellido"
+          [control]="editForm.controls.lastName"
+          [messages]="messages.lastName"
+        />
+        <app-input-field
+          label="Correo electrónico"
+          type="email"
+          autocomplete="email"
+          [control]="editForm.controls.email"
+          [messages]="messages.email"
+        />
+        <app-input-field
+          label="Cédula"
+          type="tel"
+          hint="10 dígitos, sin guiones."
+          [maxLength]="10"
+          [control]="editForm.controls.ci"
+          [messages]="messages.ci"
+        />
+        <app-input-field
+          label="Especialidad"
+          [control]="editForm.controls.speciality"
+          [messages]="messages.speciality"
+        />
+        <app-select-field
+          label="Género"
+          [control]="editForm.controls.gender"
+          [options]="genderOptions"
+          [messages]="messages.gender"
+        />
       </div>
-    </div>
-  </div>
+    </form>
+
+    <app-button
+      modalActions
+      variant="quiet"
+      size="sm"
+      [disabled]="pending()"
+      (click)="closeDialog()"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      modalActions
+      variant="primary"
+      size="sm"
+      type="submit"
+      form="doctor-edit-form"
+      [disabled]="pending()"
+    >
+      {{ pending() ? 'Guardando…' : 'Guardar cambios' }}
+    </app-button>
+  </app-modal>
 }
 
-<!-- Modal Asignar Establecimiento -->
-@if (isAssignEstModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
-      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <form [formGroup]="assignEstForm" (ngSubmit)="onAssignEstSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">Asignar a Establecimiento</h3>
-                <div class="mt-6 space-y-4">
-                  <div>
-                    <label for="assign_estId" class="block text-sm font-medium leading-6 text-text-strong">Establecimiento</label>
-                    <div class="mt-2">
-                      <select id="assign_estId" formControlName="stablishmentId" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6">
-                        <option [value]="0" disabled>Selecciona un establecimiento</option>
-                        @for (est of establishments(); track est.id) {
-                          <option [value]="est.id">{{ est.name }} - {{ est.address }}</option>
-                        }
-                      </select>
-                      @if (assignEstForm.controls.stablishmentId.touched && assignEstForm.controls.stablishmentId.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un establecimiento válido.</p>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-              <button type="submit" [disabled]="formLoading() || establishmentsLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
-                {{ formLoading() ? 'Asignando...' : 'Asignar' }}
-              </button>
-              <button type="button" (click)="closeAssignEstModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
+@if (dialog() === 'assign-establishment') {
+  <app-modal
+    heading="Asignar establecimiento"
+    description="Solo se listan las sedes que este doctor todavía no atiende."
+    size="md"
+    (close)="closeDialog()"
+  >
+    <form
+      id="doctor-establishment-form"
+      class="flex flex-col gap-4"
+      [formGroup]="assignEstablishmentForm"
+      (ngSubmit)="submitAssignEstablishment()"
+    >
+      @if (dialogError(); as message) {
+        <app-inline-alert tone="error" [message]="message" [dismissible]="false" />
+      }
+
+      @if (!establishmentsLoading() && establishmentOptions().length === 0) {
+        <app-inline-alert
+          tone="info"
+          message="Este doctor ya está asignado a todos los establecimientos disponibles."
+          [dismissible]="false"
+        />
+      } @else {
+        <app-select-field
+          label="Establecimiento"
+          placeholder="Selecciona un establecimiento"
+          [control]="assignEstablishmentForm.controls.stablishmentId"
+          [options]="establishmentOptions()"
+          [loading]="establishmentsLoading()"
+          [messages]="messages.establishment"
+        />
+      }
+    </form>
+
+    <app-button
+      modalActions
+      variant="quiet"
+      size="sm"
+      [disabled]="pending()"
+      (click)="closeDialog()"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      modalActions
+      variant="primary"
+      size="sm"
+      type="submit"
+      form="doctor-establishment-form"
+      [disabled]="pending() || establishmentsLoading() || establishmentOptions().length === 0"
+    >
+      {{ pending() ? 'Asignando…' : 'Asignar' }}
+    </app-button>
+  </app-modal>
 }
 
-<!-- Modal Asignar Servicios (Múltiple) -->
-@if (isAssignServiceModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
-      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <div class="sm:flex sm:items-start">
-            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-              <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">Asignar Servicios al Doctor</h3>
-              <p class="mt-1 text-sm text-text-muted">Selecciona uno o varios servicios para vincularlos.</p>
-              
-              <div class="mt-4 max-h-60 overflow-y-auto divide-y divide-border border border-border rounded-md">
-                @if (servicesLoading()) {
-                  <div class="p-4 text-center text-sm text-text-muted">Cargando servicios...</div>
-                } @else if (services().length === 0) {
-                  <div class="p-4 text-center text-sm text-text-muted">No hay servicios disponibles.</div>
-                } @else {
-                  @for (srv of services(); track srv.id) {
-                    <label class="flex items-center justify-between p-3 hover:bg-surface-muted cursor-pointer">
-                      <div class="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          [checked]="selectedServiceIds().includes(srv.id)"
-                          (change)="toggleServiceSelection(srv.id)"
-                          class="h-4 w-4 rounded border-border text-blue focus:ring-blue"
-                        />
-                        <span class="text-sm font-medium text-text-strong">{{ srv.name }}</span>
-                      </div>
-                      <span class="text-sm font-semibold text-text-muted">${{ srv.price | number:'1.2-2' }}</span>
-                    </label>
-                  }
-                }
-              </div>
+@if (dialog() === 'assign-services') {
+  <app-modal
+    heading="Asignar servicios"
+    description="Puedes elegir varios. Solo se listan los que todavía no tiene."
+    size="md"
+    (close)="closeDialog()"
+  >
+    <div class="flex flex-col gap-4">
+      @if (dialogError(); as message) {
+        <app-inline-alert tone="error" [message]="message" [dismissible]="false" />
+      }
 
-              @if (selectedServiceIds().length > 0) {
-                <p class="mt-2 text-xs text-text-muted">
-                  {{ selectedServiceIds().length }} servicio(s) seleccionado(s).
-                </p>
-              }
-            </div>
-          </div>
-          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <button
-              type="button"
-              [disabled]="formLoading() || servicesLoading() || selectedServiceIds().length === 0"
-              (click)="onAssignServiceSubmit()"
-              class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
-            >
-              {{ formLoading() ? 'Asignando...' : 'Asignar Selección' }}
-            </button>
-            <button
-              type="button"
-              (click)="closeAssignServiceModal()"
-              class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
-            >
-              Cancelar
-            </button>
-          </div>
+      @if (servicesLoading()) {
+        <div class="flex flex-col gap-2" aria-busy="true">
+          @for (slot of [0, 1, 2, 3]; track slot) {
+            <app-skeleton variant="block" height="60px" radius="12px" />
+          }
         </div>
-      </div>
+      } @else if (assignableServices().length === 0) {
+        <app-inline-alert
+          tone="info"
+          message="Este doctor ya tiene asignados todos los servicios disponibles."
+          [dismissible]="false"
+        />
+      } @else {
+        <!-- El `<label>` es la caja real: `app-list-row` es `display: contents`,
+             asi que el area tactil es la fila entera y no solo la casilla. -->
+        <ul class="divide-y divide-line overflow-hidden rounded-tile-lg border border-line">
+          @for (service of assignableServices(); track service.id) {
+            <li>
+              <label class="block">
+                <app-list-row [title]="service.name" [interactive]="true">
+                  <input
+                    rowLeading
+                    type="checkbox"
+                    class="h-[18px] w-[18px] shrink-0 accent-blue"
+                    [checked]="isServiceSelected(service.id)"
+                    (change)="toggleService(service.id)"
+                  />
+                  <span rowTrailing class="font-sans text-[13.5px] font-semibold text-ink-2">
+                    {{ service.price | currency: 'USD' : 'symbol' : '1.2-2' }}
+                  </span>
+                </app-list-row>
+              </label>
+            </li>
+          }
+        </ul>
+
+        <p class="font-sans text-[12.5px] text-ink-3" aria-live="polite">
+          {{ selectedServiceIds().length }} seleccionado(s)
+        </p>
+      }
     </div>
-  </div>
+
+    <app-button
+      modalActions
+      variant="quiet"
+      size="sm"
+      [disabled]="pending()"
+      (click)="closeDialog()"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      modalActions
+      variant="primary"
+      size="sm"
+      [disabled]="pending() || servicesLoading() || selectedServiceIds().length === 0"
+      (click)="submitAssignServices()"
+    >
+      {{ pending() ? 'Asignando…' : 'Asignar selección' }}
+    </app-button>
+  </app-modal>
 }

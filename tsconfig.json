@@ -3,6 +3,17 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    /* `strict` cubre de una: `strictNullChecks`, `noImplicitAny`,
+       `strictFunctionTypes`, `strictPropertyInitialization` y compañía. Estaba
+       APAGADO, que es lo que hacía que el build fuera una red de seguridad más
+       débil de lo que parecía: pasaba código donde un `undefined` podía llegar a
+       un lugar que lo daba por seguro, sin una sola advertencia.
+
+       Se prendió después de MEDIR que el repo ya lo cumplía — `ngc` con esta
+       misma configuración terminó en cero errores sobre `src/**` y sobre los
+       `.spec.ts`. No fue una apuesta: fue confirmar que la deuda no existía y
+       cerrar la puerta antes de que se abriera. */
+    "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
@@ -16,6 +27,23 @@
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
+    /* El equivalente de `strict` para los TEMPLATES, y sin él la mitad del
+       chequeo no existía: Angular validaba los tipos de los `@Input` por arriba
+       pero no propagaba `null`/`undefined` dentro de las interpolaciones, ni
+       verificaba el contexto de un `@for`, ni los tipos de un `@Output`.
+
+       Es una sola opción paraguas: prende `strictInputTypes`,
+       `strictNullInputTypes`, `strictAttributeTypes`,
+       `strictSafeNavigationTypes`, `strictOutputEventTypes`,
+       `strictDomEventTypes`, `strictContextGenerics` y `strictLiteralTypes`. No
+       hace falta listarlas.
+
+       LO QUE SIGUE SIN CUBRIR, para que nadie lo dé por hecho: el contexto de
+       un `<ng-template>` proyectado como contenido es `any` y Angular no tiene
+       forma de tiparlo. Es el caso de `let-item` en el `#cell` de
+       `app-data-table` — ahí un typo en una celda no lo atrapa nadie. Está
+       documentado en el propio componente. */
+    "strictTemplates": true,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true
   },

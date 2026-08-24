@@ -105,7 +105,8 @@ Silence means all fifteen are byte-identical.
 | --- | --- | --- | --- |
 | `/` | `app-landing-page` | Prerendered | `LandingApi`, one `httpResource` per section of `jsons/landing` |
 | `/sala/:sedeId` | `app-waiting-room-display` | **Client** | `SalaApi`, polling `jsons/sala/pantalla.json` every 5s |
-| `/admin/**` | `app-admin-layout` + 31 child routes | **Client** | none yet — every section is a marked placeholder |
+| `/login` | `app-login-page` | Prerendered | `AuthService`, `POST /auth/login-operator` (cookie session) |
+| `/admin/**` | `app-admin-layout` + 32 child routes | **Client** | 4 sections live against `http://localhost:8080/api`; the other 28 are marked placeholders |
 
 ### `/sala/:sedeId` — the waiting-room display
 
@@ -137,11 +138,18 @@ deliberate:
 `http://localhost:4200/admin` (redirects to `/admin/dashboard/resumen`).
 
 **One array drives everything.** `features/admin/admin-nav.data.ts` holds the whole
-tree — 8 groups + 4 direct links, 31 destinations — and `admin.routes.ts` GENERATES
+tree — 8 groups + 4 direct links, 32 destinations — and `admin.routes.ts` GENERATES
 the route table from it, breadcrumbs and page titles included. Add an entry and both
-its menu row and its route exist. Declaring 31 destinations twice, once as menu
+its menu row and its route exist. Declaring 32 destinations twice, once as menu
 markup and once as routes, is a guarantee they will drift, and the failure is silent:
 a menu item that 404s, or a page nothing links to.
+
+**Which sections are built is a second array, not a second copy of the first.**
+`admin.routes.ts` keeps an `IMPLEMENTED` map keyed by the same `group/leaf` path
+the loop builds; anything absent from it falls through to the placeholder. Adding
+a real section is one line there. `admin.routes.spec.ts` locks the count and the
+one-route-per-destination relationship, so a menu entry without a page — or a
+page nobody links to — fails a test.
 
 **It is a layout route.** `/admin` is a component with a `<router-outlet>`; the
 sections are its children. Flatten it into siblings and the accordion, the scroll
@@ -164,6 +172,39 @@ change one and change the other. And the layout closes the drawer itself when th
 window crosses `lg:` — without that, opening the drawer at phone width and widening
 the window leaves the shell `inert` with nothing on screen able to clear it.
 
-Every section is a marked placeholder today: one component, `admin-placeholder-page`,
-reading its own title from the generated route data. No fake tables, no decorative
-charts. Replacing one is a one-line change to that route's `loadComponent`.
+Twenty-eight of the thirty-two sections are still marked placeholders: one
+component, `admin-placeholder-page`, reading its own title from the generated
+route data. No fake tables, no decorative charts. Replacing one is a one-line
+change to `IMPLEMENTED` in `admin.routes.ts`.
+
+#### The four sections that are real
+
+`administracion/{establecimientos,operadores,doctores,especialidades}` talk to a
+Spring backend at `http://localhost:8080/api` with `withCredentials: true` (the
+session is a cookie `AuthService` gets from `POST /auth/login-operator`; `authGuard`
+verifies it against `/auth/me` and lets SSR through, since Node has no browser
+cookies). The base URL is hardcoded in each `core/api/*-api.service.ts` — a real
+gap, and the landing already solves it properly with an injection token
+(`core/api/landing-data-base-url.ts`) that these four should adopt before any
+deploy.
+
+All four are built the same way, and none of them owns a surface: the table,
+pager, dialogs, fields, buttons and badges all come from `shared/ui`. What a
+section owns is which endpoint to call, what to do with the answer, and the copy
+that names its entity. Read `shared/ui/molecules/README.md` ("The admin panel's
+CRUD layer") before adding a fifth — in particular the two failure channels and
+why `app-modal` is a native `<dialog>`.
+
+Three patterns repeat across all four and are worth knowing:
+
+- **One nullable enum for the open dialog**, not one boolean per dialog. Three
+  booleans can all be true at once and no screen renders that.
+- **`toPaginationState`** (`features/admin/page-state.ts`) translates the API's
+  Spring `Page<T>` envelope into what `app-pagination` draws. It lives in the
+  feature layer because `Page<T>` is transport, not domain: a molecule typed
+  against it would be a shared component coupled to one backend's pagination
+  dialect, and `core/models` cannot own the function either without importing
+  from `shared/ui`, which points the dependency arrow backwards.
+- **Reload the CURRENT page after a write**, and step back one when a delete
+  emptied the last page. Reloading page zero throws the user to the top after
+  renaming row three.

@@ -7,12 +7,19 @@ import { adminRoutes } from './admin.routes';
  * The whole point of building the routes from `ADMIN_NAV` is that a menu item
  * and its page can never drift apart — and the failure mode when they do is
  * silent: a menu entry that 404s, or a page nothing links to. A test that
- * re-listed all 31 paths by hand would just be the second copy this design
+ * re-listed all 33 paths by hand would just be the second copy this design
  * exists to avoid; these assert the RELATIONSHIP between the array and the
  * table instead.
  */
 describe('adminRoutes', () => {
-  const destinations = adminRoutes.filter((route) => 'loadComponent' in route);
+  // A destination is anything that RENDERS: the shared placeholder via
+  // `loadComponent`, or a built section via `loadChildren`. Filtering on
+  // `loadComponent` alone quietly stopped counting the four real sections the
+  // moment the first one shipped, which is how this spec came to pass while the
+  // menu and the table had already drifted.
+  const destinations = adminRoutes.filter(
+    (route) => 'loadComponent' in route || 'loadChildren' in route,
+  );
   const redirects = adminRoutes.filter((route) => 'redirectTo' in route);
 
   /** Every destination `ADMIN_NAV` declares, as the route path it should own. */
@@ -26,8 +33,13 @@ describe('adminRoutes', () => {
     expect(destinations.map((route) => route.path).sort()).toEqual([...expectedPaths].sort());
   });
 
-  it('covers the 31 destinations of the specified menu', () => {
-    expect(expectedPaths.length).toBe(31);
+  /**
+   * A canary on the menu, not on this file: 33 is what `design/panel-admin/`
+   * specifies plus the "Servicios" and "Especialidades" destinations the CRUD work added. If it
+   * changes again, change it here on purpose and note why in `admin-nav.data.ts`.
+   */
+  it('covers the 33 destinations of the specified menu', () => {
+    expect(expectedPaths.length).toBe(33);
   });
 
   it('never generates the same path twice', () => {

@@ -2,16 +2,11 @@
      que una seccion real puede ser mas alta que la ventana. `min-h-` reserva la
      pantalla completa cuando hay poco, sin recortar cuando hay mucho. -->
 <div class="flex min-h-[calc(100dvh-13rem)] flex-col gap-5 lg:min-h-[calc(100dvh-14rem)]">
-  <!-- Cabecera de pagina. Las acciones ("Nuevo", "Exportar") NO viven aca:
-       son de cada seccion — "Nuevo" no significa nada en el Dashboard — y su
-       lugar es un `app-page-header` compartido cuando existan las secciones
-       reales. Un boton falso en 31 paginas es peor que ninguno. -->
-  <div class="flex shrink-0 flex-col gap-1.5">
-    <span class="font-sans text-[12px] font-medium text-ink-3 lg:hidden">{{ group() }}</span>
-    <h1 class="font-display text-[23px] font-extrabold leading-[1.18] tracking-[-.014em] text-ink lg:text-[27px] lg:leading-[1.16]">
-      {{ title() }}
-    </h1>
-  </div>
+  <!-- Mismo `app-page-header` que las secciones reales, sin acciones: un boton
+       "Nuevo" en una seccion que no existe es peor que ninguno. Que el titulo
+       salga del mismo componente es lo que hace que estrenar una seccion no
+       cambie de tipografia a mitad de camino. -->
+  <app-page-header [kicker]="group()" [heading]="title()" />
 
   <div
     class="flex min-h-0 flex-1 items-center justify-center rounded-card rounded-br-card-nub border border-line bg-surface p-6 shadow-lift-1 lg:p-7"
@@ -19,7 +14,8 @@
     <div
       class="flex h-full w-full flex-col items-center justify-center gap-2.5 rounded-tile-lg border-2 border-dashed border-line px-5 py-10"
     >
-      <span class="text-center font-sans text-[12px] font-bold uppercase tracking-[.14em] text-ink-3"
+      <span
+        class="text-center font-sans text-[12px] font-bold uppercase tracking-[.14em] text-ink-3"
         >Contenido de la sección</span
       >
       <span class="max-w-[420px] text-center font-sans text-[14px] leading-[1.5] text-ink-3">

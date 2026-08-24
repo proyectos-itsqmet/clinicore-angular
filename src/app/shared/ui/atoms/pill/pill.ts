@@ -10,6 +10,18 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 export type PillTone = 'tint' | 'glass' | 'ok' | 'gold' | 'plain';
 
 /**
+ * `md` is the standard 44px pill from the boards. `sm` is the 32px / 13px
+ * in-card badge the boards also draw but that this atom had no way to express —
+ * `molecules/README.md` flagged it as a gap in this atom rather than
+ * hand-rolling a second, smaller pill next to it. This closes that gap.
+ *
+ * Shrinking below the 44px tap floor is legitimate here and only here: a pill
+ * is a `<span>`, never a target. Anything clickable is an `app-button` or an
+ * `app-chip`, and both keep the floor.
+ */
+export type PillSize = 'md' | 'sm';
+
+/**
  * app-pill — the label capsule. Projects an optional `app-icon` first,
  * then its text content. Knows nothing about what the label means.
  */
@@ -21,14 +33,21 @@ export type PillTone = 'tint' | 'glass' | 'ok' | 'gold' | 'plain';
 })
 export class Pill {
   readonly tone = input<PillTone>('tint');
+  readonly size = input<PillSize>('md');
 
   protected readonly rootClasses = computed(() => {
     return [
-      'inline-flex min-h-[44px] items-center gap-2 rounded-pill px-[18px]',
-      'font-sans text-[15px] font-semibold',
+      'inline-flex items-center rounded-pill font-sans font-semibold',
+      this.sizeClasses(),
       this.toneClasses(),
     ].join(' ');
   });
+
+  private sizeClasses(): string {
+    return this.size() === 'sm'
+      ? 'min-h-8 gap-1.5 px-[11px] text-[13px]'
+      : 'min-h-[44px] gap-2 px-[18px] text-[15px]';
+  }
 
   private toneClasses(): string {
     switch (this.tone()) {

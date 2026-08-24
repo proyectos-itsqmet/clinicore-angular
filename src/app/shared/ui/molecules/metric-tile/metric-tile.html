@@ -1,0 +1,19 @@
+<div
+  class="flex min-h-[108px] flex-col justify-between gap-3 rounded-card rounded-br-card-nub border border-line bg-surface px-4 py-4 shadow-lift-1"
+  [attr.aria-busy]="loading() ? 'true' : null"
+>
+  <span class="font-sans text-[11.5px] font-bold uppercase tracking-[.1em] text-ink-3">{{
+    label()
+  }}</span>
+
+  @if (loading()) {
+    <!-- 30px de alto reserva exactamente lo que ocupa la cifra cargada. -->
+    <app-skeleton variant="text" width="54%" height="30px" radius="6px" />
+  } @else {
+    <app-figure size="30px" [tone]="tone()">{{ display() }}</app-figure>
+  }
+
+  @if (hint(); as note) {
+    <span class="font-sans text-[12px] leading-[1.35] text-ink-3">{{ note }}</span>
+  }
+</div>

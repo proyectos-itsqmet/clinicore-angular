@@ -1,0 +1,76 @@
+<div
+  class="overflow-hidden rounded-card rounded-br-card-nub border border-line bg-surface shadow-lift-1"
+>
+  <!-- El scroll horizontal es la respuesta a la pantalla angosta, no esconder
+       columnas: un panel que muestra menos datos en el telefono que en el
+       escritorio es un panel donde alguien borra la fila equivocada. -->
+  <div class="overflow-x-auto">
+    <table class="w-full border-collapse">
+      <caption class="sr-only">
+        {{
+          caption()
+        }}
+      </caption>
+
+      <thead class="border-b border-line bg-field">
+        <tr>
+          @for (column of columns(); track column.key) {
+            <th scope="col" [class]="headerClass(column)">
+              @if (column.hiddenLabel) {
+                <span class="sr-only">{{ column.label }}</span>
+              } @else {
+                {{ column.label }}
+              }
+            </th>
+          }
+        </tr>
+      </thead>
+
+      @if (loading()) {
+        <tbody aria-busy="true">
+          @for (placeholder of placeholders(); track placeholder) {
+            <tr class="border-b border-line last:border-b-0">
+              @for (column of columns(); track column.key) {
+                <td [class]="cellClass(column)">
+                  <app-skeleton
+                    variant="text"
+                    [width]="column.emphasis ? '62%' : '78%'"
+                    height="13px"
+                  />
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      } @else if (rows().length === 0) {
+        <tbody>
+          <tr>
+            <td [attr.colspan]="columns().length" class="px-4 py-14 text-center">
+              <span class="font-sans text-[14px] text-ink-3">{{ emptyMessage() }}</span>
+            </td>
+          </tr>
+        </tbody>
+      } @else {
+        <tbody>
+          @for (row of rows(); track rowKey()(row); let index = $index) {
+            <tr
+              class="border-b border-line transition-colors duration-150 ease-brand last:border-b-0 hover:bg-field"
+            >
+              @for (column of columns(); track column.key) {
+                <td [class]="cellClass(column)">
+                  <ng-container
+                    [ngTemplateOutlet]="cellTemplate()"
+                    [ngTemplateOutletContext]="{ $implicit: row, column: column, index: index }"
+                  />
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      }
+    </table>
+  </div>
+
+  <!-- El pie es del que llama: casi siempre `app-pagination`, a veces nada. -->
+  <ng-content select="[tableFooter]" />
+</div>

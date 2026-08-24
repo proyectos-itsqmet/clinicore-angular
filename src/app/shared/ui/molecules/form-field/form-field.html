@@ -1,0 +1,17 @@
+<div class="flex min-w-0 flex-col gap-1.5">
+  <label [for]="controlId()" class="font-sans text-[13.5px] font-semibold leading-[1.3] text-ink">
+    {{ label() }}
+  </label>
+
+  <ng-content />
+
+  <!-- Un solo id para las dos ramas: el control apunta su `aria-describedby`
+       a `messageId` y no tiene que saber cual de las dos esta pintada. -->
+  @if (error(); as message) {
+    <p [id]="messageId()" class="font-sans text-[12.5px] leading-[1.4] text-emergency">
+      {{ message }}
+    </p>
+  } @else if (hint(); as message) {
+    <p [id]="messageId()" class="font-sans text-[12.5px] leading-[1.4] text-ink-3">{{ message }}</p>
+  }
+</div>

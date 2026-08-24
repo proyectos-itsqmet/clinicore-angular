@@ -23,7 +23,7 @@ export const routes: Routes = [
       import('./features/waiting-room/waiting-room-display').then((module) => module.WaitingRoomDisplay),
   },
   // El panel administrativo. RUTA DE LAYOUT, no una lista de hermanas: el
-  // componente trae el sidebar, la barra y el outlet, y las 31 secciones son
+  // componente trae el sidebar, la barra y el outlet, y las 33 secciones son
   // sus HIJAS. Aplanarlo haria que el acordeon, el scroll y el drawer se
   // reseteen en cada clic.
   //

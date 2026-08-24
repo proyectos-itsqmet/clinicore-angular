@@ -26,7 +26,7 @@ interface Crumb {
 
 /**
  * app-admin-layout — the admin panel's shell (`design/panel-admin/`): sidebar
- * or drawer, top bar, and the outlet the 31 sections render into.
+ * or drawer, top bar, and the outlet the 33 sections render into.
  *
  * It is a LAYOUT ROUTE, and that is load-bearing: the sections are child
  * routes of this component, so navigating between them never remounts the

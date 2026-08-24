@@ -1,200 +1,166 @@
-<div class="px-4 sm:px-6 lg:px-8">
-  <div class="sm:flex sm:items-center">
-    <div class="sm:flex-auto">
-      <p class="mt-2 text-sm text-text-muted">Gestiona los doctores de la institución.</p>
-    </div>
-    <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-      <button (click)="openCreateModal()" type="button" class="block rounded-pill bg-blue px-3 py-2 text-center text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue">
-        Añadir Doctor
-      </button>
-    </div>
-  </div>
+<div class="flex flex-col gap-5">
+  <app-page-header
+    kicker="Admin"
+    heading="Doctores"
+    description="El cuerpo médico de la institución. Abre un doctor para editarlo o asignarle sedes y servicios."
+  >
+    <app-button headerActions variant="primary" size="sm" (click)="openCreate()">
+      <app-icon name="plus" [size]="17" [strokeWidth]="2.2" />
+      Nuevo doctor
+    </app-button>
+  </app-page-header>
 
-  @if (error()) {
-    <div class="mt-4 rounded-md bg-red-50 p-4">
-      <div class="flex">
-        <div class="ml-3">
-          <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
-        </div>
-      </div>
-    </div>
+  @if (list.notice(); as message) {
+    <app-inline-alert tone="ok" [message]="message" (dismiss)="list.notice.set(null)" />
   }
 
-  <div class="mt-8 -mx-4 overflow-hidden shadow ring-1 ring-border sm:-mx-6 md:mx-0 md:rounded-lg">
-    <table class="min-w-full divide-y divide-border">
-      <thead class="bg-surface">
-        <tr>
-          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6">Doctor</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Cédula</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Especialidad</th>
-          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Email</th>
-          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6"><span class="sr-only">Acciones</span></th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-border bg-surface">
-        @if (loading()) {
-          <tr><td colspan="5" class="py-4 text-center text-sm text-text-muted">Cargando...</td></tr>
-        } @else if (data()?.content?.length === 0) {
-          <tr><td colspan="5" class="py-4 text-center text-sm text-text-muted">No hay doctores registrados.</td></tr>
-        } @else {
-          @for (item of data()?.content; track item.uuid) {
-            <tr>
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-strong sm:pl-6">{{ item.firstName }} {{ item.lastName }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">{{ item.ci }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
-                <span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
-                  {{ item.speciality }}
-                </span>
-              </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">{{ item.email }}</td>
-              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                <a [routerLink]="['/admin/administracion/doctores', item.uuid]" class="inline-flex items-center font-medium text-blue hover:text-blue-strong">
-                  Ver detalles
-                  <svg class="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
-                </a>
-              </td>
-            </tr>
+  @if (list.loadError()) {
+    <app-error-state
+      message="No pudimos cargar los doctores."
+      minHeight="320px"
+      (retry)="list.loadPage(list.currentPage)"
+    />
+  } @else {
+    <app-data-table
+      caption="Doctores registrados"
+      [columns]="columns"
+      [rows]="list.rows()"
+      [rowKey]="rowKey"
+      [loading]="list.loading()"
+      emptyMessage="Todavía no hay doctores registrados."
+    >
+      <ng-template #cell let-item let-column="column">
+        @switch (column.key) {
+          @case ('name') {
+            {{ item.firstName }} {{ item.lastName }}
+          }
+          @case ('ci') {
+            {{ item.ci }}
+          }
+          @case ('speciality') {
+            <app-pill size="sm" tone="tint">{{ item.speciality }}</app-pill>
+          }
+          @case ('email') {
+            {{ item.email }}
+          }
+          @case ('actions') {
+            <a
+              [routerLink]="['/admin/administracion/doctores', item.uuid]"
+              [class]="detailLinkClasses"
+            >
+              Ver detalles
+              <app-icon name="chevron" [size]="15" [strokeWidth]="2.1" />
+            </a>
           }
         }
-      </tbody>
-    </table>
-    
-    @if (data() && !loading()) {
-      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-          <div>
-            <p class="text-sm text-text-muted">
-              Mostrando <span class="font-medium">{{ data()!.pageable.offset + 1 }}</span> a
-              <span class="font-medium">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
-              <span class="font-medium">{{ data()!.totalElements }}</span> resultados
-            </p>
-          </div>
-          <div>
-            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-              <button [disabled]="data()!.first" (click)="loadPage(data()!.number - 1)" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50">
-                <span class="sr-only">Anterior</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>
-              </button>
-              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
-                Página {{ data()!.number + 1 }} de {{ data()!.totalPages }}
-              </span>
-              <button [disabled]="data()!.last" (click)="loadPage(data()!.number + 1)" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50">
-                <span class="sr-only">Siguiente</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>
-              </button>
-            </nav>
-          </div>
-        </div>
-      </div>
-    }
-  </div>
+      </ng-template>
+
+      @if (list.pagination(); as state) {
+        <app-pagination
+          tableFooter
+          [state]="state"
+          itemLabel="doctores"
+          (pageChange)="list.loadPage($event)"
+        />
+      }
+    </app-data-table>
+  }
 </div>
 
-@if (isModalOpen()) {
-  <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
-      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
-          <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <div class="sm:flex sm:items-start">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-title">
-                  Nuevo Doctor
-                </h3>
-                <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                  
-                  <div>
-                    <label for="firstName" class="block text-sm font-medium leading-6 text-text-strong">Nombre</label>
-                    <div class="mt-2">
-                      <input type="text" id="firstName" formControlName="firstName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
-                      }
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label for="lastName" class="block text-sm font-medium leading-6 text-text-strong">Apellido</label>
-                    <div class="mt-2">
-                      <input type="text" id="lastName" formControlName="lastName" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">El apellido es requerido.</p>
-                      }
-                    </div>
-                  </div>
+@if (dialogOpen()) {
+  <app-modal
+    heading="Nuevo doctor"
+    description="Se crea la cuenta con la que el doctor entra al sistema."
+    size="lg"
+    (close)="closeDialog()"
+  >
+    <form id="doctor-form" class="flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submitForm()">
+      @if (list.dialogError(); as message) {
+        <app-inline-alert tone="error" [message]="message" [dismissible]="false" />
+      }
 
-                  <div>
-                    <label for="email" class="block text-sm font-medium leading-6 text-text-strong">Correo Electrónico</label>
-                    <div class="mt-2">
-                      <input type="email" id="email" formControlName="email" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (form.controls.email.touched && form.controls.email.invalid) {
-                        <p class="mt-1 text-sm text-red-600">Debe ser un correo válido.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="password" class="block text-sm font-medium leading-6 text-text-strong">
-                      Contraseña
-                    </label>
-                    <div class="mt-2">
-                      <input type="password" id="password" formControlName="password" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (form.controls.password.touched && form.controls.password.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La contraseña es requerida.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="ci" class="block text-sm font-medium leading-6 text-text-strong">Cédula (10 dígitos)</label>
-                    <div class="mt-2">
-                      <input type="text" id="ci" formControlName="ci" maxlength="10" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (form.controls.ci.touched && form.controls.ci.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La cédula es requerida.</p>
-                      } @else if (form.controls.ci.touched && form.controls.ci.hasError('pattern')) {
-                        <p class="mt-1 text-sm text-red-600">Debe tener 10 dígitos numéricos.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="speciality" class="block text-sm font-medium leading-6 text-text-strong">Especialidad</label>
-                    <div class="mt-2">
-                      <input type="text" id="speciality" formControlName="speciality" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6" />
-                      @if (form.controls.speciality.touched && form.controls.speciality.hasError('required')) {
-                        <p class="mt-1 text-sm text-red-600">La especialidad es requerida.</p>
-                      }
-                    </div>
-                  </div>
-
-                  <div>
-                    <label for="gender" class="block text-sm font-medium leading-6 text-text-strong">Género</label>
-                    <div class="mt-2">
-                      <select id="gender" formControlName="gender" class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6">
-                        <option [value]="'GENDER_MALE'">Masculino</option>
-                        <option [value]="'GENDER_FEMALE'">Femenino</option>
-                        <option [value]="'GENDER_OTHER'">Otro</option>
-                      </select>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-            <div class="mt-8 sm:flex sm:flex-row-reverse">
-              <button type="submit" [disabled]="formLoading()" class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50">
-                {{ formLoading() ? 'Guardando...' : 'Guardar' }}
-              </button>
-              <button type="button" (click)="closeModal()" class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto">
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <app-input-field
+          label="Nombre"
+          [control]="form.controls.firstName"
+          [messages]="messages.firstName"
+        />
+        <app-input-field
+          label="Apellido"
+          [control]="form.controls.lastName"
+          [messages]="messages.lastName"
+        />
+        <app-input-field
+          label="Correo electrónico"
+          type="email"
+          autocomplete="email"
+          [control]="form.controls.email"
+          [messages]="messages.email"
+        />
+        <app-input-field
+          label="Contraseña"
+          type="password"
+          autocomplete="new-password"
+          [control]="form.controls.password"
+          [messages]="messages.password"
+        />
+        <app-input-field
+          label="Cédula"
+          type="tel"
+          hint="10 dígitos, sin guiones."
+          [maxLength]="10"
+          [control]="form.controls.ci"
+          [messages]="messages.ci"
+        />
+        <!-- El catalogo manda cuando tiene entradas; si esta vacio (o su
+             request fallo) la pantalla cae al texto libre de siempre, que es lo
+             que evita un desplegable sin opciones que bloquea el formulario.
+             Elegir del select escribe el nombre en el control de texto — ver
+             `doctors-shared.ts`. -->
+        @if (hasCatalog()) {
+          <app-select-field
+            label="Especialidad"
+            placeholder="Selecciona una especialidad"
+            hint="Se administra en Admin → Especialidades."
+            [control]="form.controls.specialityId"
+            [options]="specialityOptions()"
+            [loading]="specialitiesLoading()"
+          />
+        } @else {
+          <app-input-field
+            label="Especialidad"
+            hint="El catálogo de especialidades está vacío; se guarda como texto."
+            [control]="form.controls.speciality"
+            [messages]="messages.speciality"
+          />
+        }
+        <app-select-field
+          label="Género"
+          [control]="form.controls.gender"
+          [options]="genderOptions"
+          [messages]="messages.gender"
+        />
       </div>
-    </div>
-  </div>
+    </form>
+
+    <app-button
+      modalActions
+      variant="quiet"
+      size="sm"
+      [disabled]="list.pending()"
+      (click)="closeDialog()"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      modalActions
+      variant="primary"
+      size="sm"
+      type="submit"
+      form="doctor-form"
+      [disabled]="list.pending()"
+    >
+      {{ list.pending() ? 'Guardando…' : 'Guardar' }}
+    </app-button>
+  </app-modal>
 }

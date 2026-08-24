@@ -26,7 +26,12 @@
   width: 220%;
   height: 420%;
   z-index: 0;
-  background: conic-gradient(from 0deg, transparent 0 66%, rgb(255 255 255 / 0.95) 78%, transparent 86% 100%);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 66%,
+    rgb(255 255 255 / 0.95) 78%,
+    transparent 86% 100%
+  );
   animation: spin 2.8s linear infinite;
 }
 

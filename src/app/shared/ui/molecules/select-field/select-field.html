@@ -1,0 +1,40 @@
+<app-form-field
+  [label]="label()"
+  [controlId]="controlId"
+  [messageId]="messageId"
+  [error]="error()"
+  [hint]="hint()"
+>
+  <div class="relative">
+    <!-- `[attr.disabled]` y NO `[disabled]`: el directivo `[formControl]` declara
+         un input llamado justamente `disabled` cuyo setter solo imprime un
+         warning y descarta el valor, asi que la propiedad del DOM nunca se toca
+         y el select se queda habilitado. Ver `FormControlDirective` en
+         @angular/forms. -->
+    <select
+      [id]="controlId"
+      [formControl]="control()"
+      [class]="selectClasses()"
+      [attr.disabled]="loading() ? '' : null"
+      [attr.aria-busy]="loading() ? 'true' : null"
+      [attr.aria-invalid]="error() ? 'true' : null"
+      [attr.aria-describedby]="error() || hint() ? messageId : null"
+    >
+      @if (placeholder(); as prompt) {
+        <option [value]="placeholderValue()" disabled>{{ prompt }}</option>
+      }
+      @for (option of options(); track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+
+    <!-- Rotado 90 grados igual que el conmutador de sede del shell: el sistema
+         tiene un solo glifo de despliegue y este es el mismo. -->
+    <span
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-y-0 right-0 flex rotate-90 items-center pr-3.5 text-ink-3"
+    >
+      <app-icon name="chevron" [size]="14" [strokeWidth]="2.2" />
+    </span>
+  </div>
+</app-form-field>
