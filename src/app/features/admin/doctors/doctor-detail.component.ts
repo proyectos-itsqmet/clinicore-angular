@@ -6,7 +6,8 @@ import { forkJoin } from 'rxjs';
 import { DoctorApiService } from '../../../core/api/doctor-api.service';
 import { EstablishmentApiService } from '../../../core/api/establishment-api.service';
 import { ServicioApiService } from '../../../core/api/servicio-api.service';
-import type { AdminDoctor, Establishment, Servicio } from '../../../core/models';
+import { ScheduleApiService } from '../../../core/api/schedule-api.service';
+import type { AdminDoctor, Establishment, Servicio, GenerateSchedulesRequest } from '../../../core/models';
 
 @Component({
   selector: 'app-doctor-detail',
@@ -19,6 +20,7 @@ export class DoctorDetailComponent implements OnInit {
   private readonly doctorApi = inject(DoctorApiService);
   private readonly establishmentApi = inject(EstablishmentApiService);
   private readonly servicioApi = inject(ServicioApiService);
+  private readonly scheduleApi = inject(ScheduleApiService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly doctor = signal<AdminDoctor | null>(null);
@@ -29,6 +31,8 @@ export class DoctorDetailComponent implements OnInit {
   protected readonly isEditModalOpen = signal<boolean>(false);
   protected readonly isAssignEstModalOpen = signal<boolean>(false);
   protected readonly isAssignServiceModalOpen = signal<boolean>(false);
+  protected readonly isGenerateScheduleModalOpen = signal<boolean>(false);
+  protected readonly selectedServiceForSchedule = signal<Servicio | null>(null);
   protected readonly formLoading = signal<boolean>(false);
 
   // Catálogos para asignación
@@ -50,6 +54,12 @@ export class DoctorDetailComponent implements OnInit {
 
   protected readonly assignEstForm = this.fb.nonNullable.group({
     stablishmentId: [0, [Validators.required, Validators.min(1)]]
+  });
+
+  protected readonly scheduleForm = this.fb.nonNullable.group({
+    stablishmentId: [0, [Validators.required, Validators.min(1)]],
+    date: ['', Validators.required],
+    intervalMinutes: [60, [Validators.required]]
   });
 
   private doctorId: string = '';
@@ -223,6 +233,62 @@ export class DoctorDetailComponent implements OnInit {
       error: () => {
         this.formLoading.set(false);
         alert('Error al asignar los servicios al doctor.');
+      }
+    });
+  }
+
+  // --- Modal Generar Horarios ---
+  openGenerateScheduleModal(service: Servicio): void {
+    this.selectedServiceForSchedule.set(service);
+    const doctorEsts = this.doctor()?.stablishments || [];
+    const defaultEstId = doctorEsts.length > 0 ? doctorEsts[0].id : 0;
+    const today = new Date().toISOString().split('T')[0];
+
+    this.scheduleForm.reset({
+      stablishmentId: defaultEstId,
+      date: today,
+      intervalMinutes: 60
+    });
+
+    this.isGenerateScheduleModalOpen.set(true);
+  }
+
+  closeGenerateScheduleModal(): void {
+    this.isGenerateScheduleModalOpen.set(false);
+    this.selectedServiceForSchedule.set(null);
+  }
+
+  onGenerateScheduleSubmit(): void {
+    if (this.scheduleForm.invalid) {
+      this.scheduleForm.markAllAsTouched();
+      return;
+    }
+
+    const service = this.selectedServiceForSchedule();
+    if (!service) return;
+
+    this.formLoading.set(true);
+    const formVal = this.scheduleForm.getRawValue();
+
+    const payload: GenerateSchedulesRequest = {
+      serviceId: service.id,
+      stablishmentId: Number(formVal.stablishmentId),
+      doctorId: this.doctor()?.uuid || this.doctorId,
+      date: formVal.date,
+      intervalMinutes: Number(formVal.intervalMinutes)
+    };
+
+    this.scheduleApi.generateSchedules(payload).subscribe({
+      next: (result) => {
+        this.formLoading.set(false);
+        this.closeGenerateScheduleModal();
+        const count = result?.length ?? 0;
+        alert(`Horarios generados correctamente (${count} cupo${count === 1 ? '' : 's'} creado${count === 1 ? '' : 's'}).`);
+      },
+      error: (err) => {
+        this.formLoading.set(false);
+        const msg = err?.error?.message || 'Error al generar los horarios para el servicio.';
+        alert(msg);
       }
     });
   }

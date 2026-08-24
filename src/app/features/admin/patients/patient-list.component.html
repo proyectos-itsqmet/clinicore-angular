@@ -1,0 +1,162 @@
+<div class="px-4 sm:px-6 lg:px-8 space-y-6">
+  <div class="sm:flex sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-text-strong">Pacientes</h1>
+      <p class="mt-1 text-sm text-text-muted">Listado general de pacientes registrados en el sistema.</p>
+    </div>
+  </div>
+
+  <!-- Filtros de Búsqueda -->
+  <div class="rounded-xl border border-border bg-surface p-4 shadow-sm">
+    <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:items-end">
+      <div>
+        <label for="name" class="block text-sm font-medium leading-6 text-text-strong">Buscar por Nombre</label>
+        <div class="mt-1">
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Ej. Juan Pérez"
+            class="block w-full rounded-md border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label for="ci" class="block text-sm font-medium leading-6 text-text-strong">Número de Cédula</label>
+        <div class="mt-1">
+          <input
+            type="text"
+            id="ci"
+            formControlName="ci"
+            placeholder="Ej. 1712345678"
+            class="block w-full rounded-md border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="submit"
+          class="inline-flex flex-1 justify-center items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
+        >
+          <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          Buscar
+        </button>
+        <button
+          type="button"
+          (click)="onReset()"
+          class="inline-flex justify-center items-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted"
+        >
+          Limpiar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Tabla de Pacientes -->
+  <div class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-border">
+      <thead class="bg-surface-muted">
+        <tr>
+          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-strong sm:pl-6">Correo Electrónico</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Nombres</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-text-strong">Número de Cédula</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+            <span class="sr-only">Acciones</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border bg-surface">
+        @if (loading()) {
+          <tr>
+            <td colspan="4" class="py-12 text-center text-sm text-text-muted">Cargando pacientes...</td>
+          </tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr>
+            <td colspan="4" class="py-12 text-center text-sm text-text-muted">No se encontraron pacientes registrados.</td>
+          </tr>
+        } @else {
+          @for (patient of data()?.content; track patient.uuid) {
+            <tr class="hover:bg-surface-muted/50 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-strong sm:pl-6">
+                {{ patient.email }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
+                {{ patient.firstName }} {{ patient.lastName }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-text-muted">
+                {{ patient.ci }}
+              </td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                <a
+                  [routerLink]="['/admin/pacientes/informacion', patient.uuid]"
+                  class="inline-flex items-center font-medium text-blue hover:text-blue-strong"
+                >
+                  Ver detalles
+                  <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                </a>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-border bg-surface px-4 py-3 sm:px-6">
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-text-muted">
+              Mostrando <span class="font-medium">{{ data()!.pageable.offset + 1 }}</span> a
+              <span class="font-medium">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
+              <span class="font-medium">{{ data()!.totalElements }}</span> resultados
+            </p>
+          </div>
+          <div>
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                [disabled]="data()!.first"
+                (click)="loadPage(data()!.number - 1)"
+                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span class="sr-only">Anterior</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-text-strong ring-1 ring-inset ring-border">
+                Página {{ data()!.number + 1 }} de {{ data()!.totalPages === 0 ? 1 : data()!.totalPages }}
+              </span>
+              <button
+                [disabled]="data()!.last"
+                (click)="loadPage(data()!.number + 1)"
+                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted ring-1 ring-inset ring-border hover:bg-surface-muted focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span class="sr-only">Siguiente</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

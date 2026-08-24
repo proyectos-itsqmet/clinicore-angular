@@ -135,16 +135,29 @@
               </div>
             } @else {
               @for (srv of doctor()!.services; track srv.id) {
-                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors">
+                <div class="p-4 flex items-center justify-between hover:bg-surface-muted transition-colors gap-3">
                   <div>
                     <h4 class="text-sm font-semibold text-text-strong">{{ srv.name }}</h4>
                     @if (srv.discount) {
                       <p class="text-xs text-green-600 mt-0.5 font-medium">Descuento: ${{ srv.discount | number:'1.2-2' }}</p>
                     }
                   </div>
-                  <span class="text-sm font-bold text-text-strong">
-                    ${{ srv.price | number:'1.2-2' }}
-                  </span>
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-bold text-text-strong">
+                      ${{ srv.price | number:'1.2-2' }}
+                    </span>
+                    <button
+                      type="button"
+                      (click)="openGenerateScheduleModal(srv)"
+                      class="inline-flex items-center rounded-pill bg-blue-50 text-blue px-3 py-1 text-xs font-semibold hover:bg-blue hover:text-white ring-1 ring-inset ring-blue/30 transition-colors"
+                      title="Crear horarios para este servicio"
+                    >
+                      <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Crear Horarios
+                    </button>
+                  </div>
                 </div>
               }
             }
@@ -355,6 +368,120 @@
               Cancelar
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Generar Horarios -->
+@if (isGenerateScheduleModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-schedule-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <form [formGroup]="scheduleForm" (ngSubmit)="onGenerateScheduleSubmit()">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                <h3 class="text-lg font-semibold leading-6 text-text-strong" id="modal-schedule-title">
+                  Crear Horarios
+                </h3>
+                @if (selectedServiceForSchedule()) {
+                  <p class="mt-1 text-sm text-text-muted">
+                    Servicio: <strong class="text-text-strong">{{ selectedServiceForSchedule()!.name }}</strong>
+                  </p>
+                }
+
+                @if (!doctor()?.stablishments || doctor()!.stablishments!.length === 0) {
+                  <div class="mt-4 rounded-md bg-amber-50 p-3 border border-amber-200">
+                    <p class="text-xs text-amber-800 font-medium">
+                      Este doctor aún no tiene establecimientos asignados. Debes asignarle un establecimiento antes de crear horarios.
+                    </p>
+                  </div>
+                }
+
+                <div class="mt-6 space-y-4">
+                  <!-- Selector de Establecimiento -->
+                  <div>
+                    <label for="schedule_estId" class="block text-sm font-medium leading-6 text-text-strong">
+                      Establecimiento al que tiene acceso
+                    </label>
+                    <div class="mt-2">
+                      <select
+                        id="schedule_estId"
+                        formControlName="stablishmentId"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                      >
+                        <option [value]="0" disabled>Selecciona un establecimiento</option>
+                        @for (est of doctor()?.stablishments || []; track est.id) {
+                          <option [value]="est.id">{{ est.name }} - {{ est.address }}</option>
+                        }
+                      </select>
+                      @if (scheduleForm.controls.stablishmentId.touched && scheduleForm.controls.stablishmentId.invalid) {
+                        <p class="mt-1 text-sm text-red-600">Por favor, selecciona un establecimiento.</p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Campo de Fecha -->
+                  <div>
+                    <label for="schedule_date" class="block text-sm font-medium leading-6 text-text-strong">
+                      Fecha del día
+                    </label>
+                    <div class="mt-2">
+                      <input
+                        type="date"
+                        id="schedule_date"
+                        formControlName="date"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                      />
+                      @if (scheduleForm.controls.date.touched && scheduleForm.controls.date.invalid) {
+                        <p class="mt-1 text-sm text-red-600">La fecha es requerida.</p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Selector de Intervalo de tiempo -->
+                  <div>
+                    <label for="schedule_interval" class="block text-sm font-medium leading-6 text-text-strong">
+                      Intervalo de tiempo
+                    </label>
+                    <div class="mt-2">
+                      <select
+                        id="schedule_interval"
+                        formControlName="intervalMinutes"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                      >
+                        <option [value]="45">45 minutos</option>
+                        <option [value]="60">60 minutos (1 hora)</option>
+                      </select>
+                      @if (scheduleForm.controls.intervalMinutes.touched && scheduleForm.controls.intervalMinutes.invalid) {
+                        <p class="mt-1 text-sm text-red-600">El intervalo es requerido.</p>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 sm:flex sm:flex-row-reverse">
+              <button
+                type="submit"
+                [disabled]="formLoading() || !doctor()?.stablishments || doctor()!.stablishments!.length === 0"
+                class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
+              >
+                {{ formLoading() ? 'Creando Horarios...' : 'Crear Horarios' }}
+              </button>
+              <button
+                type="button"
+                (click)="closeGenerateScheduleModal()"
+                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

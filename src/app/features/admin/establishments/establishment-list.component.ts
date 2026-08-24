@@ -1,42 +1,29 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { EstablishmentApiService } from '../../../core/api/establishment-api.service';
-import { ServicioApiService } from '../../../core/api/servicio-api.service';
-import type { Establishment, Page, Servicio } from '../../../core/models';
+import type { Establishment, Page } from '../../../core/models';
 
 @Component({
   selector: 'app-establishment-list',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './establishment-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EstablishmentListComponent implements OnInit {
   private readonly api = inject(EstablishmentApiService);
-  private readonly servicioApi = inject(ServicioApiService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly data = signal<Page<Establishment> | null>(null);
   protected readonly loading = signal<boolean>(true);
   protected readonly error = signal<string | null>(null);
 
-  // Estados para modales
+  // Estado para modal de creación
   protected readonly isModalOpen = signal<boolean>(false);
-  protected readonly isDeleteModalOpen = signal<boolean>(false);
-  protected readonly isAssignModalOpen = signal<boolean>(false);
-  protected readonly currentEstablishmentId = signal<number | null>(null);
-
-  protected readonly services = signal<Servicio[]>([]);
-  protected readonly servicesLoading = signal<boolean>(false);
-  
-  // Estado del formulario
   protected readonly formLoading = signal<boolean>(false);
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     address: ['', Validators.required],
-  });
-
-  protected readonly assignForm = this.fb.nonNullable.group({
-    serviceId: [0, [Validators.required, Validators.min(1)]]
   });
 
   ngOnInit(): void {
@@ -60,17 +47,7 @@ export class EstablishmentListComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    this.currentEstablishmentId.set(null);
     this.form.reset();
-    this.isModalOpen.set(true);
-  }
-
-  openEditModal(establishment: Establishment): void {
-    this.currentEstablishmentId.set(establishment.id);
-    this.form.patchValue({
-      name: establishment.name,
-      address: establishment.address
-    });
     this.isModalOpen.set(true);
   }
 
@@ -86,13 +63,8 @@ export class EstablishmentListComponent implements OnInit {
 
     this.formLoading.set(true);
     const payload = this.form.getRawValue();
-    const id = this.currentEstablishmentId();
 
-    const request$ = id 
-      ? this.api.update(id, payload)
-      : this.api.create(payload);
-
-    request$.subscribe({
+    this.api.create(payload).subscribe({
       next: () => {
         this.formLoading.set(false);
         this.closeModal();
@@ -100,88 +72,8 @@ export class EstablishmentListComponent implements OnInit {
         this.loadPage(currentPage);
       },
       error: () => {
-        alert('Ocurrió un error al guardar el establecimiento.');
+        alert('Ocurrió un error al crear el establecimiento.');
         this.formLoading.set(false);
-      }
-    });
-  }
-
-  openDeleteModal(id: number): void {
-    this.currentEstablishmentId.set(id);
-    this.isDeleteModalOpen.set(true);
-  }
-
-  closeDeleteModal(): void {
-    this.isDeleteModalOpen.set(false);
-    this.currentEstablishmentId.set(null);
-  }
-
-  confirmDelete(): void {
-    const id = this.currentEstablishmentId();
-    if (!id) return;
-
-    this.formLoading.set(true);
-    this.api.delete(id).subscribe({
-      next: () => {
-        this.formLoading.set(false);
-        this.closeDeleteModal();
-        const currentPage = this.data()?.pageable?.pageNumber ?? 0;
-        this.loadPage(currentPage);
-      },
-      error: () => {
-        alert('Error al eliminar el establecimiento.');
-        this.formLoading.set(false);
-        this.closeDeleteModal();
-      }
-    });
-  }
-
-  openAssignModal(id: number): void {
-    this.currentEstablishmentId.set(id);
-    this.assignForm.reset({ serviceId: 0 });
-    this.isAssignModalOpen.set(true);
-    
-    if (this.services().length === 0) {
-      this.servicesLoading.set(true);
-      this.servicioApi.getAll(0, 100).subscribe({
-        next: (page) => {
-          this.services.set(page.content);
-          this.servicesLoading.set(false);
-        },
-        error: () => {
-          this.servicesLoading.set(false);
-          alert('Error al cargar servicios.');
-        }
-      });
-    }
-  }
-
-  closeAssignModal(): void {
-    this.isAssignModalOpen.set(false);
-    this.currentEstablishmentId.set(null);
-  }
-
-  onAssignSubmit(): void {
-    if (this.assignForm.invalid) {
-      this.assignForm.markAllAsTouched();
-      return;
-    }
-    
-    const id = this.currentEstablishmentId();
-    if (!id) return;
-    
-    this.formLoading.set(true);
-    this.api.assignService(id, this.assignForm.getRawValue().serviceId).subscribe({
-      next: () => {
-        this.formLoading.set(false);
-        this.closeAssignModal();
-        alert('Servicio asignado correctamente.');
-        const currentPage = this.data()?.pageable?.pageNumber ?? 0;
-        this.loadPage(currentPage);
-      },
-      error: () => {
-        this.formLoading.set(false);
-        alert('Error al asignar servicio.');
       }
     });
   }

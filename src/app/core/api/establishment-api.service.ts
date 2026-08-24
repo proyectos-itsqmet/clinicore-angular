@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { Page, Establishment, EstablishmentCreate } from '../models';
+import type { Page, Establishment, EstablishmentCreate, AdminDoctor, Servicio, Operator } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class EstablishmentApiService {
@@ -19,6 +19,30 @@ export class EstablishmentApiService {
 
   getById(id: number): Observable<Establishment> {
     return this.http.get<Establishment>(`${this.API_URL}/${id}`, { withCredentials: true });
+  }
+
+  getDoctors(id: number, page: number = 0, size: number = 20): Observable<Page<AdminDoctor>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<Page<AdminDoctor>>(`${this.API_URL}/${id}/doctors`, { params, withCredentials: true });
+  }
+
+  getServices(id: number, page: number = 0, size: number = 20): Observable<Page<Servicio>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<Page<Servicio>>(`${this.API_URL}/${id}/services`, { params, withCredentials: true });
+  }
+
+  getOperators(id: number, page: number = 0, size: number = 20): Observable<Page<Operator>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<Page<Operator>>(`${this.API_URL}/${id}/operators`, { params, withCredentials: true });
   }
 
   create(establishment: EstablishmentCreate): Observable<Establishment> {

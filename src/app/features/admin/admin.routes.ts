@@ -46,6 +46,11 @@ export const adminRoutes: Routes = [
     loadChildren: () => import('./specialties/specialties.routes').then(m => m.specialtyRoutes),
     data: { crumbGroup: 'Admin', crumbLeaf: 'Servicios' }
   },
+  {
+    path: 'pacientes/informacion',
+    loadChildren: () => import('./patients/patients.routes').then(m => m.patientRoutes),
+    data: { crumbGroup: 'Pacientes', crumbLeaf: 'Información' }
+  },
 
   ...ADMIN_NAV.flatMap((entry) => {
     if (entry.children.length === 0) {
@@ -64,7 +69,8 @@ export const adminRoutes: Routes = [
       return fullPath !== 'administracion/establecimientos' && 
              fullPath !== 'administracion/operadores' && 
              fullPath !== 'administracion/doctores' &&
-             fullPath !== 'administracion/especialidades';
+             fullPath !== 'administracion/especialidades' &&
+             fullPath !== 'pacientes/informacion';
     });
 
     return [

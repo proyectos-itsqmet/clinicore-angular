@@ -23,3 +23,6 @@ export * from './establishment.model';
 export * from './operator.model';
 export * from './doctor.model';
 export * from './servicio.model';
+export * from './schedule.model';
+export * from './patient.model';
+export * from './turn.model';

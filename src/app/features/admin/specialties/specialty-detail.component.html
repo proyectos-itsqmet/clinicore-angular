@@ -1,0 +1,1191 @@
+<div class="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+  <!-- Navegación Superior y Acciones -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <a
+        routerLink="/admin/administracion/especialidades"
+        class="inline-flex items-center text-sm font-medium text-text-muted hover:text-text-strong mb-2"
+      >
+        <svg
+          class="w-4 h-4 mr-1.5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+          />
+        </svg>
+        Volver a la lista de servicios
+      </a>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold text-text-strong">
+          {{ service()?.name ?? 'Detalle del Servicio' }}
+        </h1>
+        @if (service()) {
+          <span
+            class="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-1 text-xs font-mono font-medium text-blue ring-1 ring-inset ring-blue/20"
+          >
+            ID #{{ service()?.id }}
+          </span>
+        }
+      </div>
+    </div>
+
+    @if (service()) {
+      <div class="flex items-center gap-3">
+        <button
+          (click)="openCreateScheduleModal()"
+          type="button"
+          class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue transition-colors"
+        >
+          <svg
+            class="w-4 h-4 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Crear Horario
+        </button>
+        <button
+          (click)="openEditModal()"
+          type="button"
+          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted transition-colors"
+        >
+          <svg
+            class="w-4 h-4 mr-2 text-text-muted"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M16.862 4.487l1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+            />
+          </svg>
+          Editar Servicio
+        </button>
+        <button
+          (click)="openDeleteModal()"
+          type="button"
+          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-200 hover:bg-red-50 transition-colors"
+        >
+          <svg
+            class="w-4 h-4 mr-2 text-red-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+            />
+          </svg>
+          Eliminar
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="p-12 text-center text-text-muted">Cargando información del servicio...</div>
+  } @else if (error()) {
+    <div class="rounded-md bg-red-50 p-4">
+      <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
+    </div>
+  } @else if (service()) {
+    <!-- Información de Precios y Tarifas Card -->
+    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm">
+      <h2 class="text-base font-semibold text-text-strong mb-4">Información Tarifaria</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="rounded-lg bg-surface-muted/50 p-4 border border-border">
+          <span class="text-xs font-medium text-text-muted uppercase tracking-wider"
+            >Precio Base</span
+          >
+          <p class="mt-2 text-2xl font-bold text-text-strong">
+            ${{ service()?.price | number: '1.2-2' }}
+          </p>
+          <span class="text-xs text-text-muted">Tarifa estándar de consulta</span>
+        </div>
+
+        <div class="rounded-lg bg-surface-muted/50 p-4 border border-border">
+          <span class="text-xs font-medium text-text-muted uppercase tracking-wider"
+            >Descuento Aplicado</span
+          >
+          <p class="mt-2 text-2xl font-bold text-emerald-600">
+            @if (service()?.discount && service()!.discount! > 0) {
+              -${{ service()?.discount | number: '1.2-2' }}
+            } @else {
+              <span class="text-text-muted text-lg font-normal">Sin descuento</span>
+            }
+          </p>
+          <span class="text-xs text-text-muted">Descuento promocional activo</span>
+        </div>
+
+        <div class="rounded-lg bg-blue-50/50 p-4 border border-blue/20">
+          <span class="text-xs font-medium text-blue uppercase tracking-wider"
+            >Precio Final al Paciente</span
+          >
+          <p class="mt-2 text-2xl font-extrabold text-blue">
+            ${{ (service()?.price ?? 0) - (service()?.discount ?? 0) | number: '1.2-2' }}
+          </p>
+          <span class="text-xs text-blue/80">Monto total a facturar</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Horarios Programados (Visual & Atractivo con Filtros) -->
+    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm space-y-6">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5"
+      >
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-lg font-bold text-text-strong">Horarios y Turnos de Atención</h2>
+            <span
+              class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue ring-1 ring-inset ring-blue/20"
+            >
+              {{ schedules()?.totalElements ?? 0 }} turnos
+            </span>
+          </div>
+          <p class="text-xs text-text-muted mt-1">
+            Horarios generados y disponibilidad para este servicio
+          </p>
+        </div>
+
+        <div>
+          <button
+            (click)="openCreateScheduleModal()"
+            type="button"
+            class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue transition-colors"
+          >
+            <svg
+              class="-ml-0.5 mr-2 h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Crear Horario
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros Interactiva -->
+      <div
+        class="flex flex-wrap items-center gap-2.5 bg-surface-muted/30 p-3 rounded-xl border border-border"
+      >
+        <!-- Botones Rápidos de Fecha -->
+        <div
+          class="inline-flex rounded-lg shadow-sm border border-border overflow-hidden bg-surface"
+        >
+          <button
+            type="button"
+            (click)="clearDateFilter()"
+            [class.bg-blue]="filterDate() === ''"
+            [class.text-white]="filterDate() === ''"
+            [class.text-text-muted]="filterDate() !== ''"
+            class="px-2.5 py-1.5 text-xs font-medium hover:bg-surface-muted transition-colors"
+          >
+            Todos
+          </button>
+          <button
+            type="button"
+            (click)="setTodayFilter()"
+            class="px-2.5 py-1.5 text-xs font-medium border-l border-border hover:bg-surface-muted transition-colors"
+          >
+            Hoy
+          </button>
+          <button
+            type="button"
+            (click)="setTomorrowFilter()"
+            class="px-2.5 py-1.5 text-xs font-medium border-l border-border hover:bg-surface-muted transition-colors"
+          >
+            Mañana
+          </button>
+        </div>
+
+        <!-- Date Picker -->
+        <div class="relative">
+          <input
+            type="date"
+            [ngModel]="filterDate()"
+            (ngModelChange)="onDateFilterChange($event)"
+            class="block rounded-lg border-0 py-1.5 px-2.5 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-blue"
+          />
+        </div>
+
+        <!-- Filtro Establecimiento -->
+        <select
+          [value]="filterStablishmentId() ?? ''"
+          (change)="onEstablishmentFilterChange($event)"
+          class="block rounded-lg border-0 py-1.5 px-2.5 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-blue"
+        >
+          <option value="">Todos los Establecimientos</option>
+          @for (est of establishments(); track est.id) {
+            <option [value]="est.id">{{ est.name }}</option>
+          }
+        </select>
+
+        <!-- Filtro Estado -->
+        <select
+          [value]="filterStatus()"
+          (change)="onStatusFilterChange($event)"
+          class="block rounded-lg border-0 py-1.5 px-2.5 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-blue"
+        >
+          <option value="">Todos los Estados</option>
+          <option value="STATUS_FREE">Disponible (Libre)</option>
+          <option value="STATUS_OCCUPIED">Ocupado (Reservado)</option>
+          <option value="STATUS_UNAVAILABLE">No disponible</option>
+        </select>
+
+        @if (filterDate() || filterStablishmentId() || filterStatus()) {
+          <button
+            (click)="resetAllScheduleFilters()"
+            type="button"
+            class="text-xs text-red-600 hover:text-red-700 font-medium px-2 py-1"
+          >
+            Limpiar filtros
+          </button>
+        }
+      </div>
+
+      <!-- Cuadrícula Visual de Horarios -->
+      @if (schedulesLoading()) {
+        <div class="py-12 text-center text-sm text-text-muted">
+          Cargando horarios de atención...
+        </div>
+      } @else if (!schedules()?.content || schedules()!.content!.length === 0) {
+        <div
+          class="py-12 text-center rounded-xl border border-dashed border-border bg-surface-muted/30"
+        >
+          <svg
+            class="mx-auto h-12 w-12 text-text-muted/60"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <h3 class="mt-2 text-sm font-semibold text-text-strong">No se encontraron horarios</h3>
+          <p class="mt-1 text-xs text-text-muted">
+            No existen turnos generados que coincidan con los filtros seleccionados.
+          </p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          @for (sch of schedules()?.content; track sch.id) {
+            <div
+              class="group relative rounded-xl border border-border bg-surface p-4 shadow-sm hover:shadow-md transition-all hover:border-blue/40 flex flex-col justify-between"
+            >
+              <div>
+                <!-- Encabezado de la Tarjeta: Hora y Estado -->
+                <div class="flex items-center justify-between mb-3">
+                  <span
+                    class="inline-flex items-center gap-1.5 font-mono text-base font-bold text-text-strong"
+                  >
+                    <svg
+                      class="w-4 h-4 text-blue"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    {{ sch.hour }}
+                  </span>
+
+                  <!-- Status Badge -->
+                  @if (sch.status === 'STATUS_FREE' || sch.status === 'AVAILABLE') {
+                    <span
+                      class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"
+                      ></span>
+                      Disponible
+                    </span>
+                  } @else if (sch.status === 'STATUS_OCCUPIED' || sch.status === 'BOOKED') {
+                    <span
+                      class="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue ring-1 ring-inset ring-blue/20"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full bg-blue mr-1.5"></span>
+                      Ocupado
+                    </span>
+                  } @else {
+                    <span
+                      class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-600/20"
+                    >
+                      No disponible
+                    </span>
+                  }
+                </div>
+
+                <!-- Fecha del Turno -->
+                <div class="flex items-center text-xs text-text-muted mb-3">
+                  <svg
+                    class="w-3.5 h-3.5 mr-1.5 text-text-muted shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                    />
+                  </svg>
+                  <span class="font-medium text-text-strong">{{ sch.date }}</span>
+                </div>
+
+                <!-- Doctor asignado -->
+                @if (sch.doctor) {
+                  <div class="flex items-center gap-2 mb-2 p-2 rounded-lg bg-surface-muted/40">
+                    <div
+                      class="w-7 h-7 rounded-full bg-blue-100 text-blue font-bold flex items-center justify-center text-xs shrink-0"
+                    >
+                      {{ sch.doctor.firstName.charAt(0) }}{{ sch.doctor.lastName.charAt(0) }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-xs font-semibold text-text-strong truncate">
+                        Dr. {{ sch.doctor.firstName }} {{ sch.doctor.lastName }}
+                      </p>
+                      <p class="text-[11px] text-text-muted truncate">
+                        {{ sch.doctor.speciality }}
+                      </p>
+                    </div>
+                  </div>
+                }
+
+                <!-- Establecimiento / Sede -->
+                @if (sch.stablishment) {
+                  <div class="flex items-center text-xs text-text-muted mt-2">
+                    <svg
+                      class="w-3.5 h-3.5 mr-1 text-text-muted shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.75a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5V21"
+                      />
+                    </svg>
+                    <span class="truncate">{{ sch.stablishment.name }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Paginación de Horarios -->
+        @if (schedules() && schedules()!.totalPages > 1) {
+          <div class="flex items-center justify-between border-t border-border pt-4 mt-4">
+            <p class="text-xs text-text-muted">
+              Página {{ schedules()!.number + 1 }} de {{ schedules()!.totalPages }}
+            </p>
+            <div class="flex gap-2">
+              <button
+                [disabled]="schedules()!.first"
+                (click)="loadSchedules(schedules()!.number - 1)"
+                class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+              >
+                Anterior
+              </button>
+              <button
+                [disabled]="schedules()!.last"
+                (click)="loadSchedules(schedules()!.number + 1)"
+                class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Sección de Doctores Especialistas Card -->
+    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-lg font-bold text-text-strong">Doctores Especialistas</h2>
+            <span
+              class="inline-flex items-center rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-semibold text-text-strong ring-1 ring-inset ring-border"
+            >
+              {{ doctors()?.totalElements ?? 0 }}
+            </span>
+          </div>
+          <p class="text-xs text-text-muted mt-0.5">
+            Profesionales médicos capacitados para este servicio
+          </p>
+        </div>
+
+        <!-- Buscador de doctores -->
+        <div class="w-full sm:w-64">
+          <input
+            type="text"
+            placeholder="Buscar doctor..."
+            [ngModel]="doctorSearch()"
+            (ngModelChange)="doctorSearch.set($event); loadDoctors(0)"
+            class="block w-full rounded-md border-0 py-1.5 px-3 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-blue"
+          />
+        </div>
+      </div>
+
+      <div class="mt-4">
+        @if (doctorsLoading()) {
+          <div class="py-8 text-center text-sm text-text-muted">Cargando doctores...</div>
+        } @else if (!doctors()?.content || doctors()!.content!.length === 0) {
+          <div
+            class="py-8 text-center text-sm text-text-muted rounded-lg border border-border bg-surface-muted/20"
+          >
+            No se encontraron doctores asignados a este servicio.
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (doc of doctors()?.content; track doc.uuid) {
+              <div
+                class="rounded-xl border border-border p-4 bg-surface hover:bg-surface-muted/30 transition-colors flex items-center justify-between gap-3"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <div
+                    class="w-10 h-10 rounded-full bg-blue-100 text-blue font-bold flex items-center justify-center text-sm shrink-0"
+                  >
+                    {{ doc.firstName.charAt(0) }}{{ doc.lastName.charAt(0) }}
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="text-sm font-semibold text-text-strong truncate">
+                      Dr. {{ doc.firstName }} {{ doc.lastName }}
+                    </h4>
+                    <p class="text-xs text-text-muted truncate">{{ doc.email }}</p>
+                    <span
+                      class="mt-1 inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue ring-1 ring-inset ring-blue/20"
+                    >
+                      {{ doc.speciality }}
+                    </span>
+                  </div>
+                </div>
+
+                <a
+                  [routerLink]="['/admin/administracion/doctores', doc.uuid]"
+                  class="shrink-0 inline-flex items-center text-xs font-semibold text-blue hover:text-blue-strong"
+                  title="Ver perfil completo del doctor"
+                >
+                  Ver
+                  <svg
+                    class="w-4 h-4 ml-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                    />
+                  </svg>
+                </a>
+              </div>
+            }
+          </div>
+
+          <!-- Paginación de Doctores -->
+          @if (doctors() && doctors()!.totalPages > 1) {
+            <div class="flex items-center justify-between border-t border-border pt-4 mt-4">
+              <p class="text-xs text-text-muted">
+                Página {{ doctors()!.number + 1 }} de {{ doctors()!.totalPages }}
+              </p>
+              <div class="flex gap-2">
+                <button
+                  [disabled]="doctors()!.first"
+                  (click)="loadDoctors(doctors()!.number - 1)"
+                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                >
+                  Anterior
+                </button>
+                <button
+                  [disabled]="doctors()!.last"
+                  (click)="loadDoctors(doctors()!.number + 1)"
+                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Sección de Establecimientos Asignados Card -->
+    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-lg font-bold text-text-strong">Establecimientos Asignados</h2>
+            <span
+              class="inline-flex items-center rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-semibold text-text-strong ring-1 ring-inset ring-border"
+            >
+              {{ assignedEstablishments()?.totalElements ?? 0 }}
+            </span>
+          </div>
+          <p class="text-xs text-text-muted mt-0.5">
+            Sedes y centros de atención donde se brinda este servicio
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Buscador de establecimientos -->
+          <div class="w-full sm:w-64">
+            <input
+              type="text"
+              placeholder="Buscar establecimiento..."
+              [ngModel]="establishmentSearch()"
+              (ngModelChange)="establishmentSearch.set($event); loadAssignedEstablishments(0)"
+              class="block w-full rounded-md border-0 py-1.5 px-3 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-blue"
+            />
+          </div>
+
+          <button
+            (click)="openAssignEstablishmentModal()"
+            type="button"
+            class="inline-flex items-center rounded-pill bg-surface px-3 py-1.5 text-xs font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted transition-colors whitespace-nowrap"
+          >
+            <svg
+              class="-ml-0.5 mr-1 h-3.5 w-3.5 text-text-muted"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Asignar Sede
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        @if (assignedEstablishmentsLoading()) {
+          <div class="py-8 text-center text-sm text-text-muted">Cargando establecimientos...</div>
+        } @else if (
+          !assignedEstablishments()?.content || assignedEstablishments()!.content!.length === 0
+        ) {
+          <div
+            class="py-8 text-center text-sm text-text-muted rounded-lg border border-border bg-surface-muted/20"
+          >
+            No se encontraron establecimientos asignados a este servicio.
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (est of assignedEstablishments()?.content; track est.id) {
+              <div
+                class="rounded-xl border border-border p-4 bg-surface hover:bg-surface-muted/30 transition-colors flex items-center justify-between gap-3"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <div
+                    class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm shrink-0"
+                  >
+                    🏥
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="text-sm font-semibold text-text-strong truncate">
+                      {{ est.name }}
+                    </h4>
+                    <p class="text-xs text-text-muted truncate">{{ est.address }}</p>
+                    <span
+                      class="mt-1 inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"
+                    >
+                      ID #{{ est.id }}
+                    </span>
+                  </div>
+                </div>
+
+                <a
+                  [routerLink]="['/admin/administracion/establecimientos', est.id]"
+                  class="shrink-0 inline-flex items-center text-xs font-semibold text-blue hover:text-blue-strong"
+                  title="Ver detalles del establecimiento"
+                >
+                  Ver
+                  <svg
+                    class="w-4 h-4 ml-0.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                    />
+                  </svg>
+                </a>
+              </div>
+            }
+          </div>
+
+          <!-- Paginación de Establecimientos -->
+          @if (assignedEstablishments() && assignedEstablishments()!.totalPages > 1) {
+            <div class="flex items-center justify-between border-t border-border pt-4 mt-4">
+              <p class="text-xs text-text-muted">
+                Página {{ assignedEstablishments()!.number + 1 }} de
+                {{ assignedEstablishments()!.totalPages }}
+              </p>
+              <div class="flex gap-2">
+                <button
+                  [disabled]="assignedEstablishments()!.first"
+                  (click)="loadAssignedEstablishments(assignedEstablishments()!.number - 1)"
+                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                >
+                  Anterior
+                </button>
+                <button
+                  [disabled]="assignedEstablishments()!.last"
+                  (click)="loadAssignedEstablishments(assignedEstablishments()!.number + 1)"
+                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal Editar Servicio -->
+@if (isEditModalOpen()) {
+  <div
+    class="relative z-[100]"
+    aria-labelledby="modal-edit-service"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div
+          class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
+        >
+          <form [formGroup]="editForm" (ngSubmit)="onEditSubmit()">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                <h3
+                  class="text-lg font-semibold leading-6 text-text-strong"
+                  id="modal-edit-service"
+                >
+                  Editar Servicio
+                </h3>
+                <div class="mt-6 space-y-4">
+                  <div>
+                    <label
+                      for="edit_name"
+                      class="block text-sm font-medium leading-6 text-text-strong"
+                      >Nombre del Servicio</label
+                    >
+                    <div class="mt-2">
+                      <input
+                        type="text"
+                        id="edit_name"
+                        formControlName="name"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                      />
+                      @if (
+                        editForm.controls.name.touched &&
+                        editForm.controls.name.hasError('required')
+                      ) {
+                        <p class="mt-1 text-sm text-red-600">El nombre es requerido.</p>
+                      }
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      for="edit_price"
+                      class="block text-sm font-medium leading-6 text-text-strong"
+                      >Precio Base ($)</label
+                    >
+                    <div class="mt-2 relative rounded-md shadow-sm">
+                      <div
+                        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                      >
+                        <span class="text-text-muted sm:text-sm">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        id="edit_price"
+                        formControlName="price"
+                        step="0.01"
+                        min="0"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 pl-7 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                      />
+                      @if (
+                        editForm.controls.price.touched &&
+                        editForm.controls.price.hasError('required')
+                      ) {
+                        <p class="mt-1 text-sm text-red-600">El precio es requerido.</p>
+                      }
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      for="edit_discount"
+                      class="block text-sm font-medium leading-6 text-text-strong"
+                      >Descuento ($) (Opcional)</label
+                    >
+                    <div class="mt-2 relative rounded-md shadow-sm">
+                      <div
+                        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                      >
+                        <span class="text-text-muted sm:text-sm">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        id="edit_discount"
+                        formControlName="discount"
+                        step="0.01"
+                        min="0"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 pl-7 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="inline-flex w-full justify-center rounded-pill bg-blue px-3 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:ml-3 sm:w-auto disabled:opacity-50"
+              >
+                {{ formLoading() ? 'Guardando...' : 'Guardar Cambios' }}
+              </button>
+              <button
+                type="button"
+                (click)="closeEditModal()"
+                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Eliminar Servicio -->
+@if (isDeleteModalOpen()) {
+  <div
+    class="relative z-[100]"
+    aria-labelledby="modal-delete-service"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div
+          class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
+        >
+          <div class="sm:flex sm:items-start">
+            <div
+              class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10"
+            >
+              <svg
+                class="h-6 w-6 text-red-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                />
+              </svg>
+            </div>
+            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+              <h3
+                class="text-base font-semibold leading-6 text-text-strong"
+                id="modal-delete-service"
+              >
+                Eliminar Servicio
+              </h3>
+              <div class="mt-2">
+                <p class="text-sm text-text-muted">
+                  ¿Estás seguro de que deseas eliminar el servicio
+                  <strong>{{ service()?.name }}</strong
+                  >? Esta acción no se puede deshacer.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              [disabled]="formLoading()"
+              (click)="confirmDelete()"
+              class="inline-flex w-full justify-center rounded-pill bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto disabled:opacity-50"
+            >
+              {{ formLoading() ? 'Eliminando...' : 'Eliminar' }}
+            </button>
+            <button
+              type="button"
+              (click)="closeDeleteModal()"
+              class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Crear Horario -->
+@if (isCreateScheduleModalOpen()) {
+  <div
+    class="relative z-[100]"
+    aria-labelledby="modal-create-schedule"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div
+          class="relative transform overflow-hidden rounded-2xl bg-surface px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-border"
+        >
+          <form [formGroup]="createScheduleForm" (ngSubmit)="onCreateScheduleSubmit()">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                <div class="flex items-center gap-3 border-b border-border pb-3 mb-4">
+                  <div
+                    class="h-10 w-10 rounded-full bg-blue/10 text-blue flex items-center justify-center font-bold"
+                  >
+                    <svg
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold text-text-strong" id="modal-create-schedule">
+                      Crear Nuevo Horario
+                    </h3>
+                    <p class="text-xs text-text-muted">
+                      Servicio:
+                      <span class="font-semibold text-text-strong">{{ service()?.name }}</span> (ID:
+                      #{{ service()?.id }})
+                    </p>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <!-- Fecha -->
+                  <div>
+                    <label
+                      for="sched-date-input"
+                      class="block text-xs font-semibold text-text-strong mb-1"
+                    >
+                      Fecha del Horario
+                    </label>
+                    <input
+                      type="date"
+                      id="sched-date-input"
+                      formControlName="date"
+                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+                    />
+                    @if (
+                      createScheduleForm.controls.date.touched &&
+                      createScheduleForm.controls.date.hasError('required')
+                    ) {
+                      <p class="mt-1 text-xs text-red-600">La fecha es obligatoria.</p>
+                    }
+                  </div>
+
+                  <!-- Hora -->
+                  <div>
+                    <label
+                      for="sched-hour-input"
+                      class="block text-xs font-semibold text-text-strong mb-1"
+                    >
+                      Hora de Atención
+                    </label>
+                    <input
+                      type="time"
+                      id="sched-hour-input"
+                      formControlName="hour"
+                      step="60"
+                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+                    />
+                    @if (
+                      createScheduleForm.controls.hour.touched &&
+                      createScheduleForm.controls.hour.hasError('required')
+                    ) {
+                      <p class="mt-1 text-xs text-red-600">La hora es obligatoria.</p>
+                    }
+                  </div>
+
+                  <!-- Doctor -->
+                  <div>
+                    <label
+                      for="sched-doctor-input"
+                      class="block text-xs font-semibold text-text-strong mb-1"
+                    >
+                      Doctor Responsable
+                    </label>
+                    <select
+                      id="sched-doctor-input"
+                      formControlName="doctorUuid"
+                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+                    >
+                      <option value="">Selecciona un Doctor</option>
+                      @if (doctors()?.content && doctors()!.content.length > 0) {
+                        <optgroup label="Doctores Asignados a este Servicio">
+                          @for (doc of doctors()?.content; track doc.uuid) {
+                            <option [value]="doc.uuid">
+                              Dr. {{ doc.firstName }} {{ doc.lastName }} ({{ doc.speciality }})
+                            </option>
+                          }
+                        </optgroup>
+                      }
+                      <optgroup label="Todos los Doctores">
+                        @for (doc of allDoctors(); track doc.uuid) {
+                          <option [value]="doc.uuid">
+                            Dr. {{ doc.firstName }} {{ doc.lastName }} - {{ doc.speciality }}
+                          </option>
+                        }
+                      </optgroup>
+                    </select>
+                    @if (
+                      createScheduleForm.controls.doctorUuid.touched &&
+                      createScheduleForm.controls.doctorUuid.hasError('required')
+                    ) {
+                      <p class="mt-1 text-xs text-red-600">Debes seleccionar un doctor.</p>
+                    }
+                  </div>
+
+                  <!-- Establecimiento -->
+                  <div>
+                    <label
+                      for="sched-est-input"
+                      class="block text-xs font-semibold text-text-strong mb-1"
+                    >
+                      Establecimiento / Sede
+                    </label>
+                    <select
+                      id="sched-est-input"
+                      formControlName="stablishmentId"
+                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+                    >
+                      <option [value]="0">Selecciona un Establecimiento</option>
+                      @for (est of establishments(); track est.id) {
+                        <option [value]="est.id">{{ est.name }} - {{ est.address }}</option>
+                      }
+                    </select>
+                    @if (
+                      createScheduleForm.controls.stablishmentId.touched &&
+                      (createScheduleForm.controls.stablishmentId.hasError('required') ||
+                        createScheduleForm.controls.stablishmentId.hasError('min'))
+                    ) {
+                      <p class="mt-1 text-xs text-red-600">
+                        Debes seleccionar un establecimiento válido.
+                      </p>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Botones -->
+            <div class="mt-6 sm:flex sm:flex-row-reverse gap-2 border-t border-border pt-4">
+              <button
+                type="submit"
+                [disabled]="createScheduleLoading()"
+                class="inline-flex w-full justify-center items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:w-auto disabled:opacity-50"
+              >
+                @if (createScheduleLoading()) {
+                  <svg
+                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-surface"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  Guardando...
+                } @else {
+                  Crear Horario
+                }
+              </button>
+              <button
+                type="button"
+                (click)="closeCreateScheduleModal()"
+                class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:w-auto"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Asignar Establecimiento -->
+@if (isAssignEstablishmentModalOpen()) {
+  <div class="relative z-[100]" aria-labelledby="modal-assign-est" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"></div>
+    <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div
+          class="relative transform overflow-hidden rounded-2xl bg-surface px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-border"
+        >
+          <form [formGroup]="assignEstablishmentForm" (ngSubmit)="onAssignEstablishmentSubmit()">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                <div class="flex items-center gap-3 border-b border-border pb-3 mb-4">
+                  <div
+                    class="h-10 w-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold"
+                  >
+                    🏥
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold text-text-strong" id="modal-assign-est">
+                      Asignar Establecimiento al Servicio
+                    </h3>
+                    <p class="text-xs text-text-muted">
+                      Servicio:
+                      <span class="font-semibold text-text-strong">{{ service()?.name }}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="space-y-4">
+                  <div>
+                    <label
+                      for="assign-est-select"
+                      class="block text-xs font-semibold text-text-strong mb-1"
+                    >
+                      Selecciona la Sede / Establecimiento
+                    </label>
+                    <select
+                      id="assign-est-select"
+                      formControlName="stablishmentId"
+                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+                    >
+                      <option [value]="0">Selecciona un Establecimiento</option>
+                      @for (est of establishments(); track est.id) {
+                        <option [value]="est.id">{{ est.name }} - {{ est.address }}</option>
+                      }
+                    </select>
+                    @if (
+                      assignEstablishmentForm.controls.stablishmentId.touched &&
+                      (assignEstablishmentForm.controls.stablishmentId.hasError('required') ||
+                        assignEstablishmentForm.controls.stablishmentId.hasError('min'))
+                    ) {
+                      <p class="mt-1 text-xs text-red-600">
+                        Debes seleccionar un establecimiento válido.
+                      </p>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Botones -->
+            <div class="mt-6 sm:flex sm:flex-row-reverse gap-2 border-t border-border pt-4">
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="inline-flex w-full justify-center items-center rounded-pill bg-blue px-4 py-2 text-sm font-semibold text-surface shadow-sm hover:bg-blue-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue sm:w-auto disabled:opacity-50"
+              >
+                @if (formLoading()) {
+                  <svg
+                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-surface"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  Guardando...
+                } @else {
+                  Asignar Establecimiento
+                }
+              </button>
+              <button
+                type="button"
+                (click)="closeAssignEstablishmentModal()"
+                class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:w-auto"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
