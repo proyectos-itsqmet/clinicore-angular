@@ -7,7 +7,7 @@ import { adminRoutes } from './admin.routes';
  * The whole point of building the routes from `ADMIN_NAV` is that a menu item
  * and its page can never drift apart — and the failure mode when they do is
  * silent: a menu entry that 404s, or a page nothing links to. A test that
- * re-listed all 31 paths by hand would just be the second copy this design
+ * re-listed all 32 paths by hand would just be the second copy this design
  * exists to avoid; these assert the RELATIONSHIP between the array and the
  * table instead.
  */
@@ -22,12 +22,31 @@ describe('adminRoutes', () => {
       : entry.children.map((child) => `${entry.path}/${child.path}`),
   );
 
-  it('generates exactly one route per destination in the tree', () => {
-    expect(destinations.map((route) => route.path).sort()).toEqual([...expectedPaths].sort());
+  /**
+   * A destination is "resolved" whether it is still a placeholder
+   * (`loadComponent`) or has become a real section (`loadChildren`). Filtering
+   * on `loadComponent` alone — as this used to do — silently drops every
+   * implemented section from the left side, so it shrinks by one destination
+   * each time a placeholder is replaced with a real section instead of failing
+   * loudly when one goes missing or duplicates.
+   */
+  const resolvedDestinations = adminRoutes.filter(
+    (route) => 'loadComponent' in route || 'loadChildren' in route,
+  );
+
+  it('generates exactly one route per destination in the tree, placeholder or implemented', () => {
+    expect(resolvedDestinations.map((route) => route.path).sort()).toEqual([...expectedPaths].sort());
   });
 
-  it('covers the 31 destinations of the specified menu', () => {
-    expect(expectedPaths.length).toBe(31);
+  it('covers every destination declared in ADMIN_NAV', () => {
+    // Derived from ADMIN_NAV, never a hardcoded literal: a hardcoded count is
+    // exactly what went stale the last time a group gained a child.
+    const declaredTotal = ADMIN_NAV.reduce(
+      (total, entry) => total + (entry.children.length === 0 ? 1 : entry.children.length),
+      0,
+    );
+
+    expect(expectedPaths.length).toBe(declaredTotal);
   });
 
   it('never generates the same path twice', () => {

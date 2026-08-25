@@ -3,14 +3,16 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
 /**
- * app-admin-placeholder-page — the body of every admin section that has not
- * been designed yet, which right now is all 31 of them.
+ * app-admin-placeholder-page — the body of any admin section that has not
+ * been designed yet. `ADMIN_NAV` declares 32 destinations in total; whichever
+ * ones do not yet have a real section (`loadChildren` in `admin.routes.ts`)
+ * render through here instead.
  *
  * ONE component for all of them, reading its own title out of the route `data`
- * that `admin.routes.ts` generated from `ADMIN_NAV`. The alternative — 31 files
- * of identical boilerplate — would be 31 places to keep in sync with a menu
- * that is already the single source of truth, and every one of them would be
- * deleted anyway as its real section arrives.
+ * that `admin.routes.ts` generated from `ADMIN_NAV`. The alternative — one
+ * boilerplate file per destination — would be one more place to keep in sync
+ * with a menu that is already the single source of truth, and every one of
+ * them would be deleted anyway as its real section arrives.
  *
  * Replacing one is a one-line change: swap that route's `loadComponent`.
  *

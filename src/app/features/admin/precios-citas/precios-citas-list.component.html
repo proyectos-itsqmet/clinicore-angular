@@ -1,0 +1,105 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Precios de Citas</h1>
+      <p class="mt-1 text-xs text-ink-3">Consulta el precio base, el descuento y el precio final de cada servicio de citas.</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Nombre del Servicio</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio Base</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Descuento</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio Final</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr><td colspan="6" class="py-12 text-center text-xs text-ink-3">Cargando precios de citas...</td></tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr><td colspan="6" class="py-12 text-center text-xs text-ink-3">No hay precios de citas registrados actualmente.</td></tr>
+        } @else {
+          @for (item of data()?.content; track item.id) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-bold text-ink">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-tint text-blue font-bold flex items-center justify-center text-sm shadow-inner shrink-0">
+                    🩺
+                  </div>
+                  <span>{{ item.name }}</span>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink font-bold">${{ item.price | number:'1.2-2' }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                @if (item.discount && item.discount > 0) {
+                  <span class="inline-flex items-center rounded-pill bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                    -${{ item.discount | number:'1.2-2' }}
+                  </span>
+                } @else {
+                  <span class="text-ink-3 text-xs">Sin descuento</span>
+                }
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink font-bold">${{ finalPrice(item) | number:'1.2-2' }}</td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <a
+                  [routerLink]="['/admin/administracion/especialidades', item.id]"
+                  class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                >
+                  <span>Ver en Servicios</span>
+                  <span>→</span>
+                </a>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <div class="flex flex-1 items-center justify-between">
+          <div>
+            <p class="text-xs text-ink-3">
+              Mostrando <span class="font-bold text-ink">{{ data()!.pageable.offset + 1 }}</span> a
+              <span class="font-bold text-ink">{{ data()!.pageable.offset + data()!.numberOfElements }}</span> de
+              <span class="font-bold text-ink">{{ data()!.totalElements }}</span> servicios
+            </p>
+          </div>
+          <div>
+            <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+              <button
+                [disabled]="data()!.first"
+                (click)="loadPage(data()!.number - 1)"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+              >
+                Anterior
+              </button>
+              <span class="px-2 text-xs font-bold text-ink">
+                Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages }}
+              </span>
+              <button
+                [disabled]="data()!.last"
+                (click)="loadPage(data()!.number + 1)"
+                class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+              >
+                Siguiente
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

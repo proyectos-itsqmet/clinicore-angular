@@ -26,11 +26,11 @@ interface Crumb {
 
 /**
  * app-admin-layout — the admin panel's shell (`design/panel-admin/`): sidebar
- * or drawer, top bar, and the outlet the 31 sections render into.
+ * or drawer, top bar, and the outlet the 32 sections render into.
  *
  * It is a LAYOUT ROUTE, and that is load-bearing: the sections are child
  * routes of this component, so navigating between them never remounts the
- * shell. Flatten it into 31 sibling routes and the accordion, the scroll
+ * shell. Flatten it into 32 sibling routes and the accordion, the scroll
  * position and the drawer state all reset on every click.
  *
  * FIXED HEIGHT, NOT A SCROLLING PAGE. The root is `h-dvh overflow-hidden` and
@@ -65,7 +65,7 @@ interface Crumb {
  * NOT live here. They are section-specific — "Nuevo" makes no sense on the
  * Dashboard — so they belong to whichever section owns them, and a shared
  * `app-page-header` is the right home for that pattern once real sections
- * exist. Putting them in the shell would put a fake button on 31 pages.
+ * exist. Putting them in the shell would put a fake button on 32 pages.
  */
 @Component({
   selector: 'app-admin-layout',

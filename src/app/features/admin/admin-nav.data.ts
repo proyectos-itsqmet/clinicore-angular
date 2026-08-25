@@ -15,7 +15,7 @@ import type { AdminNavEntry } from '../../shared/ui/molecules/admin-nav/admin-na
  * Estilo, Turnos → Gestión de turnos) are direct links, like Calendario
  * already was. An empty `children` is what makes a row a link.
  *
- * 8 groups + 4 links = 12 first-level rows, 31 destinations.
+ * 8 groups + 4 links = 12 first-level rows, 32 destinations.
  *
  * ONE URL DEVIATION: the group labelled "Admin" uses the `administracion`
  * segment, because it lives under `/admin` and `/admin/admin/usuarios` is a

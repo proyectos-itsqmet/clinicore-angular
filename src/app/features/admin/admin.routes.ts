@@ -5,7 +5,7 @@ import { ADMIN_DEFAULT_PATH, ADMIN_NAV } from './admin-nav.data';
 /**
  * The admin panel's route table, GENERATED from `ADMIN_NAV`.
  *
- * Not written out by hand, and that is the whole design: thirty-one
+ * Not written out by hand, and that is the whole design: thirty-two
  * destinations declared twice — once as menu markup, once as routes — drift,
  * and the failure is silent (a menu item that 404s, or a page nothing links
  * to). One array, one loop, both derived.
@@ -52,6 +52,11 @@ export const adminRoutes: Routes = [
     data: { crumbGroup: 'Pacientes', crumbLeaf: 'Información' }
   },
   {
+    path: 'precios/citas',
+    loadChildren: () => import('./precios-citas/precios-citas.routes').then(m => m.preciosCitasRoutes),
+    data: { crumbGroup: 'Precios', crumbLeaf: 'Citas' }
+  },
+  {
     path: 'turnos',
     loadChildren: () => import('./turns/turns.routes').then(m => m.turnRoutes),
     data: { crumbGroup: 'Turnos', crumbLeaf: 'Gestión de turnos' }
@@ -74,11 +79,12 @@ export const adminRoutes: Routes = [
 
     const filteredChildren = entry.children.filter(child => {
       const fullPath = `${entry.path}/${child.path}`;
-      return fullPath !== 'administracion/establecimientos' && 
-             fullPath !== 'administracion/operadores' && 
+      return fullPath !== 'administracion/establecimientos' &&
+             fullPath !== 'administracion/operadores' &&
              fullPath !== 'administracion/doctores' &&
              fullPath !== 'administracion/especialidades' &&
-             fullPath !== 'pacientes/informacion';
+             fullPath !== 'pacientes/informacion' &&
+             fullPath !== 'precios/citas';
     });
 
     return [
