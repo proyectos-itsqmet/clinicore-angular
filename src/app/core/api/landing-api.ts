@@ -3,7 +3,6 @@ import { httpResource, type HttpResourceRef } from '@angular/common/http';
 
 import { LANDING_DATA_BASE_URL } from './landing-data-base-url';
 import type {
-  BookingAvailability,
   Coverage,
   Doctors,
   Faq,
@@ -11,7 +10,6 @@ import type {
   HowItWorks,
   Insurers,
   Locations,
-  MedicalRecord,
   PublicInsurance,
   QuickAccess,
   Reviews,
@@ -65,19 +63,12 @@ export class LandingApi {
     () => `${this.baseUrl}/specialties.json`,
   );
 
-  readonly bookingAvailability: HttpResourceRef<BookingAvailability | undefined> =
-    httpResource<BookingAvailability>(() => `${this.baseUrl}/booking-availability.json`);
-
   readonly howItWorks: HttpResourceRef<HowItWorks | undefined> = httpResource<HowItWorks>(
     () => `${this.baseUrl}/how-it-works.json`,
   );
 
   readonly doctors: HttpResourceRef<Doctors | undefined> = httpResource<Doctors>(
     () => `${this.baseUrl}/doctors.json`,
-  );
-
-  readonly medicalRecord: HttpResourceRef<MedicalRecord | undefined> = httpResource<MedicalRecord>(
-    () => `${this.baseUrl}/medical-record.json`,
   );
 
   readonly locations: HttpResourceRef<Locations | undefined> = httpResource<Locations>(
