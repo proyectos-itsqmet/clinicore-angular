@@ -40,10 +40,20 @@
 
     <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm space-y-4">
       <div class="flex items-center justify-between border-b border-line pb-3">
-        <h2 class="font-display text-sm font-extrabold text-ink">Turnos de Hoy</h2>
-        <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
-          {{ data.turnsToday.total }} turnos
-        </span>
+        <div class="flex items-center gap-3">
+          <h2 class="font-display text-sm font-extrabold text-ink">Turnos de Hoy</h2>
+          <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
+            {{ data.turnsToday.total }} turnos
+          </span>
+        </div>
+        <button
+          type="button"
+          (click)="goToLiveBoard()"
+          class="inline-flex items-center gap-1.5 rounded-pill bg-blue text-white px-3 py-1 text-xs font-bold shadow-cta hover:bg-blue-bright transition-colors"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-live animate-pulse"></span>
+          Monitor en Vivo
+        </button>
       </div>
 
       @if (data.turnsToday.total === 0) {

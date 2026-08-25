@@ -27,4 +27,12 @@ export class PatientApiService {
   getById(id: string): Observable<Patient> {
     return this.http.get<Patient>(`${this.API_URL}/${id}`, { withCredentials: true });
   }
+
+  updateMyProfile(payload: Partial<Patient>): Observable<Patient> {
+    return this.http.put<Patient>(`${this.API_URL}/me`, payload, { withCredentials: true });
+  }
+
+  changeMyPassword(payload: any): Observable<any> {
+    return this.http.put(`${this.API_URL}/change-password`, payload, { withCredentials: true });
+  }
 }

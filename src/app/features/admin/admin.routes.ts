@@ -24,8 +24,17 @@ import { ADMIN_DEFAULT_PATH, ADMIN_NAV } from './admin-nav.data';
 const placeholder = () => import('./admin-placeholder-page').then((module) => module.AdminPlaceholderPage);
 
 export const adminRoutes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: ADMIN_DEFAULT_PATH },
-
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: ADMIN_DEFAULT_PATH,
+  },
+  {
+    path: 'perfil',
+    loadComponent: () => import('./profile/admin-profile.component').then(m => m.AdminProfileComponent),
+    data: { crumbGroup: 'Ajustes', crumbLeaf: 'Mi Perfil' },
+    title: 'Mi Perfil - CliniCore'
+  },
   {
     path: 'dashboard/resumen',
     loadChildren: () => import('./dashboard/dashboard-resumen.routes').then(m => m.dashboardResumenRoutes),

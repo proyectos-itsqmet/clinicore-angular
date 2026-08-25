@@ -9,6 +9,18 @@ import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { RealtimeService } from '../../../core/realtime/realtime.service';
 import type { Establishment, Servicio, Turn, Page, ScheduleDTO, TurnStatus } from '../../../core/models';
 
+import { ActivatedRoute } from '@angular/router';
+
+export interface TurnBoardDTO {
+  id: number;
+  order: number;
+  status: string;
+  hour: string;
+  serviceName: string;
+  doctorName: string;
+  stablishmentName: string;
+}
+
 /**
  * Backend broadcast destination for a stablishment's turn board on a given
  * date (`TurnService#broadcastTurnUpdate` in Backend_QMS). Exported as a
@@ -30,12 +42,18 @@ export class TurnListComponent implements OnInit, OnDestroy {
   private readonly turnApi = inject(TurnApiService);
   private readonly scheduleApi = inject(ScheduleApiService);
   private readonly realtime = inject(RealtimeService);
+  private readonly route = inject(ActivatedRoute);
 
   /** Small "live vs. stale" indicator — see `RealtimeService` for the state machine. */
   protected readonly connectionStatus = this.realtime.status;
 
   private realtimeSubscription: Subscription | null = null;
   private feedbackTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  // 0. Modo Pizarra en Vivo
+  protected readonly isLiveMode = signal<boolean>(false);
+  protected readonly liveTurns = signal<TurnBoardDTO[]>([]);
+  protected readonly liveLoading = signal<boolean>(false);
 
   // 1. Establecimientos (catálogo completo: ver `loadEstablishments` — antes
   // se pedía una única página fija de 100 y las sedes siguientes quedaban
@@ -89,6 +107,9 @@ export class TurnListComponent implements OnInit, OnDestroy {
   protected readonly actionFeedback = signal<{ type: 'success' | 'error'; message: string } | null>(null);
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      this.isLiveMode.set(params['mode'] === 'live');
+    });
     this.loadEstablishments();
   }
 
@@ -116,6 +137,9 @@ export class TurnListComponent implements OnInit, OnDestroy {
     this.servicesFilterName.set('');
     this.loadServicesForEstablishment(est.id, 0);
     this.subscribeToRealtime();
+    if (this.isLiveMode()) {
+      this.loadLiveTurns();
+    }
   }
 
   loadServicesForEstablishment(establishmentId: number, page: number = 0): void {
@@ -149,16 +173,50 @@ export class TurnListComponent implements OnInit, OnDestroy {
       this.loadTurnsForService(0);
     }
     this.subscribeToRealtime();
+    if (this.isLiveMode()) {
+      this.loadLiveTurns();
+    }
+  }
+
+  exitLiveMode(): void {
+    window.history.replaceState({}, '', '/admin/turnos');
+    this.isLiveMode.set(false);
+  }
+
+  loadLiveTurns(): void {
+    const est = this.selectedEstablishment();
+    if (!est) return;
+
+    this.liveLoading.set(true);
+    // Carga inicial masiva de todos los turnos del día
+    this.turnApi.getAll({
+      stablishmentId: est.id,
+      date: this.selectedDate(),
+      size: 500, // asume que son menos de 500 al día o traer paginados, acá traemos hasta 500
+      sort: 'schedule.hour,asc'
+    }).subscribe({
+      next: (pageData) => {
+        const boardTurns: TurnBoardDTO[] = pageData.content.map(turn => ({
+          id: turn.id,
+          order: turn.order,
+          status: turn.status,
+          hour: turn.schedule?.hour || '',
+          serviceName: turn.schedule?.service?.name || '',
+          doctorName: turn.schedule?.doctor ? `${turn.schedule.doctor.firstName} ${turn.schedule.doctor.lastName}` : '',
+          stablishmentName: est.name
+        }));
+        this.liveTurns.set(boardTurns);
+        this.liveLoading.set(false);
+      },
+      error: () => {
+        this.liveLoading.set(false);
+      }
+    });
   }
 
   /**
    * (Re)subscribes to the realtime topic for the currently selected
    * stablishment + date, tearing down any previous subscription first.
-   * Every message is treated as a bare SIGNAL: the handler never reads the
-   * payload, it only re-fetches the current page over the authenticated
-   * REST endpoint (which enforces the real staff/role check — the socket
-   * itself has none). Called on establishment change, date change, and
-   * once establishments finish loading via `selectEstablishment`.
    */
   private subscribeToRealtime(): void {
     this.realtimeSubscription?.unsubscribe();
@@ -170,8 +228,29 @@ export class TurnListComponent implements OnInit, OnDestroy {
     }
 
     const topic = buildStablishmentTopic(est.id, this.selectedDate());
-    this.realtimeSubscription = this.realtime.subscribeTopic(topic).subscribe(() => {
+    this.realtimeSubscription = this.realtime.subscribeTopic(topic).subscribe((msg) => {
+      // Modo Gestión de Turnos normal
       this.loadTurnsForService(this.turnsData()?.number ?? 0);
+      
+      // Modo Pizarra
+      if (this.isLiveMode() && msg.body) {
+        try {
+          const payload = JSON.parse(msg.body) as TurnBoardDTO;
+          this.liveTurns.update(current => {
+            const index = current.findIndex(t => t.id === payload.id);
+            if (index >= 0) {
+              const updated = [...current];
+              updated[index] = payload;
+              return updated;
+            } else {
+              // Insert in correct position based on hour (roughly)
+              return [...current, payload].sort((a, b) => a.hour.localeCompare(b.hour));
+            }
+          });
+        } catch (e) {
+          console.error("Error parsing TurnBoardDTO", e);
+        }
+      }
     });
   }
 

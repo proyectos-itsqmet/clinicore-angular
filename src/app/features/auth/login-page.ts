@@ -84,14 +84,12 @@ export class LoginPage implements OnInit {
     ).subscribe((res) => {
       this.loading.set(false);
       if (res) {
-        if (
-          res.role === 'ROLE_ADMIN' ||
-          res.role === 'ROLE_EMPLOYEE' ||
-          res.role === 'ROLE_OPERATOR' ||
-          res.role === 'ROLE_DOCTOR' ||
-          res.role !== 'ROLE_PATIENT'
-        ) {
-          this.router.navigate(['/admin']);
+        if (res.role === 'ROLE_ADMIN' || res.role === 'ROLE_EMPLOYEE') {
+          this.router.navigate(['/admin/dashboard/resumen']);
+        } else if (res.role === 'ROLE_DOCTOR') {
+          this.router.navigate(['/admin/mis-asignaciones/servicios']);
+        } else if (res.role === 'ROLE_OPERATOR') {
+          this.router.navigate(['/admin/turnos']); // or whichever is default for operator
         } else {
           // Paciente redirigido al flujo de agendamiento de turnos
           this.router.navigate(['/agendar']);

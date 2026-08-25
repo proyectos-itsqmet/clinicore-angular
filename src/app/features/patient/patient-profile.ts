@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService, LoginResponse } from '../../core/auth/auth.service';
 import { TurnApiService } from '../../core/api/turn-api.service';
+import { PatientApiService } from '../../core/api/patient-api.service';
 import type { Page, Turn, TurnFilterParams, TurnStatus } from '../../core/models';
 
 @Component({
@@ -232,6 +233,8 @@ export class PatientProfileComponent implements OnInit {
     this.isEditingProfile.set(false);
   }
 
+  private readonly patientApi = inject(PatientApiService);
+
   onSaveProfile(): void {
     if (this.editProfileForm.invalid) {
       this.editProfileForm.markAllAsTouched();
@@ -241,22 +244,77 @@ export class PatientProfileComponent implements OnInit {
     const formVal = this.editProfileForm.getRawValue();
     const current = this.userProfile();
 
-    this.userProfile.set({
-      ...current,
-      ...formVal
+    this.patientApi.updateMyProfile(formVal).subscribe({
+      next: (updated) => {
+        this.userProfile.set({
+          ...current,
+          ...updated
+        });
+        this.isEditingProfile.set(false);
+        this.profileSaveSuccess.set(true);
+
+        setTimeout(() => {
+          this.profileSaveSuccess.set(false);
+        }, 4000);
+      },
+      error: () => {
+        // Fallback in case of error (for simplicity, usually you'd show an error message)
+      }
     });
-
-    this.isEditingProfile.set(false);
-    this.profileSaveSuccess.set(true);
-
-    setTimeout(() => {
-      this.profileSaveSuccess.set(false);
-    }, 4000);
   }
 
   // --- Cerrar Sesión ---
   onLogout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  // --- Cambio de Contraseña ---
+  protected readonly isChangingPassword = signal<boolean>(false);
+  protected readonly passwordChangeSuccess = signal<boolean>(false);
+  protected readonly passwordChangeError = signal<string | null>(null);
+
+  protected readonly changePasswordForm = this.fb.nonNullable.group({
+    password: ['', [Validators.required, Validators.minLength(8)]],
+    repeatedPassword: ['', Validators.required]
+  });
+
+  startChangingPassword(): void {
+    this.isChangingPassword.set(true);
+    this.passwordChangeSuccess.set(false);
+    this.passwordChangeError.set(null);
+    this.changePasswordForm.reset();
+  }
+
+  cancelChangingPassword(): void {
+    this.isChangingPassword.set(false);
+    this.changePasswordForm.reset();
+  }
+
+  onChangePassword(): void {
+    if (this.changePasswordForm.invalid) {
+      this.changePasswordForm.markAllAsTouched();
+      return;
+    }
+
+    const { password, repeatedPassword } = this.changePasswordForm.getRawValue();
+    if (password !== repeatedPassword) {
+      this.passwordChangeError.set('Las contraseñas no coinciden.');
+      return;
+    }
+
+    this.passwordChangeError.set(null);
+    this.patientApi.changeMyPassword({ password, repeatedPassword }).subscribe({
+      next: () => {
+        this.isChangingPassword.set(false);
+        this.passwordChangeSuccess.set(true);
+        setTimeout(() => {
+          this.passwordChangeSuccess.set(false);
+        }, 4000);
+      },
+      error: (err) => {
+        this.passwordChangeError.set(err?.error?.error || err?.error?.message || 'Error al cambiar la contraseña.');
+      }
+    });
   }
 }

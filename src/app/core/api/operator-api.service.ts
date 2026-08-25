@@ -39,4 +39,8 @@ export class OperatorApiService {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`, { withCredentials: true });
   }
+
+  changeMyPassword(payload: any): Observable<any> {
+    return this.http.put(`${this.API_URL}/change-password`, payload, { withCredentials: true });
+  }
 }

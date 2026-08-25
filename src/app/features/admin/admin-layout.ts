@@ -11,7 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
 
 import { Icon } from '../../shared/ui/atoms/icon/icon';
@@ -71,7 +71,7 @@ interface Crumb {
  */
 @Component({
   selector: 'app-admin-layout',
-  imports: [AdminNav, Icon, RouterOutlet],
+  imports: [AdminNav, Icon, RouterOutlet, RouterLink],
   templateUrl: './admin-layout.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

@@ -44,7 +44,7 @@ export const roleGuard: CanActivateChildFn = (childRoute, state) => {
   if (user.role === 'ROLE_DOCTOR') {
     return router.createUrlTree(['/admin/pacientes/historial-clinico']);
   } else if (user.role === 'ROLE_EMPLOYEE') {
-    return router.createUrlTree(['/admin/turnos']);
+    return router.createUrlTree(['/admin/dashboard/resumen']);
   }
 
   return router.createUrlTree(['/admin/dashboard/resumen']);

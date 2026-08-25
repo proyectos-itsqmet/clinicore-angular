@@ -27,6 +27,8 @@ interface SummaryStatusRow {
  * current totals for every catalog resource. No filters — this is a
  * snapshot, not a period report (that's `dashboard/analytics`).
  */
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-dashboard-resumen',
   templateUrl: './dashboard-resumen.component.html',
@@ -34,6 +36,7 @@ interface SummaryStatusRow {
 })
 export class DashboardResumenComponent implements OnInit {
   private readonly api = inject(MetricsApiService);
+  private readonly router = inject(Router);
 
   protected readonly summary = signal<MetricsSummary | null>(null);
   protected readonly loading = signal<boolean>(true);
@@ -76,5 +79,9 @@ export class DashboardResumenComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  goToLiveBoard(): void {
+    this.router.navigate(['/admin/turnos'], { queryParams: { mode: 'live' } });
   }
 }

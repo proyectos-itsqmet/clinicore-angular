@@ -123,9 +123,10 @@
   </div>
 
   <!-- =========================================================================
-       PASO 3: SERVICIOS DISPONIBLES EN ESTE ESTABLECIMIENTO
+       PASO 3: SERVICIOS DISPONIBLES O PIZARRA EN VIVO
        ========================================================================= -->
-  <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm space-y-4">
+  @if (!isLiveMode()) {
+    <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm space-y-4">
     <div class="flex items-center justify-between border-b border-line pb-3">
       <div>
         <h2 class="font-display text-sm font-extrabold text-ink flex items-center gap-2">
@@ -221,6 +222,96 @@
       }
     }
   </div>
+  } @else {
+    <!-- =========================================================================
+         PIZARRA EN VIVO
+         ========================================================================= -->
+    <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b border-line pb-3">
+        <h2 class="font-display text-sm font-extrabold text-ink flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-live animate-pulse"></span>
+          <span>Pizarra de Turnos en Vivo</span>
+        </h2>
+        <button
+          type="button"
+          (click)="exitLiveMode()"
+          class="rounded-pill border border-line bg-field px-3 py-1 text-xs font-bold text-ink hover:bg-surface transition-colors"
+        >
+          Volver a Gestión
+        </button>
+      </div>
+
+      @if (liveLoading()) {
+        <div class="py-12 text-center text-xs text-ink-3">Cargando pizarra en tiempo real...</div>
+      } @else if (liveTurns().length === 0) {
+        <div class="py-12 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40 p-6">
+          No hay turnos registrados para este día.
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Columna: En Atención (Consultorio) -->
+          <div>
+            <h3 class="font-bold text-xs text-ink-3 mb-3 uppercase tracking-wider flex items-center justify-between">
+              <span>En Atención</span>
+            </h3>
+            <div class="space-y-3">
+              @for (turn of liveTurns(); track turn.id) {
+                @if (turn.status === 'TURN_IN_TREATMENT') {
+                  <div class="p-5 rounded-2xl bg-tint border border-blue shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start mb-3">
+                      <div class="flex items-center gap-3">
+                        <span class="font-display text-4xl font-extrabold text-blue">#{{ turn.order }}</span>
+                      </div>
+                      <span class="text-xs font-bold text-blue bg-white rounded-pill px-3 py-1 shadow-sm border border-blue/20">
+                        {{ turn.serviceName }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                      <span class="w-6 h-6 rounded-full bg-blue/10 text-blue flex items-center justify-center text-[10px]">👨‍⚕️</span>
+                      <p class="text-xs font-bold text-ink">Dr. {{ turn.doctorName }}</p>
+                    </div>
+                    <p class="text-[11px] text-ink-3 mt-3 border-t border-blue/10 pt-2 flex items-center justify-between">
+                      <span>Turno asignado:</span>
+                      <span class="font-mono font-semibold">{{ turn.hour }}</span>
+                    </p>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Columna: Siguientes en Espera -->
+          <div>
+            <h3 class="font-bold text-xs text-ink-3 mb-3 uppercase tracking-wider">Siguientes en la fila</h3>
+            <div class="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              @for (turn of liveTurns(); track turn.id) {
+                @if (turn.status === 'TURN_WAITNG' || turn.status === 'TURN_PENDING') {
+                  <div class="p-3 rounded-xl border border-line bg-surface shadow-sm flex items-center justify-between hover:border-blue/30 transition-colors">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-xl bg-field flex flex-col items-center justify-center border border-line">
+                        <span class="text-[10px] text-ink-3 font-semibold -mb-1">#</span>
+                        <span class="font-display text-sm font-extrabold text-ink">{{ turn.order }}</span>
+                      </div>
+                      <div>
+                        <p class="text-[11px] font-bold text-ink">{{ turn.serviceName }}</p>
+                        <p class="text-[10px] text-ink-3 mt-0.5">Dr. {{ turn.doctorName }}</p>
+                      </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1">
+                      <span class="font-mono text-[11px] font-bold text-ink">{{ turn.hour }}</span>
+                      <span [class]="turn.status === 'TURN_WAITNG' ? 'text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-pill border border-emerald-200' : 'text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-pill border border-amber-200'">
+                        {{ turn.status === 'TURN_WAITNG' ? 'En Sala' : 'Pendiente' }}
+                      </span>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
 </div>
 
 <!-- =========================================================================
