@@ -121,6 +121,14 @@ export class TurnApiService {
     return this.http.put<Turn>(`${this.API_URL}/${id}/reassign`, { scheduleId }, { withCredentials: true });
   }
 
+  markAsWaiting(id: number): Observable<Turn> {
+    return this.http.put<Turn>(`${this.API_URL}/${id}/waiting`, {}, { withCredentials: true });
+  }
+
+  markAsInTreatment(id: number): Observable<Turn> {
+    return this.http.put<Turn>(`${this.API_URL}/${id}/in-treatment`, {}, { withCredentials: true });
+  }
+
   markAsTreated(id: number): Observable<Turn> {
     return this.http.put<Turn>(`${this.API_URL}/${id}/treated`, {}, { withCredentials: true });
   }

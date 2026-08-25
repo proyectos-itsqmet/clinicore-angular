@@ -83,6 +83,20 @@ export class ServicioApiService {
     return this.http.put<Servicio>(`${this.API_URL}/${id}`, servicio, { withCredentials: true });
   }
 
+  /**
+   * `PUT /api/services/{id}/discount` — "precios/descuentos". Deliberately
+   * narrower than {@link update}: touches ONLY the discount column, so this
+   * screen never resends `name`/`price` just to adjust a discount. Never use
+   * {@link update} for this — it would silently overwrite the service's name
+   * and price with whatever the discount form last held.
+   *
+   * `discount` is a FIXED AMOUNT in the same currency unit as `price`, never
+   * a percentage.
+   */
+  updateDiscount(id: number, discount: number): Observable<Servicio> {
+    return this.http.put<Servicio>(`${this.API_URL}/${id}/discount`, { discount }, { withCredentials: true });
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`, { withCredentials: true });
   }

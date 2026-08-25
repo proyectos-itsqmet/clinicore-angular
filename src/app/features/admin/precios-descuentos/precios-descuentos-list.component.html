@@ -1,0 +1,174 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Descuentos</h1>
+      <p class="mt-1 text-xs text-ink-3">Descuento fijo en dólares aplicado al precio base de cada servicio (no un porcentaje).</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Servicio</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio Base</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Descuento ($)</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio Neto</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr><td colspan="6" class="py-12 text-center text-xs text-ink-3">Cargando servicios...</td></tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr><td colspan="6" class="py-12 text-center text-xs text-ink-3">No hay servicios registrados.</td></tr>
+        } @else {
+          @for (item of data()?.content; track item.id) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+              <td class="px-3 py-4 text-xs font-bold text-ink">{{ item.name }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink font-bold">${{ item.price | number:'1.2-2' }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                @if (item.discount && item.discount > 0) {
+                  <span class="inline-flex items-center rounded-pill bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                    -${{ item.discount | number:'1.2-2' }}
+                  </span>
+                } @else {
+                  <span class="text-ink-3 text-xs">Sin descuento</span>
+                }
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink font-bold">${{ netPrice(item) | number:'1.2-2' }}</td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <button
+                  type="button"
+                  (click)="openEditModal(item)"
+                  class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                >
+                  Editar descuento
+                </button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <p class="text-xs text-ink-3">
+          Mostrando <span class="font-bold text-ink">{{ data()!.numberOfElements }}</span> de
+          <span class="font-bold text-ink">{{ data()!.totalElements }}</span> servicios
+        </p>
+        <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+          <button
+            [disabled]="data()!.first"
+            (click)="loadPage(data()!.number - 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Anterior
+          </button>
+          <span class="px-2 text-xs font-bold text-ink">Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages || 1 }}</span>
+          <button
+            [disabled]="data()!.last"
+            (click)="loadPage(data()!.number + 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Siguiente
+          </button>
+        </nav>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL EDITAR DESCUENTO
+     ========================================================================= -->
+@if (isEditModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeEditModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">Editar Descuento — {{ editingItem()?.name }}</h3>
+            <button
+              type="button"
+              (click)="closeEditModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ formError() }}</span>
+            </div>
+          }
+
+          <!-- Aviso PERMANENTE de unidad: monto fijo en $, nunca un porcentaje. -->
+          <div class="mb-4 rounded-xl bg-blue-50 border border-blue-200 p-3 text-[11px] text-blue-900" role="note">
+            ℹ️ Este descuento es un <strong>monto fijo en dólares</strong> que se resta del precio del servicio, NO un porcentaje.
+            Si ingresas 20, se descuentan $20.00 — no el 20%.
+          </div>
+
+          <form (ngSubmit)="onFormSubmit()">
+            <div class="space-y-4">
+              <div>
+                <label for="discountAmount" class="block text-xs font-bold text-ink mb-1">Descuento ($) *</label>
+                <div class="relative">
+                  <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-xs font-bold text-ink-3">$</span>
+                  <input
+                    type="number"
+                    id="discountAmount"
+                    min="0"
+                    step="0.01"
+                    [value]="formDiscount()"
+                    (input)="onFormDiscountInput($event)"
+                    name="discountAmount"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 pl-7 pr-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+                @if (submitAttempted() && !formDiscountValid()) {
+                  <p class="mt-1 text-xs text-red-600">El descuento no puede ser negativo ni estar vacío.</p>
+                }
+              </div>
+
+              @if (formPreviewNetPrice() != null) {
+                <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs font-bold text-amber-900">
+                  Precio neto con este descuento: ${{ formPreviewNetPrice() | number:'1.2-2' }}
+                </div>
+              }
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeEditModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : 'Guardar Descuento' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

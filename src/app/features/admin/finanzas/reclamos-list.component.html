@@ -1,0 +1,196 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-extrabold text-ink">Reclamos</h1>
+    <p class="mt-1 text-xs text-ink-3">Reclamos a aseguradoras por líneas cubiertas de las facturas emitidas.</p>
+  </div>
+
+  <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
+    <div class="flex-1 max-w-xs">
+      <label class="block text-[11px] font-bold text-ink mb-1" for="reclamoEstadoFilter">Estado</label>
+      <select
+        id="reclamoEstadoFilter"
+        name="reclamoEstadoFilter"
+        [value]="filterStatus()"
+        (change)="onFilterStatusChange($event)"
+        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos</option>
+        <option value="SUBMITTED">Presentado</option>
+        <option value="ACCEPTED">Aceptado</option>
+        <option value="REJECTED">Rechazado</option>
+        <option value="PAID">Pagado</option>
+      </select>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  @if (actionError()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200" role="alert">
+      <h3 class="text-xs font-bold text-red-800">{{ actionError() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Factura</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Aseguradora</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Plan</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Monto Reclamado</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Estado</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Presentado</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr>
+            <td colspan="8" class="py-12 text-center text-xs text-ink-3">Cargando reclamos...</td>
+          </tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr>
+            <td colspan="8" class="py-12 text-center text-xs text-ink-3">No hay reclamos registrados.</td>
+          </tr>
+        } @else {
+          @for (item of data()?.content; track item.id) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">Factura #{{ item.invoiceId }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ item.insurerName || '—' }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ item.planName || '—' }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-bold text-ink">{{ formatMoney(item.amountClaimed) }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                @if (item.status) {
+                  <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + CLAIM_STATUS_BADGE_CLASS[item.status]">
+                    {{ CLAIM_STATUS_LABELS[item.status] }}
+                  </span>
+                }
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">{{ formatIsoDateTimeEs(item.submittedAt) }}</td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                @if (item.status === 'SUBMITTED') {
+                  <div class="inline-flex items-center gap-2">
+                    <button
+                      type="button"
+                      [disabled]="processingId() === item.id"
+                      (click)="accept(item)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white disabled:opacity-50 transition-all shadow-sm"
+                    >
+                      Aceptar
+                    </button>
+                    <button
+                      type="button"
+                      [disabled]="processingId() === item.id"
+                      (click)="openRejectModal(item)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-all"
+                    >
+                      Rechazar
+                    </button>
+                  </div>
+                } @else if (item.status === 'ACCEPTED') {
+                  <button
+                    type="button"
+                    [disabled]="processingId() === item.id"
+                    (click)="markAsPaid(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 hover:bg-emerald-100 disabled:opacity-50 transition-all"
+                  >
+                    Marcar Pagado
+                  </button>
+                } @else {
+                  <span class="text-ink-3">—</span>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <p class="text-xs text-ink-3">
+          Mostrando <span class="font-bold text-ink">{{ data()!.numberOfElements }}</span> de
+          <span class="font-bold text-ink">{{ data()!.totalElements }}</span> reclamos
+        </p>
+        <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+          <button
+            [disabled]="data()!.first"
+            (click)="loadPage(data()!.number - 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Anterior
+          </button>
+          <span class="px-2 text-xs font-bold text-ink">Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages || 1 }}</span>
+          <button
+            [disabled]="data()!.last"
+            (click)="loadPage(data()!.number + 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Siguiente
+          </button>
+        </nav>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL RECHAZAR RECLAMO
+     ========================================================================= -->
+@if (isRejectModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeRejectModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">Rechazar Reclamo</h3>
+            <button type="button" (click)="closeRejectModal()" class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors">✕</button>
+          </div>
+
+          <p class="mb-4 text-xs text-ink-3">
+            Rechazar NO cambia el total ni el saldo de la factura #{{ rejectingClaim()?.invoiceId }} — la deuda pasa a ser responsabilidad del
+            paciente en lugar de la aseguradora.
+          </p>
+
+          @if (rejectFormError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ rejectFormError() }}</span>
+            </div>
+          }
+
+          <form name="rejectClaimForm" (ngSubmit)="onSubmitReject()">
+            <label for="rejectReason" class="block text-xs font-bold text-ink mb-1">Motivo de rechazo *</label>
+            <textarea
+              id="rejectReason"
+              name="rejectReason"
+              rows="3"
+              [value]="rejectReason()"
+              (input)="onRejectReasonInput($event)"
+              placeholder="Ej. Cobertura vencida, plan no cubre el servicio..."
+              class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+            ></textarea>
+            @if (rejectSubmitAttempted() && !rejectFormValid()) {
+              <p class="mt-1 text-xs text-red-600">El motivo de rechazo es obligatorio.</p>
+            }
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button type="button" (click)="closeRejectModal()" class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors">Cancelar</button>
+              <button type="submit" [disabled]="rejectFormLoading()" class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all">
+                {{ rejectFormLoading() ? 'Rechazando...' : 'Rechazar Reclamo' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

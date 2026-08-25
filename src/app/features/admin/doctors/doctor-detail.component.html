@@ -29,6 +29,16 @@
           </svg>
           Editar Información
         </button>
+        <button
+          (click)="openDeleteModal()"
+          type="button"
+          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-xs font-bold text-red-600 shadow-sm border border-red-200 hover:bg-red-50 transition-colors"
+        >
+          <svg class="w-4 h-4 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+          </svg>
+          Eliminar
+        </button>
       </div>
     }
   </div>
@@ -256,6 +266,52 @@
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ELIMINAR DOCTOR
+     ========================================================================= -->
+@if (isDeleteModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeDeleteModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Eliminar Doctor
+              </h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                ¿Estás seguro de que deseas eliminar a <strong>Dr. {{ doctor()?.firstName }} {{ doctor()?.lastName }}</strong>?
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeDeleteModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="formLoading()"
+              (click)="confirmDelete()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ formLoading() ? 'Eliminando...' : 'Eliminar Doctor' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

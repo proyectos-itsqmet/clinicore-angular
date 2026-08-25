@@ -1,0 +1,86 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Reporte General de Turnos</h1>
+      <p class="mt-1 text-xs text-ink-3">
+        Totales de turnos por estado en el rango seleccionado, a nivel de todo el sistema.
+      </p>
+    </div>
+    @if (series(); as data) {
+      <span class="text-[11px] text-ink-3 shrink-0">Rango resuelto: {{ data.from }} → {{ data.to }}</span>
+    }
+  </div>
+
+  <!-- Filter bar -->
+  <div class="flex flex-wrap items-end gap-3 bg-surface rounded-2xl border border-line p-4 shadow-sm">
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="reporteDesde">Desde</label>
+      <input
+        id="reporteDesde"
+        type="date"
+        [ngModel]="rangeFrom()"
+        (ngModelChange)="onRangeFromChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="reporteHasta">Hasta</label>
+      <input
+        id="reporteHasta"
+        type="date"
+        [ngModel]="rangeTo()"
+        (ngModelChange)="onRangeToChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="py-16 text-center text-xs text-ink-3">Generando reporte...</div>
+  } @else if (error()) {
+    <div class="p-4 rounded-2xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">
+      {{ error() }}
+    </div>
+  } @else {
+    <!-- Totales por estado -->
+    <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <table class="min-w-full divide-y divide-line">
+        <thead class="bg-field">
+          <tr>
+            <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Estado</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Turnos</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">% del total</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line bg-surface">
+          @if (grandTotal() === 0) {
+            <tr><td colspan="3" class="py-12 text-center text-xs text-ink-3">No hay turnos registrados en el rango seleccionado.</td></tr>
+          } @else {
+            @for (row of statusTotals(); track row.status) {
+              <tr class="hover:bg-tint/20 transition-colors">
+                <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs">
+                  <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + row.badgeClass">
+                    {{ row.label }}
+                  </span>
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs font-bold text-ink">{{ row.total }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ row.percent | number: '1.1-1' }}%</td>
+              </tr>
+            }
+            <tr class="bg-field/60 font-bold">
+              <td class="whitespace-nowrap py-3 pl-5 pr-3 text-xs text-ink">Total</td>
+              <td class="whitespace-nowrap px-3 py-3 text-xs text-ink">{{ grandTotal() }}</td>
+              <td class="whitespace-nowrap px-3 py-3 text-xs text-ink">100.0%</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Serie diaria (mismo componente que dashboard/analytics) -->
+    <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm">
+      <h2 class="font-display text-sm font-extrabold text-ink mb-3">Serie Diaria</h2>
+      <app-turns-series-chart [days]="series()?.days ?? []" />
+    </div>
+  }
+</div>

@@ -18,8 +18,29 @@
       <p class="text-xs text-ink-3 mt-0.5">Consulta el historial de atención, asigna nuevos turnos, reasigna fechas o cancela citas asignadas.</p>
     </div>
 
-    <!-- Botón Asignar Turno -->
-    <div>
+    <!-- Accesos a Historial Clínico / Recetas / Auditoría + Asignar Turno -->
+    <div class="flex flex-wrap items-center gap-2">
+      <a
+        [routerLink]="['/admin/pacientes/historial-clinico']"
+        [queryParams]="{ patientId: patientId }"
+        class="inline-flex items-center rounded-pill border border-line bg-field px-3 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+      >
+        Historial clínico
+      </a>
+      <a
+        [routerLink]="['/admin/pacientes/recetas']"
+        [queryParams]="{ patientId: patientId }"
+        class="inline-flex items-center rounded-pill border border-line bg-field px-3 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+      >
+        Recetas
+      </a>
+      <a
+        [routerLink]="['/admin/reportes/auditoria-hc']"
+        [queryParams]="{ patientId: patientId }"
+        class="inline-flex items-center rounded-pill border border-line bg-field px-3 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+      >
+        Auditoría de accesos
+      </a>
       <button
         (click)="openAssignTurnModal()"
         type="button"
@@ -71,8 +92,39 @@
         </div>
       </div>
     </div>
+  } @else if (patientLoading()) {
+    <div class="rounded-2xl border border-line bg-surface p-5 shadow-sm text-center text-xs text-ink-3">
+      Cargando información del paciente...
+    </div>
+  } @else if (patientError()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ patientError() }}</h3>
+    </div>
   }
 
+  <!-- Selector de sección: Turnos | Coberturas -->
+  <div class="inline-flex items-center gap-1 rounded-pill border border-line bg-field p-1">
+    <button
+      type="button"
+      (click)="selectSection('turnos')"
+      [class]="activeSection() === 'turnos'
+        ? 'rounded-pill bg-blue px-4 py-1.5 text-xs font-bold text-surface shadow-cta transition-all'
+        : 'rounded-pill px-4 py-1.5 text-xs font-bold text-ink-3 hover:text-ink transition-colors'"
+    >
+      Turnos
+    </button>
+    <button
+      type="button"
+      (click)="selectSection('coberturas')"
+      [class]="activeSection() === 'coberturas'
+        ? 'rounded-pill bg-blue px-4 py-1.5 text-xs font-bold text-surface shadow-cta transition-all'
+        : 'rounded-pill px-4 py-1.5 text-xs font-bold text-ink-3 hover:text-ink transition-colors'"
+    >
+      Coberturas
+    </button>
+  </div>
+
+  @if (activeSection() === 'turnos') {
   <!-- Filtros de Búsqueda de Turnos Existentes -->
   <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm">
     <h3 class="text-xs font-bold text-ink uppercase tracking-wider mb-3">Filtrar Historial de Turnos</h3>
@@ -256,6 +308,16 @@
                     >
                       <span>✕ Cancelar</span>
                     </button>
+                  } @else if (turn.status === 'TURN_TREATED') {
+                    <!-- Un Encounter solo puede crearse desde un turno ya ATENDIDO -->
+                    <a
+                      [routerLink]="['/admin/pacientes/historial-clinico']"
+                      [queryParams]="{ patientId: patientId, turnId: turn.id }"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
+                      title="Registrar la historia clínica de este turno atendido"
+                    >
+                      <span>📋 Registrar historia clínica</span>
+                    </a>
                   } @else {
                     <span class="text-ink-3 text-[11px] italic font-normal">Sin acciones</span>
                   }
@@ -303,6 +365,101 @@
       </div>
     }
   </div>
+  }
+
+  @if (activeSection() === 'coberturas') {
+    <!-- Coberturas de Seguro del Paciente -->
+    <div class="flex items-center justify-between">
+      <h3 class="text-xs font-bold text-ink uppercase tracking-wider">Coberturas de Seguro</h3>
+      @if (!coveragesPermissionDenied()) {
+        <button
+          type="button"
+          (click)="openAssignCoverageModal()"
+          class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+        >
+          + Asignar Cobertura
+        </button>
+      }
+    </div>
+
+    @if (coveragesLoading()) {
+      <div class="rounded-2xl border border-line bg-surface p-8 text-center text-xs text-ink-3 shadow-sm">
+        Cargando información de cobertura...
+      </div>
+    } @else if (coveragesPermissionDenied()) {
+      <div class="rounded-2xl bg-blue-50 border border-blue-200 p-4 text-xs text-blue-900" role="status">
+        ℹ️ {{ coveragesError() }}
+      </div>
+    } @else if (coveragesError()) {
+      <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+        <h3 class="text-xs font-bold text-red-800">{{ coveragesError() }}</h3>
+      </div>
+    } @else if (coverages().length === 0) {
+      <div class="rounded-2xl border border-dashed border-line bg-field/50 p-8 text-center text-xs text-ink-3">
+        Este paciente no tiene ninguna cobertura de seguro registrada todavía.
+      </div>
+    } @else {
+      <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <table class="min-w-full divide-y divide-line">
+          <thead class="bg-field">
+            <tr>
+              <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Aseguradora / Plan</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Modelo de Cobro</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3"># Póliza</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Vigencia</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Estado</th>
+              <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line bg-surface">
+            <!-- Cada fila muestra SU PROPIO estado `active`: si el backend alguna vez devuelve más de una cobertura activa a la vez, se muestra tal cual en vez de ocultarlo. -->
+            @for (cov of coverages(); track cov.id) {
+              <tr class="hover:bg-tint/20 transition-colors">
+                <td class="px-3 py-4 pl-5 text-xs">
+                  <div class="font-bold text-ink">{{ cov.plan.insurer.name }}</div>
+                  <div class="text-[11px] text-ink-3">{{ cov.plan.name }}</div>
+                </td>
+                <td class="px-3 py-4 text-xs text-ink-3">{{ coveragePlanPricingSummary(cov.plan) }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs font-mono font-bold text-ink">{{ cov.policyNumber }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">
+                  {{ formatIsoDateEs(cov.validFrom) }} – {{ cov.validUntil ? formatIsoDateEs(cov.validUntil) : 'sin fecha de fin' }}
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs">
+                  @if (cov.active) {
+                    <span class="inline-flex items-center rounded-pill bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                      Activa
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center rounded-pill bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-600 border border-slate-200">
+                      Inactiva
+                    </span>
+                  }
+                </td>
+                <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                  <div class="inline-flex items-center gap-2">
+                    <button
+                      type="button"
+                      (click)="openEditCoverageModal(cov)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="onDeleteCoverage(cov)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 transition-all"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
 </div>
 
 <!-- =========================================================================
@@ -336,7 +493,7 @@
 
           <!-- Filtros de Búsqueda de Horarios -->
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
-            <div class="sm:col-span-4">
+            <div class="sm:col-span-3">
               <label class="block text-[11px] font-bold text-ink mb-1">📅 Por Fecha</label>
               <input
                 type="date"
@@ -346,7 +503,7 @@
               />
             </div>
 
-            <div class="sm:col-span-4">
+            <div class="sm:col-span-3">
               <label class="block text-[11px] font-bold text-ink mb-1">🏥 Por Sede</label>
               <select
                 [ngModel]="scheduleSearchForm.get('stablishmentId')?.value"
@@ -360,7 +517,21 @@
               </select>
             </div>
 
-            <div class="sm:col-span-4 flex items-end gap-2">
+            <div class="sm:col-span-3">
+              <label class="block text-[11px] font-bold text-ink mb-1">🩺 Por Servicio</label>
+              <select
+                [ngModel]="scheduleSearchForm.get('serviceId')?.value"
+                (ngModelChange)="scheduleSearchForm.patchValue({ serviceId: $event })"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+              >
+                <option value="">Todos los servicios</option>
+                @for (srv of services(); track srv.id) {
+                  <option [value]="srv.id">{{ srv.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="sm:col-span-3 flex items-end gap-2">
               <button
                 type="button"
                 (click)="onScheduleSearch()"
@@ -378,6 +549,18 @@
               </button>
             </div>
           </div>
+
+          <!-- Catálogos de filtro incompletos (no impide usar el modal, pero el operador debería saberlo) -->
+          @if (establishmentsError() || servicesError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200">
+              {{ establishmentsError() || servicesError() }}
+            </div>
+          }
+          @if (establishmentsIncomplete() || servicesIncomplete()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200" role="alert">
+              No se pudo cargar el catálogo completo de {{ establishmentsIncomplete() && servicesIncomplete() ? 'sedes ni servicios' : establishmentsIncomplete() ? 'sedes' : 'servicios' }}; los filtros de arriba pueden estar incompletos.
+            </div>
+          }
 
           <!-- Mensaje de Error en Horarios -->
           @if (schedulesError()) {
@@ -523,7 +706,7 @@
 
           <!-- Filtros de Búsqueda de Nuevo Horario -->
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 bg-field p-3.5 rounded-2xl border border-line mb-4">
-            <div class="sm:col-span-4">
+            <div class="sm:col-span-3">
               <label class="block text-[11px] font-bold text-ink mb-1">📅 Nueva Fecha</label>
               <input
                 type="date"
@@ -533,7 +716,7 @@
               />
             </div>
 
-            <div class="sm:col-span-4">
+            <div class="sm:col-span-3">
               <label class="block text-[11px] font-bold text-ink mb-1">🏥 Sede / Establecimiento</label>
               <select
                 [ngModel]="reassignSearchForm.get('stablishmentId')?.value"
@@ -547,7 +730,21 @@
               </select>
             </div>
 
-            <div class="sm:col-span-4 flex items-end gap-2">
+            <div class="sm:col-span-3">
+              <label class="block text-[11px] font-bold text-ink mb-1">🩺 Servicio</label>
+              <select
+                [ngModel]="reassignSearchForm.get('serviceId')?.value"
+                (ngModelChange)="reassignSearchForm.patchValue({ serviceId: $event })"
+                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+              >
+                <option value="">Todos los servicios</option>
+                @for (srv of services(); track srv.id) {
+                  <option [value]="srv.id">{{ srv.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="sm:col-span-3 flex items-end gap-2">
               <button
                 type="button"
                 (click)="onReassignSearch()"
@@ -565,6 +762,18 @@
               </button>
             </div>
           </div>
+
+          <!-- El backend rechaza reasignar a un servicio distinto: el filtro ya llega precargado con el actual -->
+          @if (establishmentsError() || servicesError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200">
+              {{ establishmentsError() || servicesError() }}
+            </div>
+          }
+          @if (establishmentsIncomplete() || servicesIncomplete()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200" role="alert">
+              No se pudo cargar el catálogo completo de {{ establishmentsIncomplete() && servicesIncomplete() ? 'sedes ni servicios' : establishmentsIncomplete() ? 'sedes' : 'servicios' }}; los filtros de arriba pueden estar incompletos.
+            </div>
+          }
 
           <!-- Mensaje de Error en Horarios de Reasignación -->
           @if (reassignSchedulesError()) {
@@ -736,6 +945,162 @@
             </button>
           </div>
 
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ASIGNAR / EDITAR COBERTURA DE SEGURO (PatientCoverage)
+     ========================================================================= -->
+@if (isCoverageModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeCoverageModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              {{ editingCoverage() ? 'Editar Cobertura' : 'Asignar Cobertura de Seguro' }}
+            </h3>
+            <button
+              type="button"
+              (click)="closeCoverageModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (coverageFormError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ coverageFormError() }}</span>
+            </div>
+          }
+
+          @if (coveragePlansCatalogError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200">
+              {{ coveragePlansCatalogError() }}
+            </div>
+          }
+          @if (coveragePlansCatalogIncomplete()) {
+            <div class="mb-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 border border-amber-200" role="alert">
+              No se pudo cargar el catálogo completo de planes de cobertura; la lista de abajo puede estar incompleta.
+            </div>
+          }
+
+          <form (ngSubmit)="onCoverageFormSubmit()">
+            <div class="space-y-4">
+              <div>
+                <label for="coveragePlan" class="block text-xs font-bold text-ink mb-1">Plan de Cobertura *</label>
+                <select
+                  id="coveragePlan"
+                  [value]="coverageFormPlanId() ?? ''"
+                  (change)="onCoveragePlanChange($event)"
+                  name="coveragePlan"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Selecciona un plan...</option>
+                  @for (p of coveragePlansCatalog(); track p.id) {
+                    <option [value]="p.id">{{ p.insurer.name }} — {{ p.name }}</option>
+                  }
+                </select>
+                @if (coverageSubmitAttempted() && coverageFormPlanId() == null) {
+                  <p class="mt-1 text-xs text-red-600">El plan de cobertura es requerido.</p>
+                }
+                @if (coveragePlansCatalog().length === 0 && !coveragePlansCatalogLoading()) {
+                  <p class="mt-1 text-[11px] text-ink-3">
+                    No hay planes de cobertura registrados. Créalos en Admin → Planes de cobertura.
+                  </p>
+                }
+                @if (coverageFormSelectedPlan()) {
+                  <!-- Misma redacción que coverage-list.component: el plan elegido explica, en el punto de entrada, cómo se le cobrará al paciente. -->
+                  <p class="mt-1.5 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-[11px] font-bold text-amber-900">
+                    Este plan aplicará: {{ coveragePlanPricingSummary(coverageFormSelectedPlan()!) }}.
+                  </p>
+                }
+              </div>
+
+              <div>
+                <label for="coveragePolicyNumber" class="block text-xs font-bold text-ink mb-1"># de Póliza *</label>
+                <input
+                  type="text"
+                  id="coveragePolicyNumber"
+                  [value]="coverageFormPolicyNumber()"
+                  (input)="onCoveragePolicyNumberInput($event)"
+                  name="coveragePolicyNumber"
+                  placeholder="Ej. POL-00123"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (coverageSubmitAttempted() && !coverageFormPolicyNumber().trim()) {
+                  <p class="mt-1 text-xs text-red-600">El número de póliza es requerido.</p>
+                }
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="coverageValidFrom" class="block text-xs font-bold text-ink mb-1">Vigente Desde *</label>
+                  <input
+                    type="date"
+                    id="coverageValidFrom"
+                    [value]="coverageFormValidFrom()"
+                    (input)="onCoverageValidFromInput($event)"
+                    name="coverageValidFrom"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                  @if (coverageSubmitAttempted() && !coverageFormValidFrom()) {
+                    <p class="mt-1 text-xs text-red-600">La fecha de inicio es requerida.</p>
+                  }
+                </div>
+                <div>
+                  <label for="coverageValidUntil" class="block text-xs font-bold text-ink mb-1">Vigente Hasta</label>
+                  <input
+                    type="date"
+                    id="coverageValidUntil"
+                    [value]="coverageFormValidUntil()"
+                    (input)="onCoverageValidUntilInput($event)"
+                    name="coverageValidUntil"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                  <p class="mt-1 text-[11px] text-ink-3">Vacío = póliza vigente sin fecha de fin.</p>
+                </div>
+              </div>
+
+              <label class="flex items-center gap-2 rounded-xl border border-line bg-field p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  [checked]="coverageFormActive()"
+                  (change)="onCoverageActiveChange($event)"
+                  class="h-4 w-4 rounded border-line text-blue focus:ring-blue"
+                />
+                <span class="text-xs font-bold text-ink">Marcar como cobertura ACTIVA</span>
+              </label>
+              @if (coverageFormActive()) {
+                <p class="-mt-2 text-[11px] text-ink-3">
+                  Solo puede haber una cobertura activa por paciente: si ya tiene otra activa, se desactivará automáticamente al guardar.
+                </p>
+              }
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeCoverageModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="coverageFormLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ coverageFormLoading() ? 'Guardando...' : (editingCoverage() ? 'Guardar Cambios' : 'Asignar Cobertura') }}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

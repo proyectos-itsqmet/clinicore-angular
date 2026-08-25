@@ -1,0 +1,68 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Resumen General</h1>
+      <p class="mt-1 text-xs text-ink-3">
+        Estado actual del sistema: turnos de hoy por estado y totales vigentes de cada catálogo.
+      </p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="py-16 text-center text-xs text-ink-3">Cargando resumen...</div>
+  } @else if (error()) {
+    <div class="p-4 rounded-2xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">
+      {{ error() }}
+    </div>
+  } @else if (summary(); as data) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
+        <p class="text-[11px] font-bold text-ink-3">Pacientes</p>
+        <p class="mt-1 font-display text-2xl font-extrabold text-ink">{{ data.totalPatients }}</p>
+      </div>
+      <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
+        <p class="text-[11px] font-bold text-ink-3">Doctores</p>
+        <p class="mt-1 font-display text-2xl font-extrabold text-ink">{{ data.totalDoctors }}</p>
+      </div>
+      <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
+        <p class="text-[11px] font-bold text-ink-3">Operadores</p>
+        <p class="mt-1 font-display text-2xl font-extrabold text-ink">{{ data.totalOperators }}</p>
+      </div>
+      <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
+        <p class="text-[11px] font-bold text-ink-3">Establecimientos</p>
+        <p class="mt-1 font-display text-2xl font-extrabold text-ink">{{ data.totalEstablishments }}</p>
+      </div>
+      <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
+        <p class="text-[11px] font-bold text-ink-3">Servicios</p>
+        <p class="mt-1 font-display text-2xl font-extrabold text-ink">{{ data.totalServices }}</p>
+      </div>
+    </div>
+
+    <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b border-line pb-3">
+        <h2 class="font-display text-sm font-extrabold text-ink">Turnos de Hoy</h2>
+        <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
+          {{ data.turnsToday.total }} turnos
+        </span>
+      </div>
+
+      @if (data.turnsToday.total === 0) {
+        <p class="text-xs text-ink-3 italic">Sin turnos registrados hoy todavía.</p>
+      }
+
+      <div class="space-y-2.5">
+        @for (row of statusRows(); track row.status) {
+          <div class="flex items-center gap-3">
+            <span [class]="'shrink-0 w-28 truncate inline-flex items-center rounded-pill px-2 py-0.5 text-[10px] font-bold ' + row.badgeClass">
+              {{ row.label }}
+            </span>
+            <div class="flex-1 h-3 rounded-pill bg-field overflow-hidden">
+              <div class="h-full rounded-pill transition-all" [style.width.%]="row.percent" [style.background-color]="row.color"></div>
+            </div>
+            <span class="w-10 shrink-0 text-right text-xs font-bold text-ink">{{ row.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

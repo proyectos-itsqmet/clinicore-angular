@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -6,7 +6,13 @@ import { PatientApiService } from '../../../core/api/patient-api.service';
 import { TurnApiService } from '../../../core/api/turn-api.service';
 import { ScheduleApiService } from '../../../core/api/schedule-api.service';
 import { EstablishmentApiService } from '../../../core/api/establishment-api.service';
-import type { Page, Patient, Turn, TurnFilterParams, TurnStatus, ScheduleDTO, Establishment } from '../../../core/models';
+import { ServicioApiService } from '../../../core/api/servicio-api.service';
+import { CoveragePlanApiService } from '../../../core/api/coverage-plan-api.service';
+import { PatientCoverageApiService } from '../../../core/api/patient-coverage-api.service';
+import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
+import { extractApiErrorMessage, formatIsoDateEs, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
+import { coveragePlanPricingSummary } from '../coverage/coverage-plan-pricing.util';
+import type { CoveragePlan, Page, Patient, PatientCoverage, Turn, TurnFilterParams, TurnStatus, ScheduleDTO, Establishment, Servicio } from '../../../core/models';
 
 @Component({
   selector: 'app-patient-detail',
@@ -20,11 +26,15 @@ export class PatientDetailComponent implements OnInit {
   private readonly turnApi = inject(TurnApiService);
   private readonly scheduleApi = inject(ScheduleApiService);
   private readonly establishmentApi = inject(EstablishmentApiService);
+  private readonly servicioApi = inject(ServicioApiService);
+  private readonly coveragePlanApi = inject(CoveragePlanApiService);
+  private readonly patientCoverageApi = inject(PatientCoverageApiService);
   private readonly fb = inject(FormBuilder);
 
   protected patientId = '';
   protected readonly patient = signal<Patient | null>(null);
   protected readonly patientLoading = signal<boolean>(true);
+  protected readonly patientError = signal<string | null>(null);
 
   // Turnos del paciente
   protected readonly turnsData = signal<Page<Turn> | null>(null);
@@ -47,14 +57,24 @@ export class PatientDetailComponent implements OnInit {
   protected readonly selectedSchedule = signal<ScheduleDTO | null>(null);
   protected readonly assigningTurn = signal<boolean>(false);
 
-  // Catálogo de establecimientos para filtrar
+  // Catálogo de establecimientos para filtrar (completo: ver `loadEstablishments`)
   protected readonly establishments = signal<Establishment[]>([]);
   protected readonly establishmentsLoading = signal<boolean>(false);
+  protected readonly establishmentsError = signal<string | null>(null);
+  protected readonly establishmentsIncomplete = signal<boolean>(false);
+
+  // Catálogo de servicios para filtrar (el backend rechaza reasignar a otro
+  // servicio). Completo: ver `loadServices`.
+  protected readonly services = signal<Servicio[]>([]);
+  protected readonly servicesLoading = signal<boolean>(false);
+  protected readonly servicesError = signal<string | null>(null);
+  protected readonly servicesIncomplete = signal<boolean>(false);
 
   // Formulario de búsqueda de horarios para Asignación
   protected readonly scheduleSearchForm = this.fb.nonNullable.group({
     date: [''],
     stablishmentId: [''],
+    serviceId: [''],
     doctorName: ['']
   });
 
@@ -70,6 +90,7 @@ export class PatientDetailComponent implements OnInit {
   protected readonly reassignSearchForm = this.fb.nonNullable.group({
     date: [''],
     stablishmentId: [''],
+    serviceId: [''],
     doctorName: ['']
   });
 
@@ -82,12 +103,59 @@ export class PatientDetailComponent implements OnInit {
   // --- ACCIÓN MARCAR COMO TRATADO ---
   protected readonly markingTreatedId = signal<number | null>(null);
 
+  // --- Coberturas de Seguro ("Coberturas" tab) ---
+  // Carga PEREZOSA a propósito: solo se dispara al entrar a esta pestaña, no
+  // en ngOnInit — así no se suma una 5ta petición paralela a las cuatro que
+  // esta pantalla ya dispara al cargar, y las specs existentes que nunca
+  // tocan esta pestaña no necesitan flushear nada nuevo.
+  protected readonly activeSection = signal<'turnos' | 'coberturas'>('turnos');
+
+  protected readonly coverages = signal<PatientCoverage[]>([]);
+  protected readonly coveragesLoading = signal<boolean>(false);
+  protected readonly coveragesError = signal<string | null>(null);
+  // Distingue "no tienes permiso" (esperado para ROLE_DOCTOR, ver
+  // PatientCoverageAccessGuard) de una falla real, para no asustar con un
+  // banner rojo genérico algo que es un resultado normal para un rol legítimo.
+  protected readonly coveragesPermissionDenied = signal<boolean>(false);
+
+  protected readonly coveragePlanPricingSummary = coveragePlanPricingSummary;
+  protected readonly formatIsoDateEs = formatIsoDateEs;
+
+  // Catálogo de planes de cobertura para el <select> del modal de asignación.
+  protected readonly coveragePlansCatalog = signal<CoveragePlan[]>([]);
+  protected readonly coveragePlansCatalogLoading = signal<boolean>(false);
+  protected readonly coveragePlansCatalogError = signal<string | null>(null);
+  protected readonly coveragePlansCatalogIncomplete = signal<boolean>(false);
+
+  // --- Modal Asignar/Editar Cobertura ---
+  protected readonly isCoverageModalOpen = signal<boolean>(false);
+  protected readonly editingCoverage = signal<PatientCoverage | null>(null);
+  protected readonly coverageFormLoading = signal<boolean>(false);
+  protected readonly coverageFormError = signal<string | null>(null);
+  protected readonly coverageSubmitAttempted = signal<boolean>(false);
+
+  protected readonly coverageFormPlanId = signal<number | null>(null);
+  protected readonly coverageFormPolicyNumber = signal<string>('');
+  protected readonly coverageFormValidFrom = signal<string>('');
+  protected readonly coverageFormValidUntil = signal<string>('');
+  protected readonly coverageFormActive = signal<boolean>(true);
+
+  protected readonly coverageFormValid = computed(
+    () => this.coverageFormPlanId() != null && !!this.coverageFormPolicyNumber().trim() && !!this.coverageFormValidFrom(),
+  );
+
+  /** The plan currently picked in the form, so the modal can echo ITS OWN pricing rule at the point of entry — same wording as `coverage-list.component`, never re-worded per screen. */
+  protected readonly coverageFormSelectedPlan = computed(
+    () => this.coveragePlansCatalog().find((p) => p.id === this.coverageFormPlanId()) ?? null,
+  );
+
   ngOnInit(): void {
     this.patientId = this.route.snapshot.paramMap.get('id') || '';
     if (this.patientId) {
       this.loadPatientInfo();
       this.loadTurns(0);
       this.loadEstablishments();
+      this.loadServices();
     } else {
       this.error.set('Identificador de paciente no válido.');
       this.turnsLoading.set(false);
@@ -97,25 +165,47 @@ export class PatientDetailComponent implements OnInit {
 
   loadEstablishments(): void {
     this.establishmentsLoading.set(true);
-    this.establishmentApi.getAll(0, 100).subscribe({
-      next: (page) => {
-        this.establishments.set(page.content);
+    this.establishmentsError.set(null);
+    fetchAllPages((page) => this.establishmentApi.getAll(page, 100)).subscribe({
+      next: ({ items, complete }) => {
+        this.establishments.set(items);
+        this.establishmentsIncomplete.set(!complete);
         this.establishmentsLoading.set(false);
       },
       error: () => {
+        this.establishmentsError.set('No se pudieron cargar los establecimientos disponibles.');
         this.establishmentsLoading.set(false);
+      }
+    });
+  }
+
+  /** Catálogo para el filtro de servicio: el backend ahora rechaza reasignar a un servicio distinto. */
+  loadServices(): void {
+    this.servicesLoading.set(true);
+    this.servicesError.set(null);
+    fetchAllPages((page) => this.servicioApi.getAll(page, 100)).subscribe({
+      next: ({ items, complete }) => {
+        this.services.set(items);
+        this.servicesIncomplete.set(!complete);
+        this.servicesLoading.set(false);
+      },
+      error: () => {
+        this.servicesError.set('No se pudieron cargar los servicios disponibles.');
+        this.servicesLoading.set(false);
       }
     });
   }
 
   loadPatientInfo(): void {
     this.patientLoading.set(true);
+    this.patientError.set(null);
     this.patientApi.getById(this.patientId).subscribe({
       next: (data) => {
         this.patient.set(data);
         this.patientLoading.set(false);
       },
       error: () => {
+        this.patientError.set('No se pudo cargar la información del paciente.');
         this.patientLoading.set(false);
       }
     });
@@ -173,6 +263,7 @@ export class PatientDetailComponent implements OnInit {
     this.scheduleSearchForm.reset({
       date: '',
       stablishmentId: '',
+      serviceId: '',
       doctorName: ''
     });
     this.isAssignTurnModalOpen.set(true);
@@ -190,10 +281,12 @@ export class PatientDetailComponent implements OnInit {
 
     const values = this.scheduleSearchForm.getRawValue();
     const stablishmentIdNum = values.stablishmentId ? Number(values.stablishmentId) : undefined;
+    const serviceIdNum = values.serviceId ? Number(values.serviceId) : undefined;
 
     this.scheduleApi.getAll({
       date: values.date || undefined,
       stablishmentId: stablishmentIdNum,
+      serviceId: serviceIdNum,
       doctorName: values.doctorName || undefined,
       page,
       size: 6
@@ -217,6 +310,7 @@ export class PatientDetailComponent implements OnInit {
     this.scheduleSearchForm.reset({
       date: '',
       stablishmentId: '',
+      serviceId: '',
       doctorName: ''
     });
     this.loadSchedules(0);
@@ -273,6 +367,9 @@ export class PatientDetailComponent implements OnInit {
     this.reassignSearchForm.reset({
       date: '',
       stablishmentId: turn.schedule?.stablishment?.id ? String(turn.schedule.stablishment.id) : '',
+      // El backend rechaza reasignar a un servicio distinto del actual, así que
+      // se precarga (igual que la sede) para que la búsqueda ya salga filtrada.
+      serviceId: turn.schedule?.service?.id ? String(turn.schedule.service.id) : '',
       doctorName: ''
     });
     this.isReassignModalOpen.set(true);
@@ -291,10 +388,12 @@ export class PatientDetailComponent implements OnInit {
 
     const values = this.reassignSearchForm.getRawValue();
     const stablishmentIdNum = values.stablishmentId ? Number(values.stablishmentId) : undefined;
+    const serviceIdNum = values.serviceId ? Number(values.serviceId) : undefined;
 
     this.scheduleApi.getAll({
       date: values.date || undefined,
       stablishmentId: stablishmentIdNum,
+      serviceId: serviceIdNum,
       doctorName: values.doctorName || undefined,
       page,
       size: 6
@@ -318,6 +417,7 @@ export class PatientDetailComponent implements OnInit {
     this.reassignSearchForm.reset({
       date: '',
       stablishmentId: '',
+      serviceId: '',
       doctorName: ''
     });
     this.loadReassignSchedules(0);
@@ -419,6 +519,184 @@ export class PatientDetailComponent implements OnInit {
         const msg = err?.error?.error || err?.error?.message || 'Error al actualizar el estado del turno.';
         this.actionMessage.set({ type: 'error', text: msg });
       }
+    });
+  }
+
+  // --- Lógica de Coberturas de Seguro (GET/POST/PUT/DELETE /api/patient-coverages) ---
+
+  selectSection(section: 'turnos' | 'coberturas'): void {
+    this.activeSection.set(section);
+    if (section === 'coberturas') {
+      this.loadCoverages();
+      if (this.coveragePlansCatalog().length === 0 && !this.coveragePlansCatalogLoading()) {
+        this.loadCoveragePlansCatalog();
+      }
+    }
+  }
+
+  loadCoverages(): void {
+    this.coveragesLoading.set(true);
+    this.coveragesError.set(null);
+    this.coveragesPermissionDenied.set(false);
+
+    this.patientCoverageApi.getForPatient(this.patientId).subscribe({
+      next: (list) => {
+        this.coverages.set(list);
+        this.coveragesLoading.set(false);
+      },
+      error: (err) => {
+        const message = extractApiErrorMessage(err, 'No se pudo cargar la información de cobertura del paciente.');
+        if (isPermissionDeniedError(err, message)) {
+          // Expected/normal for ROLE_DOCTOR (PatientCoverageAccessGuard/GlobalConfig exclude it on
+          // purpose: insurance/billing is front-desk work here, not clinical) — explain, don't alarm.
+          this.coveragesPermissionDenied.set(true);
+          this.coveragesError.set(
+            'No tienes permisos para ver ni gestionar la cobertura de seguro de este paciente. La gestión de aseguradoras y pólizas es responsabilidad del personal de recepción/facturación (rol Empleado o Administrador); el rol Doctor no tiene acceso a esta información por diseño.',
+          );
+        } else {
+          this.coveragesError.set(message);
+        }
+        this.coveragesLoading.set(false);
+      },
+    });
+  }
+
+  private loadCoveragePlansCatalog(): void {
+    this.coveragePlansCatalogLoading.set(true);
+    this.coveragePlansCatalogError.set(null);
+    fetchAllPages((page) => this.coveragePlanApi.getAll(page, 100)).subscribe({
+      next: ({ items, complete }) => {
+        this.coveragePlansCatalog.set(items);
+        this.coveragePlansCatalogIncomplete.set(!complete);
+        this.coveragePlansCatalogLoading.set(false);
+      },
+      error: () => {
+        this.coveragePlansCatalogError.set('No se pudieron cargar los planes de cobertura disponibles.');
+        this.coveragePlansCatalogLoading.set(false);
+      },
+    });
+  }
+
+  openAssignCoverageModal(): void {
+    this.editingCoverage.set(null);
+    this.coverageFormPlanId.set(null);
+    this.coverageFormPolicyNumber.set('');
+    this.coverageFormValidFrom.set('');
+    this.coverageFormValidUntil.set('');
+    this.coverageFormActive.set(true);
+    this.coverageFormError.set(null);
+    this.coverageSubmitAttempted.set(false);
+    this.isCoverageModalOpen.set(true);
+  }
+
+  openEditCoverageModal(item: PatientCoverage): void {
+    this.editingCoverage.set(item);
+    this.coverageFormPlanId.set(item.plan.id);
+    this.coverageFormPolicyNumber.set(item.policyNumber);
+    this.coverageFormValidFrom.set(item.validFrom);
+    this.coverageFormValidUntil.set(item.validUntil ?? '');
+    this.coverageFormActive.set(item.active);
+    this.coverageFormError.set(null);
+    this.coverageSubmitAttempted.set(false);
+    this.isCoverageModalOpen.set(true);
+  }
+
+  closeCoverageModal(): void {
+    this.isCoverageModalOpen.set(false);
+    this.editingCoverage.set(null);
+  }
+
+  onCoveragePlanChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.coverageFormPlanId.set(value ? Number(value) : null);
+  }
+
+  onCoveragePolicyNumberInput(event: Event): void {
+    this.coverageFormPolicyNumber.set((event.target as HTMLInputElement).value);
+  }
+
+  onCoverageValidFromInput(event: Event): void {
+    this.coverageFormValidFrom.set((event.target as HTMLInputElement).value);
+  }
+
+  onCoverageValidUntilInput(event: Event): void {
+    this.coverageFormValidUntil.set((event.target as HTMLInputElement).value);
+  }
+
+  onCoverageActiveChange(event: Event): void {
+    this.coverageFormActive.set((event.target as HTMLInputElement).checked);
+  }
+
+  onCoverageFormSubmit(): void {
+    this.coverageSubmitAttempted.set(true);
+    if (!this.coverageFormValid()) {
+      return;
+    }
+
+    const planId = this.coverageFormPlanId();
+    if (planId == null) return;
+
+    const editing = this.editingCoverage();
+    const willBeActive = this.coverageFormActive();
+    // Snapshot BEFORE saving: which record this save will silently deactivate,
+    // per PatientCoverageService's "at most one active per patient" rule. The
+    // save response never names it, so the confirmation shown below is built
+    // from the list state already held here, not from the backend response.
+    const previousActive = willBeActive ? (this.coverages().find((c) => c.active && c.id !== editing?.id) ?? null) : null;
+
+    const payload = {
+      patient: { uuid: this.patientId },
+      plan: { id: planId },
+      policyNumber: this.coverageFormPolicyNumber().trim(),
+      validFrom: this.coverageFormValidFrom(),
+      validUntil: this.coverageFormValidUntil() || null,
+      active: willBeActive,
+    };
+
+    this.coverageFormLoading.set(true);
+    this.coverageFormError.set(null);
+
+    const request = editing ? this.patientCoverageApi.update(editing.id, payload) : this.patientCoverageApi.create(payload);
+
+    request.subscribe({
+      next: (saved) => {
+        this.coverageFormLoading.set(false);
+        this.closeCoverageModal();
+        this.loadCoverages();
+
+        if (saved.active && previousActive) {
+          this.actionMessage.set({
+            type: 'success',
+            text: `Cobertura (póliza ${saved.policyNumber}) activada. La cobertura anterior (póliza ${previousActive.policyNumber}) fue desactivada automáticamente: el sistema solo permite una cobertura activa por paciente.`,
+          });
+        } else if (saved.active) {
+          this.actionMessage.set({ type: 'success', text: `Cobertura (póliza ${saved.policyNumber}) activada correctamente.` });
+        } else {
+          this.actionMessage.set({ type: 'success', text: `Cobertura (póliza ${saved.policyNumber}) guardada correctamente.` });
+        }
+      },
+      error: (err) => {
+        this.coverageFormLoading.set(false);
+        this.coverageFormError.set(
+          extractApiErrorMessage(err, editing ? 'Ocurrió un error al actualizar la cobertura.' : 'Ocurrió un error al asignar la cobertura.'),
+        );
+      },
+    });
+  }
+
+  onDeleteCoverage(item: PatientCoverage): void {
+    if (!confirm(`¿Deseas eliminar la cobertura (póliza ${item.policyNumber})? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    this.patientCoverageApi.delete(item.id).subscribe({
+      next: () => {
+        this.actionMessage.set({ type: 'success', text: `Cobertura (póliza ${item.policyNumber}) eliminada.` });
+        this.loadCoverages();
+      },
+      error: (err) => {
+        this.actionMessage.set({ type: 'error', text: extractApiErrorMessage(err, 'Error al eliminar la cobertura.') });
+      },
     });
   }
 

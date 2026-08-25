@@ -1,0 +1,300 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Facturación</h1>
+      <p class="mt-1 text-xs text-ink-3">Facturas emitidas a pacientes: montos, saldo pendiente y estado.</p>
+    </div>
+    <button
+      type="button"
+      (click)="openCreateModal()"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+    >
+      <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+      </svg>
+      Nueva Factura
+    </button>
+  </div>
+
+  <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
+    <div class="flex-1 max-w-xs">
+      <label class="block text-[11px] font-bold text-ink mb-1" for="facturaEstadoFilter">Estado</label>
+      <select
+        id="facturaEstadoFilter"
+        name="facturaEstadoFilter"
+        [value]="filterStatus()"
+        (change)="onFilterStatusChange($event)"
+        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos</option>
+        <option value="ISSUED">Emitida</option>
+        <option value="PARTIALLY_PAID">Pago parcial</option>
+        <option value="PAID">Pagada</option>
+        <option value="VOID">Anulada</option>
+      </select>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Paciente</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Total</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Saldo</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Estado</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Emitida</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr>
+            <td colspan="7" class="py-12 text-center text-xs text-ink-3">Cargando facturas...</td>
+          </tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr>
+            <td colspan="7" class="py-12 text-center text-xs text-ink-3">No hay facturas registradas.</td>
+          </tr>
+        } @else {
+          @for (item of data()?.content; track item.id) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-bold text-ink">{{ item.patient.firstName }} {{ item.patient.lastName }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ formatMoney(item.total) }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ formatMoney(item.balance) }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                @if (item.status) {
+                  <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + INVOICE_STATUS_BADGE_CLASS[item.status]">
+                    {{ INVOICE_STATUS_LABELS[item.status] }}
+                  </span>
+                }
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">{{ formatIsoDateTimeEs(item.issuedAt) }}</td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <a
+                  [routerLink]="['/admin/finanzas/facturacion', item.id]"
+                  class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                >
+                  <span>Ver detalle</span>
+                  <span>→</span>
+                </a>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <p class="text-xs text-ink-3">
+          Mostrando <span class="font-bold text-ink">{{ data()!.numberOfElements }}</span> de
+          <span class="font-bold text-ink">{{ data()!.totalElements }}</span> facturas
+        </p>
+        <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+          <button
+            [disabled]="data()!.first"
+            (click)="loadPage(data()!.number - 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Anterior
+          </button>
+          <span class="px-2 text-xs font-bold text-ink">Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages || 1 }}</span>
+          <button
+            [disabled]="data()!.last"
+            (click)="loadPage(data()!.number + 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Siguiente
+          </button>
+        </nav>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL CREAR FACTURA
+     ========================================================================= -->
+@if (isCreateModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeCreateModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">Registrar Nueva Factura</h3>
+            <button
+              type="button"
+              (click)="closeCreateModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ formError() }}</span>
+            </div>
+          }
+
+          <form name="createInvoiceForm" (ngSubmit)="onSubmitCreate()">
+            <div class="space-y-4">
+              <!-- Paciente -->
+              <div>
+                <label class="block text-xs font-bold text-ink mb-1">Paciente *</label>
+                @if (selectedPatient(); as p) {
+                  <div class="flex items-center justify-between rounded-xl border border-line bg-field px-3 py-2 text-xs">
+                    <span class="font-bold text-ink">Paciente seleccionado: {{ p.firstName }} {{ p.lastName }} (CI {{ p.ci }})</span>
+                    <button type="button" (click)="clearSelectedPatient()" class="text-blue font-bold hover:underline">Cambiar</button>
+                  </div>
+                } @else {
+                  <div class="flex flex-wrap gap-2">
+                    <input
+                      type="text"
+                      name="patientSearchName"
+                      [value]="patientSearchName()"
+                      (input)="onPatientSearchNameInput($event)"
+                      placeholder="Nombre"
+                      class="flex-1 min-w-[10rem] rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      name="patientSearchCi"
+                      [value]="patientSearchCi()"
+                      (input)="onPatientSearchCiInput($event)"
+                      placeholder="CI"
+                      class="w-32 rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      (click)="searchPatients()"
+                      class="rounded-pill bg-tint text-blue px-4 py-2 text-xs font-bold hover:bg-blue hover:text-white transition-all"
+                    >
+                      Buscar
+                    </button>
+                  </div>
+
+                  @if (patientSearchError()) {
+                    <p class="mt-2 text-xs font-bold text-red-600">{{ patientSearchError() }}</p>
+                  }
+
+                  @if (patientSearchLoading()) {
+                    <p class="mt-2 text-[11px] text-ink-3">Buscando...</p>
+                  } @else if (patientResults().length > 0) {
+                    <ul class="mt-2 divide-y divide-line rounded-xl border border-line overflow-hidden">
+                      @for (p of patientResults(); track p.uuid) {
+                        <li class="flex items-center justify-between px-3 py-2 text-xs bg-surface">
+                          <span>{{ p.firstName }} {{ p.lastName }} — CI {{ p.ci }}</span>
+                          <button type="button" (click)="selectPatient(p)" class="rounded-pill bg-blue px-3 py-1 text-[11px] font-bold text-surface hover:bg-blue-bright transition-all">
+                            Seleccionar
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  } @else if (patientSearchAttempted()) {
+                    <p class="mt-2 text-[11px] text-ink-3">No se encontraron pacientes.</p>
+                  }
+
+                  @if (createSubmitAttempted() && !selectedPatient()) {
+                    <p class="mt-1 text-xs text-red-600">Selecciona un paciente para continuar.</p>
+                  }
+                }
+              </div>
+
+              <!-- Líneas de la factura -->
+              <div>
+                <label class="block text-xs font-bold text-ink mb-1">Líneas de la factura *</label>
+                <div class="space-y-2">
+                  @for (line of lineItems(); track $index) {
+                    <div class="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-field p-2">
+                      <select
+                        [name]="'lineSourceType-' + $index"
+                        [value]="line.sourceType"
+                        (change)="onLineSourceTypeChange($index, $event)"
+                        class="rounded-xl border border-line bg-surface py-2 px-2 text-xs text-ink focus:border-blue focus:outline-none"
+                      >
+                        <option value="FREE_LINE">{{ INVOICE_LINE_SOURCE_LABELS.FREE_LINE }}</option>
+                        <option value="TURN">{{ INVOICE_LINE_SOURCE_LABELS.TURN }}</option>
+                        <option value="PACKAGE">{{ INVOICE_LINE_SOURCE_LABELS.PACKAGE }}</option>
+                        <option value="SESSION_PLAN">{{ INVOICE_LINE_SOURCE_LABELS.SESSION_PLAN }}</option>
+                      </select>
+
+                      @if (line.sourceType === 'FREE_LINE') {
+                        <input
+                          type="text"
+                          [name]="'lineDescription-' + $index"
+                          [value]="line.description"
+                          (input)="onLineDescriptionInput($index, $event)"
+                          placeholder="Descripción"
+                          class="flex-1 min-w-[8rem] rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          [name]="'lineAmount-' + $index"
+                          [value]="line.amount"
+                          (input)="onLineAmountInput($index, $event)"
+                          placeholder="Monto"
+                          class="w-28 rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                        />
+                      } @else {
+                        <input
+                          type="number"
+                          min="1"
+                          [name]="'lineSourceId-' + $index"
+                          [value]="line.sourceId"
+                          (input)="onLineSourceIdInput($index, $event)"
+                          placeholder="ID de referencia"
+                          class="w-32 rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                        />
+                      }
+
+                      @if (lineItems().length > 1) {
+                        <button type="button" (click)="removeLineItem($index)" class="text-red-600 text-[11px] font-bold hover:underline">Quitar línea</button>
+                      }
+                    </div>
+                  }
+                </div>
+                <button type="button" (click)="addLineItem()" class="mt-2 rounded-pill border border-line bg-field px-3 py-1.5 text-[11px] font-bold text-ink hover:bg-surface transition-colors">
+                  + Agregar línea
+                </button>
+                @if (createSubmitAttempted() && !lineItemsValid()) {
+                  <p class="mt-1 text-xs text-red-600">Completa todas las líneas: un cargo manual requiere descripción y monto; el resto requiere un ID de referencia.</p>
+                }
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeCreateModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : 'Crear Factura' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

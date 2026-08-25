@@ -1,0 +1,186 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-extrabold text-ink">Personalización</h1>
+    <p class="mt-1 text-xs text-ink-3">Identidad de la clínica: nombre, logo, colores de marca y datos de contacto público.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="rounded-2xl border border-line bg-surface p-12 text-center text-xs text-ink-3 shadow-sm">
+      Cargando personalización...
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200 flex items-center justify-between gap-4">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+      <button
+        type="button"
+        (click)="load()"
+        class="shrink-0 rounded-pill border border-red-200 bg-surface px-4 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50 transition-colors"
+      >
+        Reintentar
+      </button>
+    </div>
+  } @else {
+    @if (!isConfigured()) {
+      <div class="rounded-2xl bg-blue-50 border border-blue-200 p-3.5 text-xs text-blue-900" role="note">
+        ℹ️ Aún no se ha configurado la identidad de la clínica. Completa el formulario y guarda para que se refleje en el sitio público.
+      </div>
+    }
+
+    @if (formSuccess()) {
+      <div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs font-bold text-emerald-800">
+        {{ formSuccess() }}
+      </div>
+    }
+
+    @if (formError()) {
+      <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+        <h3 class="text-xs font-bold text-red-800">{{ formError() }}</h3>
+      </div>
+    }
+
+    <form (ngSubmit)="onSubmit()" class="rounded-2xl border border-line bg-surface shadow-sm p-6 space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label for="brandingName" class="block text-xs font-bold text-ink mb-1">Nombre de la Clínica *</label>
+          <input
+            type="text"
+            id="brandingName"
+            name="brandingName"
+            [value]="formName()"
+            (input)="onNameInput($event)"
+            placeholder="Ej. Clínica San Rafael"
+            class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+          @if (submitAttempted() && !nameValid()) {
+            <p class="mt-1 text-xs text-red-600">El nombre de la clínica es requerido.</p>
+          }
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="brandingLogoUrl" class="block text-xs font-bold text-ink mb-1">URL del Logo</label>
+          <input
+            type="text"
+            id="brandingLogoUrl"
+            name="brandingLogoUrl"
+            [value]="formLogoUrl()"
+            (input)="onLogoUrlInput($event)"
+            placeholder="https://..."
+            class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label for="brandingPrimaryColor" class="block text-xs font-bold text-ink mb-1">Color Primario</label>
+          <div class="flex items-center gap-2">
+            <input
+              type="color"
+              id="brandingColorSwatch"
+              name="brandingColorSwatch"
+              [value]="primaryColorSwatchValue()"
+              (input)="onPrimaryColorSwatchInput($event)"
+              class="h-9 w-11 shrink-0 rounded-lg border border-line bg-surface p-0.5"
+              aria-label="Selector visual del color primario"
+            />
+            <input
+              type="text"
+              id="brandingPrimaryColor"
+              name="brandingPrimaryColor"
+              [value]="formPrimaryColor()"
+              (input)="onPrimaryColorInput($event)"
+              placeholder="#1A2B3C"
+              class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+            />
+          </div>
+          @if (formPrimaryColor().trim() && !primaryColorValid()) {
+            <p class="mt-1 text-xs text-red-600">Debe ser un código hexadecimal válido (ej. #1A2B3C).</p>
+          }
+        </div>
+
+        <div>
+          <label for="brandingSecondaryColor" class="block text-xs font-bold text-ink mb-1">Color Secundario</label>
+          <div class="flex items-center gap-2">
+            <input
+              type="color"
+              id="brandingSecondaryColorSwatch"
+              name="brandingSecondaryColorSwatch"
+              [value]="secondaryColorSwatchValue()"
+              (input)="onSecondaryColorSwatchInput($event)"
+              class="h-9 w-11 shrink-0 rounded-lg border border-line bg-surface p-0.5"
+              aria-label="Selector visual del color secundario"
+            />
+            <input
+              type="text"
+              id="brandingSecondaryColor"
+              name="brandingSecondaryColor"
+              [value]="formSecondaryColor()"
+              (input)="onSecondaryColorInput($event)"
+              placeholder="#1A2B3C"
+              class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+            />
+          </div>
+          @if (formSecondaryColor().trim() && !secondaryColorValid()) {
+            <p class="mt-1 text-xs text-red-600">Debe ser un código hexadecimal válido (ej. #1A2B3C).</p>
+          }
+        </div>
+
+        <div>
+          <label for="brandingPhone" class="block text-xs font-bold text-ink mb-1">Teléfono</label>
+          <input
+            type="text"
+            id="brandingPhone"
+            name="brandingPhone"
+            [value]="formPhone()"
+            (input)="onPhoneInput($event)"
+            class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label for="brandingEmergencyPhone" class="block text-xs font-bold text-ink mb-1">Teléfono de Emergencia</label>
+          <input
+            type="text"
+            id="brandingEmergencyPhone"
+            name="brandingEmergencyPhone"
+            [value]="formEmergencyPhone()"
+            (input)="onEmergencyPhoneInput($event)"
+            class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label for="brandingWhatsapp" class="block text-xs font-bold text-ink mb-1">WhatsApp</label>
+          <input
+            type="text"
+            id="brandingWhatsapp"
+            name="brandingWhatsapp"
+            [value]="formWhatsapp()"
+            (input)="onWhatsappInput($event)"
+            class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label for="brandingEmail" class="block text-xs font-bold text-ink mb-1">Correo de Contacto</label>
+          <input
+            type="email"
+            id="brandingEmail"
+            name="brandingEmail"
+            [value]="formEmail()"
+            (input)="onEmailInput($event)"
+            class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t border-line pt-4">
+        <button
+          type="submit"
+          [disabled]="formLoading()"
+          class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+        >
+          {{ formLoading() ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

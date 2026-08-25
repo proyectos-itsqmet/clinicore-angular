@@ -1,0 +1,89 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Métricas de Establecimientos</h1>
+      <p class="mt-1 text-xs text-ink-3">
+        Turnos, cupos y ocupación por sede en el rango seleccionado. Incluye sedes sin actividad en el período.
+      </p>
+    </div>
+    @if (data(); as summary) {
+      <span class="text-[11px] text-ink-3 shrink-0">Rango resuelto: {{ summary.from }} → {{ summary.to }}</span>
+    }
+  </div>
+
+  <!-- Filter bar -->
+  <div class="flex flex-wrap items-end gap-3 bg-surface rounded-2xl border border-line p-4 shadow-sm">
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="establecimientosDesde">Desde</label>
+      <input
+        id="establecimientosDesde"
+        type="date"
+        [ngModel]="rangeFrom()"
+        (ngModelChange)="onRangeFromChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="establecimientosHasta">Hasta</label>
+      <input
+        id="establecimientosHasta"
+        type="date"
+        [ngModel]="rangeTo()"
+        (ngModelChange)="onRangeToChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Establecimiento</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Doctores</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Servicios</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Turnos en el rango</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Cupos (ocupados / total)</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Ocupación</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr><td colspan="6" class="py-12 text-center text-xs text-ink-3">Cargando métricas de establecimientos...</td></tr>
+        } @else if (!error() && rows().length === 0) {
+          <tr><td colspan="6" class="py-12 text-center text-xs text-ink-3">No hay establecimientos con datos en el rango seleccionado.</td></tr>
+        } @else {
+          @for (row of rows(); track row.stablishmentId) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-bold text-ink">{{ row.name }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ row.doctorsCount }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ row.servicesCount }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink font-bold">{{ row.turns.total }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ row.occupiedSlots }} / {{ row.totalSlots }}</td>
+              <td class="px-3 py-4 text-xs">
+                <div class="flex items-center gap-2 min-w-[140px]">
+                  <div class="flex-1 h-2.5 rounded-pill bg-field overflow-hidden">
+                    <div class="h-full rounded-pill bg-blue transition-all" [style.width.%]="row.occupancyPercent"></div>
+                  </div>
+                  <span
+                    class="w-16 shrink-0 text-right font-bold"
+                    [class.text-ink-3]="!row.hasSlots"
+                    [class.text-ink]="row.hasSlots"
+                  >
+                    {{ row.occupancyLabel }}
+                  </span>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

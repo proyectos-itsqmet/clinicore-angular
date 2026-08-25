@@ -25,26 +25,49 @@ export class EstablishmentApiService {
     return this.http.get<Establishment>(`${this.API_URL}/${id}`, { withCredentials: true });
   }
 
-  getDoctors(id: number, page: number = 0, size: number = 20): Observable<Page<AdminDoctor>> {
-    const params = new HttpParams()
+  /** `StablishmentController#getDoctorsByStablishment` accepts both `name` and `ci` (same filters as `/api/doctors`). */
+  getDoctors(id: number, page: number = 0, size: number = 20, name?: string, ci?: string): Observable<Page<AdminDoctor>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
+
+    if (name && name.trim()) {
+      params = params.set('name', name.trim());
+    }
+    if (ci && ci.trim()) {
+      params = params.set('ci', ci.trim());
+    }
 
     return this.http.get<Page<AdminDoctor>>(`${this.API_URL}/${id}/doctors`, { params, withCredentials: true });
   }
 
-  getServices(id: number, page: number = 0, size: number = 20): Observable<Page<Servicio>> {
-    const params = new HttpParams()
+  /** `StablishmentController#getServicesByStablishment` accepts `name` (same filter as `/api/services`). */
+  getServices(id: number, page: number = 0, size: number = 20, name?: string): Observable<Page<Servicio>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
+
+    if (name && name.trim()) {
+      params = params.set('name', name.trim());
+    }
 
     return this.http.get<Page<Servicio>>(`${this.API_URL}/${id}/services`, { params, withCredentials: true });
   }
 
-  getOperators(id: number, page: number = 0, size: number = 20): Observable<Page<Operator>> {
-    const params = new HttpParams()
+  /**
+   * `StablishmentController#getOperatorsByStablishment` accepts `name` — unlike the
+   * unscoped `GET /api/operators` (`OperatorController#getAll`), which declares no
+   * filter params at all. This establishment-scoped endpoint is a different route
+   * with its own signature, so sending `name` here does not hit that limitation.
+   */
+  getOperators(id: number, page: number = 0, size: number = 20, name?: string): Observable<Page<Operator>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
+
+    if (name && name.trim()) {
+      params = params.set('name', name.trim());
+    }
 
     return this.http.get<Page<Operator>>(`${this.API_URL}/${id}/operators`, { params, withCredentials: true });
   }

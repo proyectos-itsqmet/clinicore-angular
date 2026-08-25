@@ -27,6 +27,51 @@ export const adminRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: ADMIN_DEFAULT_PATH },
 
   {
+    path: 'dashboard/resumen',
+    loadChildren: () => import('./dashboard/dashboard-resumen.routes').then(m => m.dashboardResumenRoutes),
+    data: { crumbGroup: 'Dashboard', crumbLeaf: 'Resumen general' }
+  },
+  {
+    path: 'dashboard/analytics',
+    loadChildren: () => import('./dashboard/dashboard-analytics.routes').then(m => m.dashboardAnalyticsRoutes),
+    data: { crumbGroup: 'Dashboard', crumbLeaf: 'Analytics' }
+  },
+  {
+    path: 'metricas/establecimientos',
+    loadChildren: () => import('./metricas/metricas-establecimientos.routes').then(m => m.metricasEstablecimientosRoutes),
+    data: { crumbGroup: 'Métricas', crumbLeaf: 'Establecimientos' }
+  },
+  {
+    path: 'metricas/empleados',
+    loadChildren: () => import('./metricas/metricas-empleados.routes').then(m => m.metricasEmpleadosRoutes),
+    data: { crumbGroup: 'Métricas', crumbLeaf: 'Empleados' }
+  },
+  {
+    path: 'metricas/pacientes',
+    loadChildren: () => import('./metricas/metricas-pacientes.routes').then(m => m.metricasPacientesRoutes),
+    data: { crumbGroup: 'Métricas', crumbLeaf: 'Pacientes' }
+  },
+  {
+    path: 'modulos',
+    loadChildren: () => import('./modules/modules.routes').then(m => m.modulesRoutes),
+    data: { crumbGroup: 'Panel', crumbLeaf: 'Módulos' }
+  },
+  {
+    path: 'personalizacion',
+    loadChildren: () => import('./branding/branding.routes').then(m => m.brandingRoutes),
+    data: { crumbGroup: 'Panel', crumbLeaf: 'Personalización' }
+  },
+  {
+    path: 'reportes/general',
+    loadChildren: () => import('./reportes/reportes-general.routes').then(m => m.reportesGeneralRoutes),
+    data: { crumbGroup: 'Reportes', crumbLeaf: 'General' }
+  },
+  {
+    path: 'reportes/auditoria-hc',
+    loadChildren: () => import('./reportes/auditoria-hc.routes').then(m => m.auditoriaHcRoutes),
+    data: { crumbGroup: 'Reportes', crumbLeaf: 'Auditoría HC' }
+  },
+  {
     path: 'administracion/establecimientos',
     loadChildren: () => import('./establishments/establishments.routes').then(m => m.establishmentRoutes),
     data: { crumbGroup: 'Admin', crumbLeaf: 'Gestor de establecimientos' }
@@ -47,9 +92,29 @@ export const adminRoutes: Routes = [
     data: { crumbGroup: 'Admin', crumbLeaf: 'Servicios' }
   },
   {
+    path: 'administracion/planes-de-cobertura',
+    loadChildren: () => import('./coverage/coverage.routes').then(m => m.coverageRoutes),
+    data: { crumbGroup: 'Admin', crumbLeaf: 'Planes de cobertura' }
+  },
+  {
+    path: 'administracion/horarios',
+    loadChildren: () => import('./schedule-templates/schedule-templates.routes').then(m => m.scheduleTemplatesRoutes),
+    data: { crumbGroup: 'Admin', crumbLeaf: 'Horarios de atención' }
+  },
+  {
     path: 'pacientes/informacion',
     loadChildren: () => import('./patients/patients.routes').then(m => m.patientRoutes),
     data: { crumbGroup: 'Pacientes', crumbLeaf: 'Información' }
+  },
+  {
+    path: 'pacientes/historial-clinico',
+    loadChildren: () => import('./patients/historial-clinico.routes').then(m => m.historialClinicoRoutes),
+    data: { crumbGroup: 'Pacientes', crumbLeaf: 'Historial clínico' }
+  },
+  {
+    path: 'pacientes/recetas',
+    loadChildren: () => import('./patients/recetas.routes').then(m => m.recetasRoutes),
+    data: { crumbGroup: 'Pacientes', crumbLeaf: 'Recetas' }
   },
   {
     path: 'precios/citas',
@@ -57,14 +122,74 @@ export const adminRoutes: Routes = [
     data: { crumbGroup: 'Precios', crumbLeaf: 'Citas' }
   },
   {
+    path: 'precios/descuentos',
+    loadChildren: () => import('./precios-descuentos/precios-descuentos.routes').then(m => m.preciosDescuentosRoutes),
+    data: { crumbGroup: 'Precios', crumbLeaf: 'Descuentos' }
+  },
+  {
+    path: 'precios/paquetes',
+    loadChildren: () => import('./precios-paquetes/precios-paquetes.routes').then(m => m.preciosPaquetesRoutes),
+    data: { crumbGroup: 'Precios', crumbLeaf: 'Paquetes' }
+  },
+  {
+    path: 'precios/sesiones',
+    loadChildren: () => import('./precios-sesiones/precios-sesiones.routes').then(m => m.preciosSesionesRoutes),
+    data: { crumbGroup: 'Precios', crumbLeaf: 'Sesiones' }
+  },
+  {
+    path: 'precios/promociones',
+    loadChildren: () => import('./precios-promociones/precios-promociones.routes').then(m => m.preciosPromocionesRoutes),
+    data: { crumbGroup: 'Precios', crumbLeaf: 'Promociones' }
+  },
+  {
+    path: 'finanzas/facturacion',
+    loadChildren: () => import('./finanzas/facturacion.routes').then(m => m.facturacionRoutes),
+    data: { crumbGroup: 'Finanzas', crumbLeaf: 'Facturación' }
+  },
+  {
+    path: 'finanzas/contabilidad',
+    loadChildren: () => import('./finanzas/contabilidad.routes').then(m => m.contabilidadRoutes),
+    data: { crumbGroup: 'Finanzas', crumbLeaf: 'Contabilidad' }
+  },
+  {
+    path: 'finanzas/reclamos',
+    loadChildren: () => import('./finanzas/reclamos.routes').then(m => m.reclamosRoutes),
+    data: { crumbGroup: 'Finanzas', crumbLeaf: 'Reclamos' }
+  },
+  {
     path: 'turnos',
     loadChildren: () => import('./turns/turns.routes').then(m => m.turnRoutes),
     data: { crumbGroup: 'Turnos', crumbLeaf: 'Gestión de turnos' }
   },
+  {
+    path: 'calendario',
+    loadChildren: () => import('./calendario/calendario.routes').then(m => m.calendarioRoutes),
+    data: { crumbGroup: 'Calendario', crumbLeaf: 'Calendario de horarios' }
+  },
+  {
+    path: 'bloqueo-de-citas/motivos',
+    loadChildren: () => import('./block-reasons/block-reasons.routes').then(m => m.blockReasonRoutes),
+    data: { crumbGroup: 'Bloqueo de citas', crumbLeaf: 'Motivos' }
+  },
+  {
+    path: 'bloqueo-de-citas/feriados',
+    loadChildren: () => import('./holidays/holidays.routes').then(m => m.holidayRoutes),
+    data: { crumbGroup: 'Bloqueo de citas', crumbLeaf: 'Días feriados' }
+  },
+  {
+    path: 'bloqueo-de-citas/vacaciones',
+    loadChildren: () => import('./time-offs/time-offs.routes').then(m => m.vacacionesRoutes),
+    data: { crumbGroup: 'Bloqueo de citas', crumbLeaf: 'Vacaciones' }
+  },
+  {
+    path: 'bloqueo-de-citas/permisos',
+    loadChildren: () => import('./time-offs/time-offs.routes').then(m => m.permisosRoutes),
+    data: { crumbGroup: 'Bloqueo de citas', crumbLeaf: 'Permisos' }
+  },
 
   ...ADMIN_NAV.flatMap((entry) => {
     if (entry.children.length === 0) {
-      if (entry.path === 'turnos') {
+      if (entry.path === 'turnos' || entry.path === 'calendario' || entry.path === 'modulos' || entry.path === 'personalizacion') {
         return [];
       }
       return [
@@ -83,8 +208,30 @@ export const adminRoutes: Routes = [
              fullPath !== 'administracion/operadores' &&
              fullPath !== 'administracion/doctores' &&
              fullPath !== 'administracion/especialidades' &&
+             fullPath !== 'administracion/planes-de-cobertura' &&
+             fullPath !== 'administracion/horarios' &&
              fullPath !== 'pacientes/informacion' &&
-             fullPath !== 'precios/citas';
+             fullPath !== 'pacientes/historial-clinico' &&
+             fullPath !== 'pacientes/recetas' &&
+             fullPath !== 'precios/citas' &&
+             fullPath !== 'precios/descuentos' &&
+             fullPath !== 'precios/paquetes' &&
+             fullPath !== 'precios/sesiones' &&
+             fullPath !== 'precios/promociones' &&
+             fullPath !== 'dashboard/resumen' &&
+             fullPath !== 'dashboard/analytics' &&
+             fullPath !== 'metricas/establecimientos' &&
+             fullPath !== 'metricas/empleados' &&
+             fullPath !== 'metricas/pacientes' &&
+             fullPath !== 'reportes/general' &&
+             fullPath !== 'reportes/auditoria-hc' &&
+             fullPath !== 'bloqueo-de-citas/motivos' &&
+             fullPath !== 'bloqueo-de-citas/feriados' &&
+             fullPath !== 'bloqueo-de-citas/vacaciones' &&
+             fullPath !== 'bloqueo-de-citas/permisos' &&
+             fullPath !== 'finanzas/facturacion' &&
+             fullPath !== 'finanzas/contabilidad' &&
+             fullPath !== 'finanzas/reclamos';
     });
 
     return [

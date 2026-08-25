@@ -1,0 +1,581 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Planes de Cobertura</h1>
+      <p class="mt-1 text-xs text-ink-3">Aseguradoras y los planes que ofrecen, para calcular lo que paga cada paciente asegurado.</p>
+    </div>
+    <button
+      type="button"
+      (click)="activeTab() === 'aseguradoras' ? openCreateInsurerModal() : openCreatePlanModal()"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+    >
+      <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+      </svg>
+      {{ activeTab() === 'aseguradoras' ? 'Nueva Aseguradora' : 'Nuevo Plan' }}
+    </button>
+  </div>
+
+  <!-- Selector de pestaña: Aseguradoras | Planes de Cobertura (una sola ruta, dos catálogos relacionados) -->
+  <div class="inline-flex items-center gap-1 rounded-pill border border-line bg-field p-1">
+    <button
+      type="button"
+      (click)="selectTab('aseguradoras')"
+      [class]="activeTab() === 'aseguradoras'
+        ? 'rounded-pill bg-blue px-4 py-1.5 text-xs font-bold text-surface shadow-cta transition-all'
+        : 'rounded-pill px-4 py-1.5 text-xs font-bold text-ink-3 hover:text-ink transition-colors'"
+    >
+      Aseguradoras
+    </button>
+    <button
+      type="button"
+      (click)="selectTab('planes')"
+      [class]="activeTab() === 'planes'
+        ? 'rounded-pill bg-blue px-4 py-1.5 text-xs font-bold text-surface shadow-cta transition-all'
+        : 'rounded-pill px-4 py-1.5 text-xs font-bold text-ink-3 hover:text-ink transition-colors'"
+    >
+      Planes de Cobertura
+    </button>
+  </div>
+
+  @if (insurersCatalogIncomplete()) {
+    <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800" role="alert">
+      No se pudo cargar el catálogo completo de aseguradoras; el selector de aseguradoras puede estar incompleto.
+    </div>
+  }
+
+  <!-- =========================================================================
+       PESTAÑA: ASEGURADORAS
+       ========================================================================= -->
+  @if (activeTab() === 'aseguradoras') {
+    @if (insurersError()) {
+      <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+        <h3 class="text-xs font-bold text-red-800">{{ insurersError() }}</h3>
+      </div>
+    }
+
+    <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <table class="min-w-full divide-y divide-line">
+        <thead class="bg-field">
+          <tr>
+            <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Nombre</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Tipo</th>
+            <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line bg-surface">
+          @if (insurersLoading()) {
+            <tr>
+              <td colspan="4" class="py-12 text-center text-xs text-ink-3">Cargando aseguradoras...</td>
+            </tr>
+          } @else if (insurersData()?.content?.length === 0) {
+            <tr>
+              <td colspan="4" class="py-12 text-center text-xs text-ink-3">No hay aseguradoras registradas.</td>
+            </tr>
+          } @else {
+            @for (item of insurersData()?.content; track item.id) {
+              <tr class="hover:bg-tint/20 transition-colors">
+                <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+                <td class="px-3 py-4 text-xs font-bold text-ink">{{ item.name }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs">
+                  <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + insurerTypeBadgeClass(item.type)">
+                    {{ insurerTypeLabel(item.type) }}
+                  </span>
+                </td>
+                <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                  <div class="inline-flex items-center gap-2">
+                    <button
+                      type="button"
+                      (click)="openEditInsurerModal(item)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openInsurerDeleteModal(item)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 transition-all"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (insurersData() && !insurersLoading()) {
+        <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+          <p class="text-xs text-ink-3">
+            Mostrando <span class="font-bold text-ink">{{ insurersData()!.numberOfElements }}</span> de
+            <span class="font-bold text-ink">{{ insurersData()!.totalElements }}</span> aseguradoras
+          </p>
+          <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+            <button
+              [disabled]="insurersData()!.first"
+              (click)="loadInsurers(insurersData()!.number - 1)"
+              class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+            >
+              Anterior
+            </button>
+            <span class="px-2 text-xs font-bold text-ink">Pág. {{ insurersData()!.number + 1 }} de {{ insurersData()!.totalPages || 1 }}</span>
+            <button
+              [disabled]="insurersData()!.last"
+              (click)="loadInsurers(insurersData()!.number + 1)"
+              class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+            >
+              Siguiente
+            </button>
+          </nav>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- =========================================================================
+       PESTAÑA: PLANES DE COBERTURA
+       ========================================================================= -->
+  @if (activeTab() === 'planes') {
+    <!-- Filtro por aseguradora -->
+    <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
+      <div class="flex-1 max-w-xs">
+        <label class="block text-[11px] font-bold text-ink mb-1">Aseguradora</label>
+        <select
+          name="planInsurerFilter"
+          [value]="plansFilterInsurerId() ?? ''"
+          (change)="onPlansFilterChange($event)"
+          class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+        >
+          <option value="">Todas las aseguradoras</option>
+          @for (ins of insurersCatalog(); track ins.id) {
+            <option [value]="ins.id">{{ ins.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (plansError()) {
+      <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+        <h3 class="text-xs font-bold text-red-800">{{ plansError() }}</h3>
+      </div>
+    }
+
+    <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <table class="min-w-full divide-y divide-line">
+        <thead class="bg-field">
+          <tr>
+            <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Aseguradora</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Plan</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Modelo de Cobro</th>
+            <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line bg-surface">
+          @if (plansLoading()) {
+            <tr>
+              <td colspan="5" class="py-12 text-center text-xs text-ink-3">Cargando planes de cobertura...</td>
+            </tr>
+          } @else if (plansData()?.content?.length === 0) {
+            <tr>
+              <td colspan="5" class="py-12 text-center text-xs text-ink-3">No hay planes de cobertura registrados.</td>
+            </tr>
+          } @else {
+            @for (item of plansData()?.content; track item.id) {
+              <tr class="hover:bg-tint/20 transition-colors">
+                <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ item.insurer.name }}</td>
+                <td class="px-3 py-4 text-xs font-bold text-ink">{{ item.name }}</td>
+                <td class="px-3 py-4 text-xs">
+                  <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-[11px] font-bold text-blue">
+                    {{ coveragePlanPricingSummary(item) }}
+                  </span>
+                </td>
+                <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                  <div class="inline-flex items-center gap-2">
+                    <button
+                      type="button"
+                      (click)="openEditPlanModal(item)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openPlanDeleteModal(item)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 transition-all"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (plansData() && !plansLoading()) {
+        <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+          <p class="text-xs text-ink-3">
+            Mostrando <span class="font-bold text-ink">{{ plansData()!.numberOfElements }}</span> de
+            <span class="font-bold text-ink">{{ plansData()!.totalElements }}</span> planes
+          </p>
+          <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+            <button
+              [disabled]="plansData()!.first"
+              (click)="loadPlans(plansData()!.number - 1)"
+              class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+            >
+              Anterior
+            </button>
+            <span class="px-2 text-xs font-bold text-ink">Pág. {{ plansData()!.number + 1 }} de {{ plansData()!.totalPages || 1 }}</span>
+            <button
+              [disabled]="plansData()!.last"
+              (click)="loadPlans(plansData()!.number + 1)"
+              class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+            >
+              Siguiente
+            </button>
+          </nav>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- =========================================================================
+     MODAL CREAR / EDITAR ASEGURADORA
+     ========================================================================= -->
+@if (isInsurerModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeInsurerModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              {{ editingInsurer() ? 'Editar Aseguradora' : 'Registrar Nueva Aseguradora' }}
+            </h3>
+            <button
+              type="button"
+              (click)="closeInsurerModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (insurerFormError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ insurerFormError() }}</span>
+            </div>
+          }
+
+          <form (ngSubmit)="onInsurerFormSubmit()">
+            <div class="space-y-4">
+              <div>
+                <label for="insurerName" class="block text-xs font-bold text-ink mb-1">Nombre *</label>
+                <input
+                  type="text"
+                  id="insurerName"
+                  [value]="insurerFormName()"
+                  (input)="onInsurerNameInput($event)"
+                  name="insurerName"
+                  placeholder="Ej. IESS, Salud SA, ISSFA..."
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (insurerSubmitAttempted() && !insurerFormName().trim()) {
+                  <p class="mt-1 text-xs text-red-600">El nombre es requerido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="insurerType" class="block text-xs font-bold text-ink mb-1">Tipo *</label>
+                <select
+                  id="insurerType"
+                  [value]="insurerFormType()"
+                  (change)="onInsurerTypeChange($event)"
+                  name="insurerType"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Selecciona un tipo...</option>
+                  <option value="INSURER_PRIVATE">Privada</option>
+                  <option value="INSURER_PUBLIC">Pública (IESS, ISSFA, ISSPOL, MSP)</option>
+                </select>
+                @if (insurerSubmitAttempted() && !insurerFormType()) {
+                  <p class="mt-1 text-xs text-red-600">El tipo es requerido.</p>
+                }
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeInsurerModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="insurerFormLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ insurerFormLoading() ? 'Guardando...' : (editingInsurer() ? 'Guardar Cambios' : 'Crear Aseguradora') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ELIMINAR ASEGURADORA
+     ========================================================================= -->
+@if (isInsurerDeleteModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeInsurerDeleteModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">Eliminar Aseguradora</h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                ¿Estás seguro de que deseas eliminar la aseguradora (<strong>{{ deletingInsurer()?.name }}</strong>)? Si tiene planes de
+                cobertura asociados, el sistema rechazará la eliminación.
+              </p>
+            </div>
+          </div>
+
+          @if (insurerFormError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ insurerFormError() }}</span>
+            </div>
+          }
+
+          <div class="mt-2 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeInsurerDeleteModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="insurerFormLoading()"
+              (click)="confirmDeleteInsurer()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ insurerFormLoading() ? 'Eliminando...' : 'Eliminar Aseguradora' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL CREAR / EDITAR PLAN DE COBERTURA
+     ========================================================================= -->
+@if (isPlanModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closePlanModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              {{ editingPlan() ? 'Editar Plan de Cobertura' : 'Registrar Nuevo Plan de Cobertura' }}
+            </h3>
+            <button
+              type="button"
+              (click)="closePlanModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (planFormError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ planFormError() }}</span>
+            </div>
+          }
+
+          <!-- Aviso PERMANENTE de exclusividad copago/porcentaje: al pie de la entrada del dato, no en un tooltip. -->
+          <div class="mb-4 rounded-xl bg-blue-50 border border-blue-200 p-3 text-[11px] text-blue-900" role="note">
+            ℹ️ {{ PRICING_HINT }}
+          </div>
+
+          <form (ngSubmit)="onPlanFormSubmit()">
+            <div class="space-y-4">
+              <div>
+                <label for="planInsurer" class="block text-xs font-bold text-ink mb-1">Aseguradora *</label>
+                <select
+                  id="planInsurer"
+                  [value]="planFormInsurerId() ?? ''"
+                  (change)="onPlanInsurerChange($event)"
+                  name="planInsurer"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Selecciona una aseguradora...</option>
+                  @for (ins of insurersCatalog(); track ins.id) {
+                    <option [value]="ins.id">{{ ins.name }}</option>
+                  }
+                </select>
+                @if (planSubmitAttempted() && planFormInsurerId() == null) {
+                  <p class="mt-1 text-xs text-red-600">La aseguradora es requerida.</p>
+                }
+                @if (insurersCatalog().length === 0 && !insurersCatalogLoading()) {
+                  <p class="mt-1 text-[11px] text-ink-3">Registra primero una aseguradora en la pestaña "Aseguradoras".</p>
+                }
+              </div>
+
+              <div>
+                <label for="planName" class="block text-xs font-bold text-ink mb-1">Nombre del Plan *</label>
+                <input
+                  type="text"
+                  id="planName"
+                  [value]="planFormName()"
+                  (input)="onPlanNameInput($event)"
+                  name="planName"
+                  placeholder="Ej. Plan Oro, Plan Básico..."
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (planSubmitAttempted() && !planFormName().trim()) {
+                  <p class="mt-1 text-xs text-red-600">El nombre del plan es requerido.</p>
+                }
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="planCoveragePercentage" class="block text-xs font-bold text-ink mb-1">% de Cobertura *</label>
+                  <input
+                    type="number"
+                    id="planCoveragePercentage"
+                    min="0"
+                    max="100"
+                    [value]="planFormCoveragePercentage()"
+                    (input)="onPlanCoveragePercentageInput($event)"
+                    name="planCoveragePercentage"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label for="planCopayAmount" class="block text-xs font-bold text-ink mb-1">Copago Fijo ($)</label>
+                  <input
+                    type="number"
+                    id="planCopayAmount"
+                    min="0"
+                    step="0.01"
+                    [value]="planFormCopayAmount()"
+                    (input)="onPlanCopayAmountInput($event)"
+                    name="planCopayAmount"
+                    placeholder="Sin copago"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+              </div>
+              @if (planSubmitAttempted() && planFormCoveragePercentage().trim() === '') {
+                <p class="-mt-2 text-xs text-red-600">El porcentaje de cobertura es requerido (usa 0 si el plan solo usa copago).</p>
+              }
+
+              <!-- Aviso DINÁMICO: qué se cobrará realmente con los valores actuales del formulario. -->
+              <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs font-bold text-amber-900">
+                Con estos valores, el plan aplicará: {{ planFormPricingPreview() }}.
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closePlanModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="planFormLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ planFormLoading() ? 'Guardando...' : (editingPlan() ? 'Guardar Cambios' : 'Crear Plan') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ELIMINAR PLAN DE COBERTURA
+     ========================================================================= -->
+@if (isPlanDeleteModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closePlanDeleteModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">Eliminar Plan de Cobertura</h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                ¿Estás seguro de que deseas eliminar el plan (<strong>{{ deletingPlan()?.name }}</strong>)? Si tiene coberturas de
+                pacientes asociadas, el sistema rechazará la eliminación.
+              </p>
+            </div>
+          </div>
+
+          @if (planFormError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ planFormError() }}</span>
+            </div>
+          }
+
+          <div class="mt-2 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closePlanDeleteModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="planFormLoading()"
+              (click)="confirmDeletePlan()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ planFormLoading() ? 'Eliminando...' : 'Eliminar Plan' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

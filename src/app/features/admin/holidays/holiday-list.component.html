@@ -1,0 +1,340 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Días Feriados</h1>
+      <p class="mt-1 text-xs text-ink-3">Fechas en las que una sede (o todas) no atiende citas.</p>
+    </div>
+    <button
+      (click)="openCreateModal()"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+    >
+      <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+      </svg>
+      Nuevo Feriado
+    </button>
+  </div>
+
+  <!-- Alerta persistente de conflictos: turnos reservados que quedaron sin bloquear -->
+  @if (conflictWarning()) {
+    <div class="rounded-2xl bg-amber-50 border border-amber-300 p-4 space-y-2">
+      <div class="flex items-start gap-3">
+        <span class="text-lg">⚠️</span>
+        <div class="flex-1">
+          <h3 class="text-xs font-extrabold text-amber-900">
+            Atención: hay turnos ya reservados que NO se bloquearon automáticamente
+          </h3>
+          <p class="mt-1 text-xs text-amber-800">
+            El feriado ({{ conflictWarning()!.context }}) se guardó correctamente, pero los siguientes horarios ya tenían un turno
+            reservado y no fueron bloqueados: se conservan como estaban para que los reasignes o canceles manualmente.
+          </p>
+          <p class="mt-2 text-xs font-bold text-amber-900">
+            IDs de horario en conflicto: {{ conflictWarning()!.scheduleIds.join(', ') }}
+          </p>
+          <a routerLink="/admin/calendario" class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-blue-text hover:underline">
+            Ir al Calendario para gestionar estos turnos →
+          </a>
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button
+          type="button"
+          (click)="dismissConflictWarning()"
+          class="rounded-pill border border-amber-300 bg-surface px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors"
+        >
+          Entendido
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Filtro -->
+  <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
+    <div class="flex-1 max-w-xs">
+      <label class="block text-[11px] font-bold text-ink mb-1">Sede</label>
+      <select
+        name="holidayEstablishmentFilter"
+        [value]="filterStablishmentId() ?? ''"
+        (change)="onFilterChange($event)"
+        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todas las sedes</option>
+        @for (est of establishments(); track est.id) {
+          <option [value]="est.id">{{ est.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Fecha</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Descripción</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Sede</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Motivo</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">
+            Acciones
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr>
+            <td colspan="6" class="py-12 text-center text-xs text-ink-3">Cargando feriados...</td>
+          </tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr>
+            <td colspan="6" class="py-12 text-center text-xs text-ink-3">No hay feriados registrados.</td>
+          </tr>
+        } @else {
+          @for (item of data()?.content; track item.id) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-bold text-ink">{{ item.date }}</td>
+              <td class="px-3 py-4 text-xs text-ink">{{ item.description }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                @if (item.stablishment) {
+                  <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-[11px] font-bold text-blue">
+                    {{ item.stablishment.name }}
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center rounded-pill bg-purple-50 px-2.5 py-0.5 text-[11px] font-bold text-purple-700 border border-purple-200">
+                    🌐 Todas las sedes
+                  </span>
+                }
+              </td>
+              <td class="px-3 py-4 text-xs text-ink-3">{{ item.reason.description }}</td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <div class="inline-flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="openEditModal(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openDeleteModal(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 transition-all"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <p class="text-xs text-ink-3">
+          Mostrando <span class="font-bold text-ink">{{ data()!.numberOfElements }}</span> de
+          <span class="font-bold text-ink">{{ data()!.totalElements }}</span> feriados
+        </p>
+        <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+          <button
+            [disabled]="data()!.first"
+            (click)="loadPage(data()!.number - 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Anterior
+          </button>
+          <span class="px-2 text-xs font-bold text-ink">Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages || 1 }}</span>
+          <button
+            [disabled]="data()!.last"
+            (click)="loadPage(data()!.number + 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Siguiente
+          </button>
+        </nav>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL CREAR / EDITAR FERIADO
+     ========================================================================= -->
+@if (isFormModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeFormModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              {{ editingItem() ? 'Editar Feriado' : 'Registrar Nuevo Feriado' }}
+            </h3>
+            <button
+              type="button"
+              (click)="closeFormModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ formError() }}</span>
+            </div>
+          }
+
+          <form (ngSubmit)="onFormSubmit()">
+            <div class="space-y-4">
+              <div>
+                <label for="holidayDate" class="block text-xs font-bold text-ink mb-1">Fecha *</label>
+                <input
+                  type="date"
+                  id="holidayDate"
+                  [value]="formDate()"
+                  (input)="onDateInput($event)"
+                  name="holidayDate"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (submitAttempted() && !formDate()) {
+                  <p class="mt-1 text-xs text-red-600">La fecha es requerida.</p>
+                }
+              </div>
+
+              <div>
+                <label for="holidayDescription" class="block text-xs font-bold text-ink mb-1">Descripción *</label>
+                <input
+                  type="text"
+                  id="holidayDescription"
+                  [value]="formDescription()"
+                  (input)="onDescriptionInput($event)"
+                  name="holidayDescription"
+                  placeholder="Ej. Navidad, Aniversario de la sede..."
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (submitAttempted() && !formDescription().trim()) {
+                  <p class="mt-1 text-xs text-red-600">La descripción es requerida.</p>
+                }
+              </div>
+
+              <div>
+                <label for="holidayStablishment" class="block text-xs font-bold text-ink mb-1">Sede</label>
+                <select
+                  id="holidayStablishment"
+                  [value]="formStablishmentId() ?? ''"
+                  (change)="onFormStablishmentChange($event)"
+                  name="holidayStablishment"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Todas las sedes (Global)</option>
+                  @for (est of establishments(); track est.id) {
+                    <option [value]="est.id">{{ est.name }}</option>
+                  }
+                </select>
+                <p class="mt-1 text-[11px] text-ink-3">Deja "Todas las sedes" para un feriado que aplica a toda la clínica.</p>
+              </div>
+
+              <div>
+                <label for="holidayReason" class="block text-xs font-bold text-ink mb-1">Motivo *</label>
+                <select
+                  id="holidayReason"
+                  [value]="formReasonId() ?? ''"
+                  (change)="onFormReasonChange($event)"
+                  name="holidayReason"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Selecciona un motivo...</option>
+                  @for (reason of reasons(); track reason.id) {
+                    <option [value]="reason.id">{{ reason.description }}</option>
+                  }
+                </select>
+                @if (submitAttempted() && formReasonId() == null) {
+                  <p class="mt-1 text-xs text-red-600">El motivo es requerido.</p>
+                }
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeFormModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : (editingItem() ? 'Guardar Cambios' : 'Crear Feriado') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ELIMINAR FERIADO
+     ========================================================================= -->
+@if (isDeleteModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeDeleteModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">Eliminar Feriado</h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                ¿Estás seguro de que deseas eliminar el feriado (<strong>{{ deletingItem()?.description }}</strong>)? Los horarios que
+                ya quedaron marcados como no disponibles por este feriado NO se liberarán automáticamente.
+              </p>
+            </div>
+          </div>
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ formError() }}</span>
+            </div>
+          }
+
+          <div class="mt-2 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeDeleteModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="formLoading()"
+              (click)="confirmDelete()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ formLoading() ? 'Eliminando...' : 'Eliminar Feriado' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
