@@ -84,6 +84,10 @@ export class EstablishmentApiService {
     return this.http.post<Establishment>(`${this.API_URL}/${id}/services/${serviceId}`, {}, { withCredentials: true });
   }
 
+  revokeService(id: number, serviceId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}/services/${serviceId}`, { withCredentials: true });
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`, { withCredentials: true });
   }

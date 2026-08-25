@@ -6,6 +6,7 @@ import { ServicioApiService } from '../../../core/api/servicio-api.service';
 import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { extractApiErrorMessage, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
 import { findOverlappingPromotion, isOverlapConflictError } from './promotion-overlap.util';
+import { AuthService } from '../../../core/auth/auth.service';
 import type { DiscountType, Page, Promotion, PromotionCreate, Servicio } from '../../../core/models';
 
 const MAX_PERCENTAGE = 100;
@@ -35,6 +36,12 @@ const MAX_PERCENTAGE = 100;
 export class PreciosPromocionesListComponent implements OnInit {
   private readonly api = inject(PromotionApiService);
   private readonly servicioApi = inject(ServicioApiService);
+  private readonly authService = inject(AuthService);
+
+  protected readonly isAdminOrEmployee = computed(() => {
+    const role = this.authService.currentUser()?.role;
+    return role === 'ROLE_ADMIN' || role === 'ROLE_EMPLOYEE';
+  });
 
   protected readonly data = signal<Page<Promotion> | null>(null);
   protected readonly loading = signal<boolean>(true);

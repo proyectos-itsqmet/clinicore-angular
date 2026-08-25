@@ -124,9 +124,13 @@ export class CalendarioListComponent implements OnInit {
     });
   }
 
+  // Bulk selection
+  protected readonly selectedIds = signal<Set<number>>(new Set());
+
   loadSchedules(page: number = 0): void {
     this.loading.set(true);
     this.error.set(null);
+    this.selectedIds.set(new Set()); // Reset selection on page load
 
     this.scheduleApi
       .getAll({
@@ -149,6 +153,60 @@ export class CalendarioListComponent implements OnInit {
           this.loading.set(false);
         },
       });
+  }
+
+  toggleSelection(id: number): void {
+    const current = new Set(this.selectedIds());
+    if (current.has(id)) {
+      current.delete(id);
+    } else {
+      current.add(id);
+    }
+    this.selectedIds.set(current);
+  }
+
+  toggleSelectAll(): void {
+    const currentItems = this.schedulesPage()?.content ?? [];
+    const current = this.selectedIds();
+    if (current.size === currentItems.length && currentItems.length > 0) {
+      this.selectedIds.set(new Set());
+    } else {
+      this.selectedIds.set(new Set(currentItems.map((s) => s.id!)));
+    }
+  }
+
+  isAllSelected(): boolean {
+    const currentItems = this.schedulesPage()?.content ?? [];
+    return currentItems.length > 0 && this.selectedIds().size === currentItems.length;
+  }
+
+  bulkDelete(): void {
+    const ids = Array.from(this.selectedIds());
+    if (ids.length === 0) return;
+    if (!confirm(`¿Estás seguro de que deseas eliminar ${ids.length} horarios seleccionados?`)) return;
+
+    this.scheduleApi.bulkDelete(ids).subscribe({
+      next: () => {
+        this.loadSchedules(this.schedulesPage()?.number ?? 0);
+      },
+      error: () => {
+        alert('Ocurrió un error al intentar eliminar algunos horarios. Verifica que no estén reservados.');
+      }
+    });
+  }
+
+  bulkUpdateStatus(status: 'STATUS_FREE' | 'STATUS_UNAVAILABLE'): void {
+    const ids = Array.from(this.selectedIds());
+    if (ids.length === 0) return;
+
+    this.scheduleApi.bulkUpdateStatus(status, ids).subscribe({
+      next: () => {
+        this.loadSchedules(this.schedulesPage()?.number ?? 0);
+      },
+      error: () => {
+        alert('Ocurrió un error al actualizar los estados.');
+      }
+    });
   }
 
   onRangeFromChange(value: string): void {

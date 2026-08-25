@@ -32,6 +32,10 @@ export class OperatorApiService {
     return this.http.post<Operator>(`${this.API_URL}/${operatorId}/stablishments/${stablishmentId}`, {}, { withCredentials: true });
   }
 
+  revokeStablishment(operatorId: string, stablishmentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${operatorId}/stablishments/${stablishmentId}`, { withCredentials: true });
+  }
+
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`, { withCredentials: true });
   }

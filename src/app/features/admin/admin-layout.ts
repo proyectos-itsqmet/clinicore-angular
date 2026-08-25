@@ -18,6 +18,8 @@ import { Icon } from '../../shared/ui/atoms/icon/icon';
 import { AdminNav } from '../../shared/ui/molecules/admin-nav/admin-nav';
 import { ADMIN_NAV } from './admin-nav.data';
 
+import { AuthService } from '../../core/auth/auth.service';
+
 /** Breadcrumb pair every generated route carries in its `data`. */
 interface Crumb {
   group: string;
@@ -80,8 +82,30 @@ interface Crumb {
 export class AdminLayout {
   /** Tailwind's `lg:`. Kept in sync with the template's breakpoint by hand. */
   private static readonly DESKTOP_QUERY = '(min-width: 64rem)';
+  
+  private readonly authService = inject(AuthService);
+  protected readonly currentUser = this.authService.currentUser;
 
-  protected readonly nav = ADMIN_NAV;
+  protected readonly nav = computed(() => {
+    const user = this.authService.currentUser();
+    if (!user) return [];
+    
+    return ADMIN_NAV.filter(entry => {
+      if (entry.allowedRoles && !entry.allowedRoles.includes(user.role)) {
+        return false;
+      }
+      return true;
+    }).map(entry => ({
+      ...entry,
+      children: entry.children.filter(child => {
+        if (child.allowedRoles && !child.allowedRoles.includes(user.role)) {
+          return false;
+        }
+        return true;
+      })
+    }));
+  });
+  
   protected readonly drawerOpen = signal(false);
 
   private readonly route = inject(ActivatedRoute);

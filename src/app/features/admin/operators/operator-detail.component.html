@@ -103,13 +103,23 @@
                 <p class="text-[11px] text-ink-3 mt-0.5">📍 {{ operator()?.stablishment?.address }}</p>
               </div>
             </div>
-            <a
-              [routerLink]="['/admin/administracion/establecimientos', operator()?.stablishment?.id]"
-              class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
-            >
-              <span>Ver Sede #{{ operator()?.stablishment?.id }}</span>
-              <span>→</span>
-            </a>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                (click)="operator()?.stablishment ? onRevokeEst(operator()!.stablishment!) : null"
+                class="inline-flex items-center gap-1 rounded-pill bg-red-50 text-red-600 px-2.5 py-1 text-[11px] font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100"
+                title="Desasignar sede"
+              >
+                Desasignar
+              </button>
+              <a
+                [routerLink]="['/admin/administracion/establecimientos', operator()?.stablishment?.id]"
+                class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
+              >
+                <span>Ver Sede #{{ operator()?.stablishment?.id }}</span>
+                <span>→</span>
+              </a>
+            </div>
           </div>
         } @else if (operator()?.stablishments && (operator()?.stablishments?.length ?? 0) > 0) {
           @for (est of operator()?.stablishments; track est.id) {
@@ -123,13 +133,23 @@
                   <p class="text-[11px] text-ink-3 mt-0.5">📍 {{ est.address }}</p>
                 </div>
               </div>
-              <a
-                [routerLink]="['/admin/administracion/establecimientos', est.id]"
-                class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
-              >
-                <span>Ver Sede #{{ est.id }}</span>
-                <span>→</span>
-              </a>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="onRevokeEst(est)"
+                  class="inline-flex items-center gap-1 rounded-pill bg-red-50 text-red-600 px-2.5 py-1 text-[11px] font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100"
+                  title="Desasignar sede"
+                >
+                  Desasignar
+                </button>
+                <a
+                  [routerLink]="['/admin/administracion/establecimientos', est.id]"
+                  class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
+                >
+                  <span>Ver Sede #{{ est.id }}</span>
+                  <span>→</span>
+                </a>
+              </div>
             </div>
           }
         } @else {

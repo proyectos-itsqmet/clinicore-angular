@@ -4,16 +4,18 @@
       <h1 class="font-display text-2xl font-extrabold text-ink">Sesiones</h1>
       <p class="mt-1 text-xs text-ink-3">Planes de N sesiones de un mismo servicio, vendidos a un precio combinado.</p>
     </div>
-    <button
-      type="button"
-      (click)="openCreateModal()"
-      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
-    >
-      <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
-      </svg>
-      Nuevo Plan
-    </button>
+    @if (isAdminOrEmployee()) {
+      <button
+        type="button"
+        (click)="openCreateModal()"
+        class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+      >
+        <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+        </svg>
+        Nuevo Plan
+      </button>
+    }
   </div>
 
   <!-- Aviso PERMANENTE: catálogo únicamente, sin registro de consumo por paciente. -->
@@ -67,14 +69,16 @@
           <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio del Plan</th>
           <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio por Sesión</th>
           <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Ahorro vs. Individual</th>
-          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+          @if (isAdminOrEmployee()) {
+            <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+          }
         </tr>
       </thead>
       <tbody class="divide-y divide-line bg-surface">
         @if (loading()) {
-          <tr><td colspan="8" class="py-12 text-center text-xs text-ink-3">Cargando planes de sesiones...</td></tr>
+          <tr><td [attr.colspan]="isAdminOrEmployee() ? 8 : 7" class="py-12 text-center text-xs text-ink-3">Cargando planes de sesiones...</td></tr>
         } @else if (data()?.content?.length === 0) {
-          <tr><td colspan="8" class="py-12 text-center text-xs text-ink-3">No hay planes de sesiones registrados.</td></tr>
+          <tr><td [attr.colspan]="isAdminOrEmployee() ? 8 : 7" class="py-12 text-center text-xs text-ink-3">No hay planes de sesiones registrados.</td></tr>
         } @else {
           @for (item of data()?.content; track item.id) {
             <tr class="hover:bg-tint/20 transition-colors">
@@ -97,24 +101,26 @@
                   <span class="text-ink-3 text-xs">Sin ahorro</span>
                 }
               </td>
-              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
-                <div class="inline-flex items-center gap-2">
-                  <button
-                    type="button"
-                    (click)="openEditModal(item)"
-                    class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    (click)="openDeleteModal(item)"
-                    class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 transition-all"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </td>
+              @if (isAdminOrEmployee()) {
+                <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                  <div class="inline-flex items-center justify-end gap-2 w-full">
+                    <button
+                      type="button"
+                      (click)="openEditModal(item)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openDeleteModal(item)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 transition-all"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              }
             </tr>
           }
         }

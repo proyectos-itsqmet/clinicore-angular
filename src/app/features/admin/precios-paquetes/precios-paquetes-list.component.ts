@@ -6,6 +6,7 @@ import { ServicePackageApiService } from '../../../core/api/service-package-api.
 import { ServicioApiService } from '../../../core/api/servicio-api.service';
 import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { extractApiErrorMessage, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
+import { AuthService } from '../../../core/auth/auth.service';
 import type { Page, Servicio, ServicePackage, ServicePackageCreate } from '../../../core/models';
 
 /** One line item row in the create/edit form. `rowId` is a LOCAL, stable identity generated when the row is added — never the array index — so `@for (... track row.rowId)` keeps each row's own data attached to it after another row is removed. */
@@ -33,6 +34,12 @@ interface PackageItemRow {
 export class PreciosPaquetesListComponent implements OnInit {
   private readonly api = inject(ServicePackageApiService);
   private readonly servicioApi = inject(ServicioApiService);
+  private readonly authService = inject(AuthService);
+
+  protected readonly isAdminOrEmployee = computed(() => {
+    const role = this.authService.currentUser()?.role;
+    return role === 'ROLE_ADMIN' || role === 'ROLE_EMPLOYEE';
+  });
 
   private nextRowId = 1;
 

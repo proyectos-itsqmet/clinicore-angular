@@ -6,6 +6,7 @@ import { ServicioApiService } from '../../../core/api/servicio-api.service';
 import { SessionPlanApiService } from '../../../core/api/session-plan-api.service';
 import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { extractApiErrorMessage, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
+import { AuthService } from '../../../core/auth/auth.service';
 import type { Page, Servicio, SessionPlan, SessionPlanCreate } from '../../../core/models';
 
 /**
@@ -28,6 +29,12 @@ import type { Page, Servicio, SessionPlan, SessionPlanCreate } from '../../../co
 export class PreciosSesionesListComponent implements OnInit {
   private readonly api = inject(SessionPlanApiService);
   private readonly servicioApi = inject(ServicioApiService);
+  private readonly authService = inject(AuthService);
+
+  protected readonly isAdminOrEmployee = computed(() => {
+    const role = this.authService.currentUser()?.role;
+    return role === 'ROLE_ADMIN' || role === 'ROLE_EMPLOYEE';
+  });
 
   protected readonly data = signal<Page<SessionPlan> | null>(null);
   protected readonly loading = signal<boolean>(true);

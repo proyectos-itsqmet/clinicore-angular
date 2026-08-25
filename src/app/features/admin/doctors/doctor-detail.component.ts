@@ -277,4 +277,34 @@ export class DoctorDetailComponent implements OnInit {
       }
     });
   }
+
+  onRevokeEst(est: Establishment): void {
+    if (!est.id) return;
+    if (!confirm(`¿Estás seguro de desasignar la sede "${est.name}"?`)) return;
+
+    this.doctorApi.revokeStablishment(this.doctorId, est.id).subscribe({
+      next: () => {
+        alert('Sede desasignada exitosamente.');
+        this.loadDoctor();
+      },
+      error: () => {
+        alert('Error al desasignar la sede.');
+      }
+    });
+  }
+
+  onRevokeService(srv: Servicio): void {
+    if (!srv.id) return;
+    if (!confirm(`¿Estás seguro de desasignar el servicio "${srv.name}"?`)) return;
+
+    this.doctorApi.revokeService(this.doctorId, srv.id).subscribe({
+      next: () => {
+        alert('Servicio desasignado exitosamente.');
+        this.loadDoctor();
+      },
+      error: () => {
+        alert('Error al desasignar el servicio.');
+      }
+    });
+  }
 }

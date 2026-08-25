@@ -1,0 +1,220 @@
+<div class="flex flex-col gap-6">
+  <header class="flex flex-col gap-1">
+    <h1 class="font-display text-2xl font-extrabold text-ink">Mis Servicios y Establecimientos</h1>
+    <p class="text-[14px] text-ink-3">Visualiza las áreas donde fuiste asignado y configura tus horarios.</p>
+  </header>
+
+  @if (loading()) {
+    <div class="flex h-32 items-center justify-center">
+      <p class="text-sm text-ink-3">Cargando información...</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Listado de Establecimientos -->
+      <section class="flex flex-col gap-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <h2 class="font-sans text-lg font-bold text-ink flex items-center gap-2">
+          <app-icon name="location" [size]="18" /> Mis Establecimientos
+        </h2>
+        @if (establishments().length === 0) {
+          <p class="text-sm text-ink-3 text-center py-4">No estás asignado a ningún establecimiento.</p>
+        } @else {
+          <ul class="flex flex-col gap-3">
+            @for (est of establishments(); track est.id) {
+              <li class="flex flex-col rounded-lg border border-line bg-field p-3 shadow-sm">
+                <span class="font-semibold text-ink">{{ est.name }}</span>
+                <span class="text-xs text-ink-3">{{ est.address || 'Sin dirección' }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Listado de Servicios -->
+      <section class="flex flex-col gap-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <h2 class="font-sans text-lg font-bold text-ink flex items-center gap-2">
+          <app-icon name="box" [size]="18" /> Mis Servicios
+        </h2>
+        @if (services().length === 0) {
+          <p class="text-sm text-ink-3 text-center py-4">No tienes servicios asignados.</p>
+        } @else {
+          <ul class="flex flex-col gap-3">
+            @for (srv of services(); track srv.id) {
+              <li class="flex flex-col rounded-lg border border-line bg-field p-3 shadow-sm">
+                <span class="font-semibold text-ink">{{ srv.name }}</span>
+                <span class="text-xs text-ink-3">Precio base: {{ srv.price | currency }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+    </div>
+
+    <!-- Zona para crear horarios -->
+    @if (services().length > 0 && establishments().length > 0) {
+      <section class="mt-4 flex flex-col gap-4 rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <header>
+          <h2 class="font-sans text-lg font-bold text-ink">Gestionar Agenda</h2>
+          <p class="text-[13px] text-ink-3">Selecciona un servicio y un establecimiento para registrar un nuevo horario de atención.</p>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (est of establishments(); track est.id) {
+            @for (srv of services(); track srv.id) {
+              <div class="flex items-center justify-between rounded-lg border border-line p-4">
+                <div class="flex flex-col">
+                  <span class="font-semibold text-[14px] text-ink">{{ srv.name }}</span>
+                  <span class="text-[12px] text-ink-3">en {{ est.name }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="flex items-center gap-1.5 rounded-lg bg-blue px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-blue-dark focus-visible:ring-2 focus-visible:ring-blue"
+                  (click)="openScheduleModal(srv, est)"
+                >
+                  <app-icon name="plus" [size]="14" [strokeWidth]="2" />
+                  Horario
+                </button>
+              </div>
+            }
+          }
+        </div>
+      </section>
+    }
+  }
+
+  @if (isCreatingSchedule()) {
+    <div class="relative z-50">
+      <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeScheduleModal()"></div>
+      <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-line">
+            <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Horarios: {{ selectedService()?.name }} en {{ selectedEstablishment()?.name }}
+              </h3>
+              <button
+                type="button"
+                (click)="closeScheduleModal()"
+                class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Formulario de creación (1 columna) -->
+              <div class="md:col-span-1 border-r border-line pr-4">
+                <h4 class="font-sans text-sm font-bold text-ink mb-3">Nuevo Horario</h4>
+                
+                @if (formError()) {
+                  <div class="mb-3 rounded-lg bg-red-50 p-2 text-xs font-bold text-red-800">
+                    {{ formError() }}
+                  </div>
+                }
+
+                <div class="flex flex-col gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-ink mb-1">Fecha *</label>
+                    <input 
+                      type="date"
+                      [value]="newScheduleDate()"
+                      (input)="newScheduleDate.set($any($event.target).value)"
+                      class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-ink mb-1">Hora *</label>
+                    <input 
+                      type="time"
+                      [value]="newScheduleTime()"
+                      (input)="newScheduleTime.set($any($event.target).value)"
+                      class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                  </div>
+                  <button 
+                    type="button" 
+                    (click)="createSchedule()" 
+                    [disabled]="formLoading()"
+                    class="mt-2 rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+                  >
+                    {{ formLoading() ? 'Creando...' : 'Crear Horario' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Listado de horarios (2 columnas) -->
+              <div class="md:col-span-2">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="font-sans text-sm font-bold text-ink">Horarios Registrados</h4>
+                  <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold text-ink">Filtrar:</label>
+                    <input 
+                      type="date"
+                      [value]="filterDate()"
+                      (input)="filterDate.set($any($event.target).value); loadMySchedules(true)"
+                      class="rounded-lg border border-line bg-surface py-1 px-2 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                  </div>
+                </div>
+                
+                @if (schedulesLoading() && mySchedules().length === 0) {
+                  <p class="text-xs text-ink-3 py-4">Cargando...</p>
+                } @else if (mySchedules().length === 0) {
+                  <p class="text-xs text-ink-3 py-4">No tienes horarios registrados para este servicio en este establecimiento con estos filtros.</p>
+                } @else {
+                  <div class="max-h-[300px] overflow-y-auto pr-2" (scroll)="onScroll($event)">
+                    <table class="min-w-full divide-y divide-line">
+                      <thead class="bg-field sticky top-0 z-10">
+                        <tr>
+                          <th class="py-2 px-3 text-left text-[11px] font-bold text-ink-3">Fecha</th>
+                          <th class="py-2 px-3 text-left text-[11px] font-bold text-ink-3">Hora</th>
+                          <th class="py-2 px-3 text-left text-[11px] font-bold text-ink-3">Estado</th>
+                          <th class="py-2 px-3 text-right text-[11px] font-bold text-ink-3">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-line">
+                        @for (sch of mySchedules(); track sch.id) {
+                          <tr class="hover:bg-tint/20">
+                            <td class="px-3 py-2 text-xs text-ink">{{ sch.date }}</td>
+                            <td class="px-3 py-2 text-xs text-ink">{{ sch.hour | slice:0:5 }}</td>
+                            <td class="px-3 py-2 text-xs">
+                              @if (sch.status === 'STATUS_FREE') {
+                                <span class="rounded bg-emerald-100 px-2 py-0.5 font-bold text-emerald-800">Libre</span>
+                              } @else if (sch.status === 'STATUS_OCCUPIED') {
+                                <span class="rounded bg-amber-100 px-2 py-0.5 font-bold text-amber-800">Ocupado</span>
+                              } @else if (sch.status === 'STATUS_UNAVAILABLE') {
+                                <span class="rounded bg-slate-100 px-2 py-0.5 font-bold text-slate-800">No disponible</span>
+                              } @else {
+                                <span class="rounded bg-red-100 px-2 py-0.5 font-bold text-red-800">Cancelado</span>
+                              }
+                            </td>
+                            <td class="px-3 py-2 text-right">
+                              @if (sch.status === 'STATUS_FREE') {
+                                <button 
+                                  (click)="markAsUnavailable(sch.id!)"
+                                  class="text-[11px] font-bold text-blue hover:underline"
+                                >
+                                  Marcar no disponible
+                                </button>
+                              }
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                    @if (schedulesLoading() && mySchedules().length > 0) {
+                      <div class="py-2 text-center">
+                        <span class="text-[11px] font-bold text-ink-3">Cargando más...</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

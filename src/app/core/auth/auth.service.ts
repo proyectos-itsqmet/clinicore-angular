@@ -16,6 +16,8 @@ export interface LoginResponse {
   lastName: string;
   role: string;
   message: string;
+  ci?: string;
+  stablishmentName?: string;
   jwtToken?: string;
 }
 
@@ -79,30 +81,56 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.BASE_AUTH_URL}/login-operator`, credentials, {
-      withCredentials: true
-    }).pipe(
-      tap((response) => {
-        this.saveUser(response);
+    return this.http
+      .post<LoginResponse>(`${this.BASE_AUTH_URL}/login-operator`, credentials, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((response) => {
+          this.saveUser(response);
+        }),
+      );
   }
 
-  loginPatient(credentials: { email?: string; ci?: string; password: string }): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.BASE_AUTH_URL}/login-patient`, credentials, {
-      withCredentials: true
-    }).pipe(
-      tap((response) => {
-        this.saveUser(response);
+  loginPatient(credentials: {
+    email?: string;
+    ci?: string;
+    password: string;
+  }): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${this.BASE_AUTH_URL}/login-patient`, credentials, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((response) => {
+          this.saveUser(response);
+        }),
+      );
   }
 
-  initRegistrationPatient(body: InitRegistrationRequest): Observable<{ Message: string; email: string }> {
+  loginDoctor(credentials: {
+    email?: string;
+    ci?: string;
+    password: string;
+  }): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${this.BASE_AUTH_URL}/login-doctor`, credentials, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap((response) => {
+          this.saveUser(response);
+        }),
+      );
+  }
+
+  initRegistrationPatient(
+    body: InitRegistrationRequest,
+  ): Observable<{ Message: string; email: string }> {
     return this.http.post<{ Message: string; email: string }>(
       `${this.BASE_AUTH_URL}/init-registration-patient`,
       body,
-      { withCredentials: true }
+      { withCredentials: true },
     );
   }
 
@@ -110,47 +138,51 @@ export class AuthService {
     return this.http.post<{ Message: string; email: string }>(
       `${this.BASE_AUTH_URL}/verify-registration-otp`,
       body,
-      { withCredentials: true }
+      { withCredentials: true },
     );
   }
 
   registerPatient(body: PatientRegistrationRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(
-      `${this.BASE_AUTH_URL}/register-patient`,
-      body,
-      { withCredentials: true }
-    ).pipe(
-      tap((response) => {
-        this.saveUser(response);
+    return this.http
+      .post<LoginResponse>(`${this.BASE_AUTH_URL}/register-patient`, body, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((response) => {
+          this.saveUser(response);
+        }),
+      );
   }
 
   checkSession(): Observable<boolean> {
-    return this.http.get<LoginResponse>(`${this.BASE_AUTH_URL}/me`, {
-      withCredentials: true
-    }).pipe(
-      tap((response) => {
-        this.saveUser(response);
-      }),
-      map(() => true),
-      catchError(() => {
-        // Si no hay sesión en backend, solo limpiar si no tenemos token en cookie
-        if (!this.currentUser()) {
-          this.saveUser(null);
-        }
-        return of(this.currentUser() !== null);
+    return this.http
+      .get<LoginResponse>(`${this.BASE_AUTH_URL}/me`, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((response) => {
+          this.saveUser(response);
+        }),
+        map(() => true),
+        catchError(() => {
+          this.logout();
+          return of(false);
+        }),
+      );
   }
 
   logout(): void {
     this.saveUser(null);
-    this.http.post(`${this.BASE_AUTH_URL}/logout`, {}, {
-      withCredentials: true
-    }).pipe(
-      catchError(() => of(null))
-    ).subscribe();
+    this.http
+      .post(
+        `${this.BASE_AUTH_URL}/logout`,
+        {},
+        {
+          withCredentials: true,
+        },
+      )
+      .pipe(catchError(() => of(null)))
+      .subscribe();
   }
 
   isAuthenticated(): boolean {

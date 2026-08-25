@@ -133,14 +133,24 @@
                       {{ doc.speciality }}
                     </span>
                   </div>
-                  <a
-                    [routerLink]="['/admin/administracion/doctores', doc.uuid]"
-                    class="shrink-0 inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
-                    title="Ver detalle del doctor"
-                  >
-                    <span>Ver</span>
-                    <span>→</span>
-                  </a>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      (click)="onRevokeDoctor(doc)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-red-50 text-red-600 px-2.5 py-1 text-[11px] font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100"
+                      title="Desasignar doctor"
+                    >
+                      Desasignar
+                    </button>
+                    <a
+                      [routerLink]="['/admin/administracion/doctores', doc.uuid]"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
+                      title="Ver detalle del doctor"
+                    >
+                      <span>Ver</span>
+                      <span>→</span>
+                    </a>
+                  </div>
                 </div>
               }
             }
@@ -214,15 +224,25 @@
                     <h4 class="text-xs font-bold text-ink truncate">{{ srv.name }}</h4>
                     <p class="text-[11px] font-bold text-ink-2 mt-0.5">${{ srv.price | number:'1.2-2' }}</p>
                   </div>
-                  <!-- Redirección directa al detalle del servicio -->
-                  <a
-                    [routerLink]="['/admin/administracion/especialidades', srv.id]"
-                    class="shrink-0 inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
-                    title="Ver detalle del servicio"
-                  >
-                    <span>Ver Servicio</span>
-                    <span>→</span>
-                  </a>
+                  <!-- Redirección directa al detalle del servicio y desasignar -->
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      (click)="onRevokeService(srv)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-red-50 text-red-600 px-2.5 py-1 text-[11px] font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100"
+                      title="Desasignar servicio"
+                    >
+                      Desasignar
+                    </button>
+                    <a
+                      [routerLink]="['/admin/administracion/especialidades', srv.id]"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-2.5 py-1 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm"
+                      title="Ver detalle del servicio"
+                    >
+                      <span>Ver Servicio</span>
+                      <span>→</span>
+                    </a>
+                  </div>
                 </div>
               }
             }

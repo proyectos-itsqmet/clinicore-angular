@@ -9,6 +9,7 @@ import { Icon, type IconName } from '../../atoms/icon/icon';
 export interface AdminNavLeaf {
   readonly path: string;
   readonly label: string;
+  readonly allowedRoles?: readonly string[];
 }
 
 /**
@@ -27,6 +28,7 @@ export interface AdminNavEntry {
   /** Route segment for this row, relative to `basePath`. */
   readonly path: string;
   readonly children: readonly AdminNavLeaf[];
+  readonly allowedRoles?: readonly string[];
 }
 
 /**

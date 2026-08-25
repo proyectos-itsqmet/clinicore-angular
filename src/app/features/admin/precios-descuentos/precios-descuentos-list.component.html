@@ -21,14 +21,16 @@
           <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio Base</th>
           <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Descuento ($)</th>
           <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Precio Neto</th>
-          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+          @if (isAdminOrEmployee()) {
+            <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+          }
         </tr>
       </thead>
       <tbody class="divide-y divide-line bg-surface">
         @if (loading()) {
-          <tr><td colspan="6" class="py-12 text-center text-xs text-ink-3">Cargando servicios...</td></tr>
+          <tr><td [attr.colspan]="isAdminOrEmployee() ? 6 : 5" class="py-12 text-center text-xs text-ink-3">Cargando servicios...</td></tr>
         } @else if (data()?.content?.length === 0) {
-          <tr><td colspan="6" class="py-12 text-center text-xs text-ink-3">No hay servicios registrados.</td></tr>
+          <tr><td [attr.colspan]="isAdminOrEmployee() ? 6 : 5" class="py-12 text-center text-xs text-ink-3">No hay servicios registrados.</td></tr>
         } @else {
           @for (item of data()?.content; track item.id) {
             <tr class="hover:bg-tint/20 transition-colors">
@@ -45,15 +47,17 @@
                 }
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-xs text-ink font-bold">${{ netPrice(item) | number:'1.2-2' }}</td>
-              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
-                <button
-                  type="button"
-                  (click)="openEditModal(item)"
-                  class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
-                >
-                  Editar descuento
-                </button>
-              </td>
+              @if (isAdminOrEmployee()) {
+                <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                  <button
+                    type="button"
+                    (click)="openEditModal(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                  >
+                    Editar descuento
+                  </button>
+                </td>
+              }
             </tr>
           }
         }

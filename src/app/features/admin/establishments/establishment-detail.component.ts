@@ -366,6 +366,36 @@ export class EstablishmentDetailComponent implements OnInit {
     });
   }
 
+  onRevokeDoctor(doc: AdminDoctor): void {
+    if (!doc.uuid) return;
+    if (!confirm(`¿Estás seguro de desasignar al Dr. ${doc.firstName} ${doc.lastName}?`)) return;
+
+    this.doctorApi.revokeStablishment(doc.uuid, this.establishmentId).subscribe({
+      next: () => {
+        alert('Doctor desasignado exitosamente.');
+        this.loadDoctors();
+      },
+      error: () => {
+        alert('Error al desasignar el doctor.');
+      }
+    });
+  }
+
+  onRevokeService(srv: Servicio): void {
+    if (!srv.id) return;
+    if (!confirm(`¿Estás seguro de desasignar el servicio "${srv.name}"?`)) return;
+
+    this.establishmentApi.revokeService(this.establishmentId, srv.id).subscribe({
+      next: () => {
+        alert('Servicio desasignado exitosamente.');
+        this.loadServices();
+      },
+      error: () => {
+        alert('Error al desasignar el servicio.');
+      }
+    });
+  }
+
   // --- Modal Asignar / Buscar Pacientes ---
   openAssignPatientModal(): void {
     this.candidatePatientName.set('');

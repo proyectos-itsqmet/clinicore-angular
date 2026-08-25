@@ -42,6 +42,12 @@ export class InvoiceApiService {
     return this.http.get<Page<Invoice>>(this.API_URL, { params, withCredentials: true });
   }
 
+  /** `GET /api/doctors/me/invoices` - para que los doctores vean sus facturas emitidas. */
+  getMyInvoices(page: number = 0, size: number = 10): Observable<Page<Invoice>> {
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    return this.http.get<Page<Invoice>>('http://localhost:8080/api/doctors/me/invoices', { params, withCredentials: true });
+  }
+
   /** `GET /api/patients/{patientId}/invoices` — the "ver facturas de este paciente" screen. */
   getForPatient(patientId: string, page: number = 0, size: number = 10): Observable<Page<Invoice>> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());

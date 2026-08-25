@@ -167,6 +167,11 @@ export const adminRoutes: Routes = [
     data: { crumbGroup: 'Calendario', crumbLeaf: 'Calendario de horarios' }
   },
   {
+    path: 'mis-asignaciones',
+    loadChildren: () => import('./mis-asignaciones/mis-asignaciones.routes').then(m => m.misAsignacionesRoutes),
+    data: { crumbGroup: 'Mis Asignaciones', crumbLeaf: 'Mis Servicios' }
+  },
+  {
     path: 'bloqueo-de-citas/motivos',
     loadChildren: () => import('./block-reasons/block-reasons.routes').then(m => m.blockReasonRoutes),
     data: { crumbGroup: 'Bloqueo de citas', crumbLeaf: 'Motivos' }
@@ -231,6 +236,7 @@ export const adminRoutes: Routes = [
              fullPath !== 'bloqueo-de-citas/permisos' &&
              fullPath !== 'finanzas/facturacion' &&
              fullPath !== 'finanzas/contabilidad' &&
+             fullPath !== 'mis-asignaciones/servicios' &&
              fullPath !== 'finanzas/reclamos';
     });
 

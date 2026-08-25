@@ -54,6 +54,9 @@ export class SpecialtyDetailComponent implements OnInit {
   protected readonly filterDate = signal<string>('');
   protected readonly filterStablishmentId = signal<number | null>(null);
   protected readonly filterStatus = signal<string>('');
+  
+  // Selección de Horarios
+  protected readonly selectedScheduleIds = signal<Set<number>>(new Set());
 
   // Catálogo Global de Establecimientos (completo: ver `loadEstablishments`)
   protected readonly establishments = signal<Establishment[]>([]);
@@ -205,6 +208,7 @@ export class SpecialtyDetailComponent implements OnInit {
   loadSchedules(page: number = 0): void {
     this.schedulesLoading.set(true);
     this.schedulePage.set(page);
+    this.selectedScheduleIds.set(new Set()); // Reset selection
 
     const filters: { stablishmentId?: number; date?: string; status?: ScheduleStatus | string } = {};
     if (this.filterStablishmentId()) {
@@ -241,6 +245,61 @@ export class SpecialtyDetailComponent implements OnInit {
       },
       error: () => {
         // Fallback silencioso: el <select> queda con la última página cargada (si alguna).
+      }
+    });
+  }
+
+  // --- Selección Múltiple de Horarios ---
+  toggleScheduleSelection(id: number): void {
+    const current = new Set(this.selectedScheduleIds());
+    if (current.has(id)) {
+      current.delete(id);
+    } else {
+      current.add(id);
+    }
+    this.selectedScheduleIds.set(current);
+  }
+
+  toggleSelectAllSchedules(): void {
+    const currentItems = this.schedules()?.content ?? [];
+    const current = this.selectedScheduleIds();
+    if (current.size === currentItems.length && currentItems.length > 0) {
+      this.selectedScheduleIds.set(new Set());
+    } else {
+      this.selectedScheduleIds.set(new Set(currentItems.map((s) => s.id!)));
+    }
+  }
+
+  isAllSchedulesSelected(): boolean {
+    const currentItems = this.schedules()?.content ?? [];
+    return currentItems.length > 0 && this.selectedScheduleIds().size === currentItems.length;
+  }
+
+  bulkDeleteSchedules(): void {
+    const ids = Array.from(this.selectedScheduleIds());
+    if (ids.length === 0) return;
+    if (!confirm(`¿Estás seguro de que deseas eliminar ${ids.length} horarios seleccionados?`)) return;
+
+    this.scheduleApi.bulkDelete(ids).subscribe({
+      next: () => {
+        this.loadSchedules(this.schedulePage());
+      },
+      error: () => {
+        alert('Ocurrió un error al intentar eliminar algunos horarios. Verifica que no estén reservados.');
+      }
+    });
+  }
+
+  bulkUpdateScheduleStatus(status: 'STATUS_FREE' | 'STATUS_UNAVAILABLE'): void {
+    const ids = Array.from(this.selectedScheduleIds());
+    if (ids.length === 0) return;
+
+    this.scheduleApi.bulkUpdateStatus(status, ids).subscribe({
+      next: () => {
+        this.loadSchedules(this.schedulePage());
+      },
+      error: () => {
+        alert('Ocurrió un error al actualizar los estados.');
       }
     });
   }
@@ -531,6 +590,38 @@ export class SpecialtyDetailComponent implements OnInit {
         this.assigningEstId.set(null);
         const msg = err?.error?.message || err?.error?.Message || 'No se pudo asignar el establecimiento.';
         this.assignEstError.set(msg);
+      }
+    });
+  }
+
+  onRevokeDoctor(doc: AdminDoctor): void {
+    if (!doc.uuid) return;
+    if (!confirm(`¿Estás seguro de que deseas desasignar al Dr. ${doc.firstName} ${doc.lastName} de este servicio?`)) return;
+
+    this.servicioApi.revokeDoctor(this.serviceId, doc.uuid).subscribe({
+      next: () => {
+        alert('Doctor desasignado exitosamente.');
+        this.loadDoctors();
+        this.loadAllDoctors();
+      },
+      error: () => {
+        alert('No se pudo desasignar al doctor.');
+      }
+    });
+  }
+
+  onRevokeEstablishment(est: Establishment): void {
+    if (!est.id) return;
+    if (!confirm(`¿Estás seguro de que deseas desasignar la sede "${est.name}" de este servicio?`)) return;
+
+    this.servicioApi.revokeStablishment(this.serviceId, est.id).subscribe({
+      next: () => {
+        alert('Establecimiento desasignado exitosamente.');
+        this.loadAssignedEstablishments();
+        this.loadEstablishments();
+      },
+      error: () => {
+        alert('No se pudo desasignar el establecimiento.');
       }
     });
   }

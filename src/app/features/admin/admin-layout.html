@@ -7,13 +7,15 @@
       <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-blue">
         <span class="font-display text-[17px] font-extrabold text-surface">C</span>
       </span>
-      <span class="font-display text-[20px] font-extrabold tracking-[-.012em] text-ink">CliniCore</span>
+      <span class="font-display text-[20px] font-extrabold tracking-[-.012em] text-ink"
+        >CliniCore</span
+      >
       <span
         class="rounded-pill bg-tint px-[7px] py-[3px] font-sans text-[10px] font-bold uppercase tracking-[.1em] text-ink-2"
         >Admin</span
       >
     </div>
-    <app-admin-nav [entries]="nav" />
+    <app-admin-nav [entries]="nav()" />
   </aside>
 
   <!-- ============ COLUMNA PRINCIPAL ============ -->
@@ -47,33 +49,48 @@
           <span class="flex shrink-0 items-center text-blue-soft">
             <app-icon name="chevron" [size]="13" [strokeWidth]="2.4" />
           </span>
-          <span class="truncate font-sans text-[13px] font-semibold text-ink">{{ crumb().leaf }}</span>
+          <span class="truncate font-sans text-[13px] font-semibold text-ink">{{
+            crumb().leaf
+          }}</span>
         </div>
       </div>
 
       <div class="flex shrink-0 items-center gap-3.5">
         <!-- Contexto de TODO el panel, no una seccion: define lo que cada tabla
              muestra. Sin cablear todavia. -->
-        <button
-          type="button"
-          class="hidden h-9 items-center gap-2 rounded-pill border border-line bg-surface px-3 lg:flex"
-        >
-          <span class="flex shrink-0 items-center text-ink-3">
-            <app-icon name="location" [size]="15" [strokeWidth]="1.9" />
-          </span>
-          <span class="font-sans text-[13px] font-semibold text-ink">Sede [NOMBRE]</span>
-          <span class="flex shrink-0 rotate-90 items-center text-ink-3">
-            <app-icon name="chevron" [size]="13" [strokeWidth]="2.2" />
-          </span>
-        </button>
+        @if (currentUser()?.role === 'ROLE_EMPLOYEE') {
+          <button
+            type="button"
+            class="hidden h-9 items-center gap-2 rounded-pill border border-line bg-surface px-3 lg:flex"
+          >
+            <span class="flex shrink-0 items-center text-ink-3">
+              <app-icon name="location" [size]="15" [strokeWidth]="1.9" />
+            </span>
+            <span class="font-sans text-[13px] font-semibold text-ink">{{
+              currentUser()?.stablishmentName || 'Sin sede asignada'
+            }}</span>
+            <span class="flex shrink-0 rotate-90 items-center text-ink-3">
+              <app-icon name="chevron" [size]="13" [strokeWidth]="2.2" />
+            </span>
+          </button>
+        }
 
         <span class="hidden h-6 w-px bg-line lg:block"></span>
 
         <button type="button" class="flex items-center gap-2.5">
-          <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-tint text-blue-text">
+          <span
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-tint text-blue-text"
+          >
             <app-icon name="user" [size]="17" [strokeWidth]="1.9" />
           </span>
-          <span class="hidden font-sans text-[13.5px] font-semibold text-ink lg:inline">[USUARIO]</span>
+          <div class="hidden flex-col items-start lg:flex text-left">
+            <span class="font-sans text-[13.5px] font-semibold text-ink leading-tight"
+              >{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</span
+            >
+            <span class="font-sans text-[11px] text-ink-3 leading-tight"
+              >{{ currentUser()?.email }} | CI: {{ currentUser()?.ci }}</span
+            >
+          </div>
           <span class="hidden shrink-0 rotate-90 items-center text-ink-3 lg:flex">
             <app-icon name="chevron" [size]="13" [strokeWidth]="2.2" />
           </span>
@@ -109,10 +126,14 @@
         aria-label="Menú del panel"
       >
         <div class="flex h-14 shrink-0 items-center gap-2.5 border-b border-line pl-4 pr-3.5">
-          <span class="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] bg-blue">
+          <span
+            class="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] bg-blue"
+          >
             <span class="font-display text-[16px] font-extrabold text-surface">C</span>
           </span>
-          <span class="flex-1 font-display text-[18px] font-extrabold tracking-[-.012em] text-ink">CliniCore</span>
+          <span class="flex-1 font-display text-[18px] font-extrabold tracking-[-.012em] text-ink"
+            >CliniCore</span
+          >
           <button
             #closeButton
             type="button"
@@ -125,21 +146,43 @@
         </div>
 
         <div class="shrink-0 px-3 pb-2 pt-2.5">
-          <button
-            type="button"
-            class="flex h-10 w-full items-center gap-2 rounded-tile-sm border border-line bg-field px-3"
+          @if (currentUser()?.role === 'ROLE_EMPLOYEE') {
+            <button
+              type="button"
+              class="flex h-10 w-full items-center gap-2 rounded-tile-sm border border-line bg-field px-3 mb-2"
+            >
+              <span class="flex shrink-0 items-center text-ink-3">
+                <app-icon name="location" [size]="15" [strokeWidth]="1.9" />
+              </span>
+              <span class="flex-1 text-left font-sans text-[13px] font-semibold text-ink">{{
+                currentUser()?.stablishmentName || 'Sin sede asignada'
+              }}</span>
+              <span class="flex shrink-0 rotate-90 items-center text-ink-3">
+                <app-icon name="chevron" [size]="13" [strokeWidth]="2.2" />
+              </span>
+            </button>
+          }
+          <!-- User info in mobile drawer -->
+          <div
+            class="flex items-center gap-2.5 rounded-tile-sm bg-surface px-3 py-2 border border-line"
           >
-            <span class="flex shrink-0 items-center text-ink-3">
-              <app-icon name="location" [size]="15" [strokeWidth]="1.9" />
+            <span
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-tint text-blue-text"
+            >
+              <app-icon name="user" [size]="17" [strokeWidth]="1.9" />
             </span>
-            <span class="flex-1 text-left font-sans text-[13px] font-semibold text-ink">Sede [NOMBRE]</span>
-            <span class="flex shrink-0 rotate-90 items-center text-ink-3">
-              <app-icon name="chevron" [size]="13" [strokeWidth]="2.2" />
-            </span>
-          </button>
+            <div class="flex flex-col flex-1 min-w-0 text-left">
+              <span class="truncate font-sans text-[13.5px] font-semibold text-ink leading-tight"
+                >{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</span
+              >
+              <span class="truncate font-sans text-[11px] text-ink-3 leading-tight"
+                >{{ currentUser()?.email }} | CI: {{ currentUser()?.ci }}</span
+              >
+            </div>
+          </div>
         </div>
 
-        <app-admin-nav [entries]="nav" (navigated)="closeDrawer()" />
+        <app-admin-nav [entries]="nav()" (navigated)="closeDrawer()" />
       </div>
     </div>
   }

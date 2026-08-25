@@ -24,6 +24,14 @@ export class ServicioApiService {
     return this.http.get<Servicio>(`${this.API_URL}/${id}`, { withCredentials: true });
   }
 
+  getMyServices(): Observable<Servicio[]> {
+    return this.http.get<Servicio[]>(`${this.API_URL}/my-services`, { withCredentials: true });
+  }
+
+  getMyStablishments(): Observable<Establishment[]> {
+    return this.http.get<Establishment[]>(`${this.API_URL}/my-stablishments`, { withCredentials: true });
+  }
+
   getDoctors(id: number, name?: string, page: number = 0, size: number = 10): Observable<Page<AdminDoctor>> {
     let params = new HttpParams()
       .set('page', page.toString())
@@ -50,6 +58,14 @@ export class ServicioApiService {
 
   assignStablishment(serviceId: number, stablishmentId: number): Observable<any> {
     return this.http.post(`http://localhost:8080/api/stablishments/${stablishmentId}/services/${serviceId}`, {}, { withCredentials: true });
+  }
+
+  revokeStablishment(serviceId: number, stablishmentId: number): Observable<void> {
+    return this.http.delete<void>(`http://localhost:8080/api/stablishments/${stablishmentId}/services/${serviceId}`, { withCredentials: true });
+  }
+
+  revokeDoctor(serviceId: number, doctorId: string): Observable<void> {
+    return this.http.delete<void>(`http://localhost:8080/api/doctors/${doctorId}/services/${serviceId}`, { withCredentials: true });
   }
 
   getSchedules(

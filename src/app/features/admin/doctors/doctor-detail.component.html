@@ -116,9 +116,25 @@
                       <p class="text-[11px] text-ink-3 mt-0.5">{{ est.address }}</p>
                     </div>
                   </div>
-                  <span class="inline-flex items-center rounded-pill bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue border border-blue/20">
-                    ID #{{ est.id }}
-                  </span>
+                  <!-- Redirección al detalle de la sede y desasignar -->
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      (click)="onRevokeEst(est)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-red-50 text-red-600 px-2.5 py-1 text-[11px] font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100"
+                      title="Desasignar sede"
+                    >
+                      Desasignar
+                    </button>
+                    <a
+                      [routerLink]="['/admin/administracion/establecimientos', est.id]"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm shrink-0"
+                      title="Ver detalle de la sede"
+                    >
+                      <span>Ver Sede</span>
+                      <span class="text-sm leading-none">→</span>
+                    </a>
+                  </div>
                 </div>
               }
             }
@@ -161,15 +177,25 @@
                     </div>
                   </div>
 
-                  <!-- Redirección directa al detalle del servicio para gestionar y ver turnos -->
-                  <a
-                    [routerLink]="['/admin/administracion/especialidades', srv.id]"
-                    class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm shrink-0"
-                    title="Ver detalle del servicio y sus horarios"
-                  >
-                    <span>Ver Servicio & Horarios</span>
-                    <span class="text-sm leading-none">→</span>
-                  </a>
+                  <!-- Redirección directa al detalle del servicio y desasignar -->
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      (click)="onRevokeService(srv)"
+                      class="inline-flex items-center gap-1 rounded-pill bg-red-50 text-red-600 px-2.5 py-1 text-[11px] font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100"
+                      title="Desasignar servicio"
+                    >
+                      Desasignar
+                    </button>
+                    <a
+                      [routerLink]="['/admin/administracion/especialidades', srv.id]"
+                      class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 text-xs font-bold hover:bg-blue hover:text-white transition-all shadow-sm shrink-0"
+                      title="Ver detalle del servicio y sus horarios"
+                    >
+                      <span>Ver Servicio & Horarios</span>
+                      <span class="text-sm leading-none">→</span>
+                    </a>
+                  </div>
                 </div>
               }
             }

@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { InvoiceApiService } from '../../../core/api/invoice-api.service';
 import { PatientApiService } from '../../../core/api/patient-api.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import type { Invoice, InvoiceCreate, InvoiceLineItemCreate, InvoiceLineSourceType, InvoiceStatus, Page, Patient } from '../../../core/models';
 import { extractApiErrorMessage } from '../metrics-shared/turn-status.util';
 import { INVOICE_LINE_SOURCE_LABELS, INVOICE_STATUS_BADGE_CLASS, INVOICE_STATUS_LABELS, formatIsoDateTimeEs, formatMoney } from './finanzas.util';
@@ -36,6 +37,7 @@ function blankLine(): LineItemForm {
 export class FacturacionListComponent implements OnInit {
   private readonly invoiceApi = inject(InvoiceApiService);
   private readonly patientApi = inject(PatientApiService);
+  private readonly authService = inject(AuthService);
 
   protected readonly formatMoney = formatMoney;
   protected readonly formatIsoDateTimeEs = formatIsoDateTimeEs;
@@ -82,7 +84,11 @@ export class FacturacionListComponent implements OnInit {
     this.error.set(null);
     const status = this.filterStatus() || undefined;
 
-    this.invoiceApi.search(page, 10, undefined, status).subscribe({
+    const request$ = this.authService.currentUser()?.role === 'ROLE_DOCTOR' 
+      ? this.invoiceApi.getMyInvoices(page, 10) 
+      : this.invoiceApi.search(page, 10, undefined, status);
+
+    request$.subscribe({
       next: (data) => {
         this.data.set(data);
         this.loading.set(false);

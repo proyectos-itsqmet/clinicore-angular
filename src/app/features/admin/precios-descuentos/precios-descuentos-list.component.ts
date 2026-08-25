@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { ServicioApiService } from '../../../core/api/servicio-api.service';
 import { extractApiErrorMessage, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
+import { AuthService } from '../../../core/auth/auth.service';
 import type { Page, Servicio } from '../../../core/models';
 
 /**
@@ -30,6 +31,12 @@ import type { Page, Servicio } from '../../../core/models';
 })
 export class PreciosDescuentosListComponent implements OnInit {
   private readonly api = inject(ServicioApiService);
+  private readonly authService = inject(AuthService);
+
+  protected readonly isAdminOrEmployee = computed(() => {
+    const role = this.authService.currentUser()?.role;
+    return role === 'ROLE_ADMIN' || role === 'ROLE_EMPLOYEE';
+  });
 
   protected readonly data = signal<Page<Servicio> | null>(null);
   protected readonly loading = signal<boolean>(true);

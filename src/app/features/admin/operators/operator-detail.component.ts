@@ -206,4 +206,19 @@ export class OperatorDetailComponent implements OnInit {
       }
     });
   }
+
+  onRevokeEst(est: Establishment): void {
+    if (!est.id) return;
+    if (!confirm(`¿Estás seguro de desasignar la sede "${est.name}" de este operador?`)) return;
+
+    this.operatorApi.revokeStablishment(this.operatorId, est.id).subscribe({
+      next: () => {
+        alert('Sede desasignada exitosamente.');
+        this.loadOperator();
+      },
+      error: () => {
+        alert('Error al desasignar la sede.');
+      }
+    });
+  }
 }

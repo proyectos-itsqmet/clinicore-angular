@@ -18,6 +18,42 @@ export class ScheduleApiService {
     return this.http.post<ScheduleDTO>(`${this.API_URL}/create`, payload, { withCredentials: true });
   }
 
+  getMySchedules(params: {
+    date?: string;
+    stablishmentId?: number;
+    serviceId?: number;
+    status?: string;
+    page?: number;
+    size?: number;
+  } = {}): Observable<Page<ScheduleDTO>> {
+    let httpParams = new HttpParams()
+      .set('page', (params.page ?? 0).toString())
+      .set('size', (params.size ?? 10).toString());
+
+    if (params.date && params.date.trim()) {
+      httpParams = httpParams.set('date', params.date.trim());
+    }
+    if (params.stablishmentId) {
+      httpParams = httpParams.set('stablishmentId', params.stablishmentId.toString());
+    }
+    if (params.serviceId != null) {
+      httpParams = httpParams.set('serviceId', params.serviceId.toString());
+    }
+    if (params.status && params.status.trim()) {
+      httpParams = httpParams.set('status', params.status.trim());
+    }
+
+    return this.http.get<Page<ScheduleDTO>>(`${this.API_URL}/my-schedules`, { params: httpParams, withCredentials: true });
+  }
+
+  createMySchedule(payload: CreateSchedulePayload): Observable<ScheduleDTO> {
+    return this.http.post<ScheduleDTO>(`${this.API_URL}/my-schedules/create`, payload, { withCredentials: true });
+  }
+
+  updateMyScheduleStatus(id: number, status: string): Observable<ScheduleDTO> {
+    return this.http.put<ScheduleDTO>(`${this.API_URL}/my-schedules/${id}/status`, { status }, { withCredentials: true });
+  }
+
   getAll(params: {
     date?: string;
     stablishmentId?: number;
@@ -89,5 +125,20 @@ export class ScheduleApiService {
    */
   generateSchedulesFromTemplates(body: GenerateSchedulesFromTemplateRequest): Observable<ScheduleDTO[]> {
     return this.http.post<ScheduleDTO[]>(`${this.API_URL}/generate-from-template`, body, { withCredentials: true });
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${id}`, { withCredentials: true });
+  }
+
+  bulkDelete(ids: number[]): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/bulk-delete`, ids, { withCredentials: true });
+  }
+
+  bulkUpdateStatus(status: string, ids: number[]): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/bulk-update-status`, ids, {
+      params: new HttpParams().set('status', status),
+      withCredentials: true
+    });
   }
 }

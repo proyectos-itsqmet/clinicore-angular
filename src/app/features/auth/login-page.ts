@@ -63,17 +63,21 @@ export class LoginPage implements OnInit {
     // Intentamos login como paciente primero
     this.authService.loginPatient(patientPayload).pipe(
       catchError((patientErr) => {
-        // Si no es paciente, probamos login de operador/admin
-        const operatorPayload = {
-          email: identifier,
-          password: raw.password
-        };
-
-        return this.authService.login(operatorPayload).pipe(
-          catchError(() => {
-            const msg = patientErr?.error?.message || patientErr?.error?.Message || 'Credenciales incorrectas o usuario no encontrado.';
-            this.error.set(msg);
-            return of(null);
+        // Si no es paciente, probamos login de doctor
+        return this.authService.loginDoctor(patientPayload).pipe(
+          catchError((doctorErr) => {
+            // Si tampoco es doctor, probamos login de operador/admin
+            const operatorPayload = {
+              email: identifier,
+              password: raw.password
+            };
+            return this.authService.login(operatorPayload).pipe(
+              catchError(() => {
+                const msg = patientErr?.error?.message || patientErr?.error?.Message || 'Credenciales incorrectas o usuario no encontrado.';
+                this.error.set(msg);
+                return of(null);
+              })
+            );
           })
         );
       })

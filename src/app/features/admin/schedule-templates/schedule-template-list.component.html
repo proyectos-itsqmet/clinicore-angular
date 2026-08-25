@@ -34,9 +34,9 @@
     </p>
   </div>
 
-  @if (establishmentsIncomplete() || doctorsCatalogIncomplete()) {
+  @if (establishmentsIncomplete()) {
     <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800" role="alert">
-      No se pudo cargar el catálogo completo de establecimientos o doctores; algunos selectores pueden estar incompletos.
+      No se pudo cargar el catálogo completo de establecimientos; algunos selectores pueden estar incompletos.
     </div>
   }
 
@@ -214,6 +214,26 @@
               </div>
 
               <div>
+                <label for="templateDoctor" class="block text-xs font-bold text-ink mb-1">Doctor</label>
+                <select
+                  id="templateDoctor"
+                  name="templateDoctor"
+                  [value]="formDoctorUuid()"
+                  (change)="onFormDoctorChange($event)"
+                  [disabled]="formStablishmentId() == null"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
+                >
+                  <option value="">{{ formStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Cualquier doctor disponible (pool)' }}</option>
+                  @for (doc of formDoctors(); track doc.uuid) {
+                    <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
+                  }
+                </select>
+                <p class="mt-1 text-[11px] text-ink-3">
+                  Si el doctor no tiene asignado el servicio o el establecimiento, el servidor rechazará el guardado.
+                </p>
+              </div>
+
+              <div>
                 <label for="templateService" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
                 <select
                   id="templateService"
@@ -234,32 +254,14 @@
               </div>
 
               <div>
-                <label for="templateDoctor" class="block text-xs font-bold text-ink mb-1">Doctor</label>
-                <select
-                  id="templateDoctor"
-                  name="templateDoctor"
-                  [value]="formDoctorUuid()"
-                  (change)="onFormDoctorChange($event)"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Cualquier doctor disponible (pool)</option>
-                  @for (doc of doctorsCatalog(); track doc.uuid) {
-                    <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
-                  }
-                </select>
-                <p class="mt-1 text-[11px] text-ink-3">
-                  Si el doctor no tiene asignado el servicio o el establecimiento, el servidor rechazará el guardado.
-                </p>
-              </div>
-
-              <div>
                 <label for="templateDayOfWeek" class="block text-xs font-bold text-ink mb-1">Día de la Semana *</label>
                 <select
                   id="templateDayOfWeek"
                   name="templateDayOfWeek"
                   [value]="formDayOfWeek()"
                   (change)="onFormDayOfWeekChange($event)"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  [disabled]="formServiceId() == null"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
                 >
                   <option value="">Selecciona un día...</option>
                   @for (day of DAY_OF_WEEK_OPTIONS; track day.value) {
@@ -284,7 +286,8 @@
                     name="templateStartTime"
                     [value]="formStartTime()"
                     (input)="onFormStartTimeInput($event)"
-                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    [disabled]="formServiceId() == null"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -295,7 +298,8 @@
                     name="templateEndTime"
                     [value]="formEndTime()"
                     (input)="onFormEndTimeInput($event)"
-                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    [disabled]="formServiceId() == null"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -312,7 +316,8 @@
                   min="1"
                   [value]="formSlotIntervalMinutes()"
                   (input)="onFormSlotIntervalInput($event)"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  [disabled]="formServiceId() == null"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
                 />
               </div>
 
@@ -325,7 +330,8 @@
                     name="templateValidFrom"
                     [value]="formValidFrom()"
                     (input)="onFormValidFromInput($event)"
-                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    [disabled]="formServiceId() == null"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -337,7 +343,8 @@
                     [value]="formValidUntil()"
                     (input)="onFormValidUntilInput($event)"
                     placeholder="Sin fecha de fin"
-                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    [disabled]="formServiceId() == null"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -483,6 +490,23 @@
               </div>
 
               <div>
+                <label for="genDoctor" class="block text-xs font-bold text-ink mb-1">Doctor</label>
+                <select
+                  id="genDoctor"
+                  name="genDoctor"
+                  [value]="genDoctorUuid()"
+                  (change)="onGenDoctorChange($event)"
+                  [disabled]="genStablishmentId() == null"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
+                >
+                  <option value="">{{ genStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Cualquier doctor (pool)' }}</option>
+                  @for (doc of genDoctors(); track doc.uuid) {
+                    <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
+                  }
+                </select>
+              </div>
+
+              <div>
                 <label for="genService" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
                 <select
                   id="genService"
@@ -499,22 +523,6 @@
                 </select>
               </div>
 
-              <div>
-                <label for="genDoctor" class="block text-xs font-bold text-ink mb-1">Doctor</label>
-                <select
-                  id="genDoctor"
-                  name="genDoctor"
-                  [value]="genDoctorUuid()"
-                  (change)="onGenDoctorChange($event)"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Cualquier doctor (pool)</option>
-                  @for (doc of doctorsCatalog(); track doc.uuid) {
-                    <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
-                  }
-                </select>
-              </div>
-
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label for="genFrom" class="block text-xs font-bold text-ink mb-1">Desde *</label>
@@ -524,7 +532,8 @@
                     name="genFrom"
                     [value]="genFrom()"
                     (input)="onGenFromInput($event)"
-                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    [disabled]="genServiceId() == null"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -535,7 +544,8 @@
                     name="genTo"
                     [value]="genTo()"
                     (input)="onGenToInput($event)"
-                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    [disabled]="genServiceId() == null"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
                   />
                 </div>
               </div>

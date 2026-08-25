@@ -278,6 +278,51 @@
         }
       </div>
 
+      <!-- Barra de Acciones Masivas (Horarios) -->
+      @if (schedules() && schedules()!.content.length > 0) {
+        <div class="flex items-center gap-4 bg-surface rounded-xl border border-border p-3 shadow-sm">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="checkbox" 
+              [checked]="isAllSchedulesSelected()"
+              (change)="toggleSelectAllSchedules()"
+              class="rounded border-border text-blue focus:ring-blue cursor-pointer"
+            />
+            <span class="text-xs font-bold text-text-strong">Seleccionar todos</span>
+          </label>
+          
+          <div class="h-4 w-px bg-border"></div>
+          
+          <span class="text-xs text-text-muted font-semibold">{{ selectedScheduleIds().size }} seleccionados</span>
+
+          @if (selectedScheduleIds().size > 0) {
+            <div class="flex items-center gap-2 ml-auto flex-wrap">
+              <button 
+                type="button" 
+                (click)="bulkUpdateScheduleStatus('STATUS_FREE')"
+                class="rounded-pill bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
+              >
+                Marcar Disponible
+              </button>
+              <button 
+                type="button" 
+                (click)="bulkUpdateScheduleStatus('STATUS_UNAVAILABLE')"
+                class="rounded-pill bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition-colors"
+              >
+                Marcar No Disponible
+              </button>
+              <button 
+                type="button" 
+                (click)="bulkDeleteSchedules()"
+                class="rounded-pill bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 transition-colors ml-2"
+              >
+                Eliminar
+              </button>
+            </div>
+          }
+        </div>
+      }
+
       <!-- Cuadrícula Visual de Horarios -->
       @if (schedulesLoading()) {
         <div class="py-12 text-center text-sm text-text-muted">
@@ -309,29 +354,41 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           @for (sch of schedules()?.content; track sch.id) {
             <div
-              class="group relative rounded-xl border border-border bg-surface p-4 shadow-sm hover:shadow-md transition-all hover:border-blue/40 flex flex-col justify-between"
+              class="group relative rounded-xl border border-border bg-surface p-4 shadow-sm hover:shadow-md transition-all hover:border-blue/40 flex flex-col justify-between cursor-pointer"
+              [class.ring-2]="selectedScheduleIds().has(sch.id!)"
+              [class.ring-blue]="selectedScheduleIds().has(sch.id!)"
+              (click)="toggleScheduleSelection(sch.id!)"
             >
               <div>
                 <!-- Encabezado de la Tarjeta: Hora y Estado -->
                 <div class="flex items-center justify-between mb-3">
-                  <span
-                    class="inline-flex items-center gap-1.5 font-mono text-base font-bold text-text-strong"
-                  >
-                    <svg
-                      class="w-4 h-4 text-blue"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="2"
-                      stroke="currentColor"
+                  <div class="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      [checked]="selectedScheduleIds().has(sch.id!)"
+                      (change)="toggleScheduleSelection(sch.id!); $event.stopPropagation()"
+                      (click)="$event.stopPropagation()"
+                      class="rounded border-border text-blue focus:ring-blue cursor-pointer"
+                    />
+                    <span
+                      class="inline-flex items-center gap-1.5 font-mono text-base font-bold text-text-strong"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {{ sch.hour }}
-                  </span>
+                      <svg
+                        class="w-4 h-4 text-blue"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {{ sch.hour }}
+                    </span>
+                  </div>
 
                   <!-- Status Badge -->
                   @if (sch.status === 'STATUS_FREE' || sch.status === 'AVAILABLE') {
@@ -523,26 +580,35 @@
                   </div>
                 </div>
 
-                <a
-                  [routerLink]="['/admin/administracion/doctores', doc.uuid]"
-                  class="shrink-0 inline-flex items-center text-xs font-semibold text-blue hover:text-blue-strong"
-                  title="Ver perfil completo del doctor"
-                >
-                  Ver
-                  <svg
-                    class="w-4 h-4 ml-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
+                <div class="flex items-center gap-2 shrink-0">
+                  <a
+                    [routerLink]="['/admin/administracion/doctores', doc.uuid]"
+                    class="inline-flex items-center text-xs font-semibold text-blue hover:text-blue-strong"
+                    title="Ver perfil completo del doctor"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                    />
-                  </svg>
-                </a>
+                    Ver
+                    <svg
+                      class="w-4 h-4 ml-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                      />
+                    </svg>
+                  </a>
+                  <button
+                    type="button"
+                    (click)="onRevokeDoctor(doc)"
+                    class="inline-flex items-center text-[11px] font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md transition-colors"
+                  >
+                    Desasignar
+                  </button>
+                </div>
               </div>
             }
           </div>
@@ -659,26 +725,35 @@
                   </div>
                 </div>
 
-                <a
-                  [routerLink]="['/admin/administracion/establecimientos', est.id]"
-                  class="shrink-0 inline-flex items-center text-xs font-semibold text-blue hover:text-blue-strong"
-                  title="Ver detalles del establecimiento"
-                >
-                  Ver
-                  <svg
-                    class="w-4 h-4 ml-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
+                <div class="flex items-center gap-2 shrink-0">
+                  <a
+                    [routerLink]="['/admin/administracion/establecimientos', est.id]"
+                    class="inline-flex items-center text-xs font-semibold text-blue hover:text-blue-strong"
+                    title="Ver detalles del establecimiento"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                    />
-                  </svg>
-                </a>
+                    Ver
+                    <svg
+                      class="w-4 h-4 ml-0.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                      />
+                    </svg>
+                  </a>
+                  <button
+                    type="button"
+                    (click)="onRevokeEstablishment(est)"
+                    class="inline-flex items-center text-[11px] font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md transition-colors"
+                  >
+                    Desasignar
+                  </button>
+                </div>
               </div>
             }
           </div>

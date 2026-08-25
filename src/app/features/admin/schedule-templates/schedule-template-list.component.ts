@@ -84,8 +84,7 @@ export class ScheduleTemplateListComponent implements OnInit {
 
   protected readonly establishments = signal<Establishment[]>([]);
   protected readonly establishmentsIncomplete = signal<boolean>(false);
-  protected readonly doctorsCatalog = signal<AdminDoctor[]>([]);
-  protected readonly doctorsCatalogIncomplete = signal<boolean>(false);
+
 
   // --- Modal Crear/Editar ---
   protected readonly isFormModalOpen = signal<boolean>(false);
@@ -106,6 +105,9 @@ export class ScheduleTemplateListComponent implements OnInit {
 
   protected readonly formServices = signal<Servicio[]>([]);
   protected readonly formServicesLoading = signal<boolean>(false);
+
+  protected readonly formDoctors = signal<AdminDoctor[]>([]);
+  protected readonly formDoctorsLoading = signal<boolean>(false);
 
   protected readonly formValid = computed(() => {
     const start = this.formStartTime();
@@ -146,6 +148,8 @@ export class ScheduleTemplateListComponent implements OnInit {
 
   protected readonly genServices = signal<Servicio[]>([]);
   protected readonly genServicesLoading = signal<boolean>(false);
+  protected readonly genDoctors = signal<AdminDoctor[]>([]);
+  protected readonly genDoctorsLoading = signal<boolean>(false);
 
   protected readonly genValid = computed(
     () => this.genStablishmentId() != null && this.genServiceId() != null && !!this.genFrom() && !!this.genTo() && this.genFrom() <= this.genTo(),
@@ -153,7 +157,6 @@ export class ScheduleTemplateListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadEstablishmentsCatalog();
-    this.loadDoctorsCatalog();
     this.loadPage(0);
   }
 
@@ -171,18 +174,6 @@ export class ScheduleTemplateListComponent implements OnInit {
       },
       error: () => {
         // Fallback silencioso: los selectores quedan con lo que se haya cargado (si acaso).
-      },
-    });
-  }
-
-  private loadDoctorsCatalog(): void {
-    fetchAllPages((page) => this.doctorApi.getAll(page, 100)).subscribe({
-      next: ({ items, complete }) => {
-        this.doctorsCatalog.set(items);
-        this.doctorsCatalogIncomplete.set(!complete);
-      },
-      error: () => {
-        // Fallback silencioso.
       },
     });
   }
@@ -219,6 +210,19 @@ export class ScheduleTemplateListComponent implements OnInit {
     return message;
   }
 
+  private loadFormDoctors(stablishmentId: number): void {
+    this.formDoctorsLoading.set(true);
+    fetchAllPages((page) => this.establishmentApi.getDoctors(stablishmentId, page, 100)).subscribe({
+      next: ({ items }) => {
+        this.formDoctors.set(items);
+        this.formDoctorsLoading.set(false);
+      },
+      error: () => {
+        this.formDoctorsLoading.set(false);
+      },
+    });
+  }
+
   private loadFormServices(stablishmentId: number): void {
     this.formServicesLoading.set(true);
     fetchAllPages((page) => this.establishmentApi.getServices(stablishmentId, page, 100)).subscribe({
@@ -253,6 +257,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     this.formValidFrom.set(new Date().toISOString().split('T')[0]);
     this.formValidUntil.set('');
     this.formServices.set([]);
+    this.formDoctors.set([]);
     this.formError.set(null);
     this.submitAttempted.set(false);
     this.isFormModalOpen.set(true);
@@ -261,7 +266,6 @@ export class ScheduleTemplateListComponent implements OnInit {
   openEditModal(item: ScheduleTemplate): void {
     this.editingItem.set(item);
     this.formStablishmentId.set(item.stablishment.id);
-    this.formServiceId.set(item.servicio.id);
     this.formDoctorUuid.set(item.doctor?.uuid ?? '');
     this.formDayOfWeek.set(item.dayOfWeek);
     this.formStartTime.set(this.toHm(item.startTime));
@@ -272,33 +276,72 @@ export class ScheduleTemplateListComponent implements OnInit {
     this.formError.set(null);
     this.submitAttempted.set(false);
     this.isFormModalOpen.set(true);
-    this.loadFormServices(item.stablishment.id);
+    
+    // Load doctors for this establishment
+    this.loadFormDoctors(item.stablishment.id);
+    
+    // Load services: if a doctor is assigned, load their services, else load establishment's services
+    if (item.doctor?.uuid) {
+      this.formServicesLoading.set(true);
+      this.doctorApi.getById(item.doctor.uuid).subscribe({
+        next: (doc) => {
+          this.formServices.set(doc.services || []);
+          this.formServiceId.set(item.servicio.id);
+          this.formServicesLoading.set(false);
+        },
+        error: () => this.formServicesLoading.set(false)
+      });
+    } else {
+      this.loadFormServices(item.stablishment.id);
+      this.formServiceId.set(item.servicio.id);
+    }
   }
 
   closeFormModal(): void {
     this.isFormModalOpen.set(false);
     this.editingItem.set(null);
     this.formServices.set([]);
+    this.formDoctors.set([]);
   }
 
   onFormStablishmentChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     const stablishmentId = value ? Number(value) : null;
     this.formStablishmentId.set(stablishmentId);
+    this.formDoctorUuid.set('');
     this.formServiceId.set(null);
     this.formServices.set([]);
+    this.formDoctors.set([]);
+    
     if (stablishmentId != null) {
+      this.loadFormDoctors(stablishmentId);
       this.loadFormServices(stablishmentId);
+    }
+  }
+
+  onFormDoctorChange(event: Event): void {
+    const doctorUuid = (event.target as HTMLSelectElement).value;
+    this.formDoctorUuid.set(doctorUuid);
+    this.formServiceId.set(null);
+    this.formServices.set([]);
+    
+    if (doctorUuid) {
+      this.formServicesLoading.set(true);
+      this.doctorApi.getById(doctorUuid).subscribe({
+        next: (doc) => {
+          this.formServices.set(doc.services || []);
+          this.formServicesLoading.set(false);
+        },
+        error: () => this.formServicesLoading.set(false)
+      });
+    } else if (this.formStablishmentId() != null) {
+      this.loadFormServices(this.formStablishmentId()!);
     }
   }
 
   onFormServiceChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.formServiceId.set(value ? Number(value) : null);
-  }
-
-  onFormDoctorChange(event: Event): void {
-    this.formDoctorUuid.set((event.target as HTMLSelectElement).value);
   }
 
   onFormDayOfWeekChange(event: Event): void {
@@ -358,6 +401,36 @@ export class ScheduleTemplateListComponent implements OnInit {
         this.formLoading.set(false);
         this.closeFormModal();
         this.loadPage(this.data()?.number ?? 0);
+
+        // Generar horarios automáticamente usando los parámetros de la plantilla
+        const fromDate = payload.validFrom;
+        // Si no tiene fecha de fin, limitamos la autogeneración a 1 mes para evitar errores
+        let toDate = payload.validUntil;
+        if (!toDate) {
+          const d = new Date(fromDate);
+          d.setMonth(d.getMonth() + 1);
+          toDate = d.toISOString().split('T')[0];
+        }
+        
+        const doctorId = payload.doctor?.uuid;
+
+        this.scheduleApi.generateSchedulesFromTemplates({
+          stablishmentId: payload.stablishment.id,
+          serviceId: payload.servicio.id,
+          ...(doctorId ? { doctorId } : {}),
+          from: fromDate,
+          to: toDate
+        }).subscribe({
+          next: (schedules) => {
+             // Opcional: mostrar un mensaje de éxito. Usamos el de generate para mostrar algo si está abierto,
+             // o simplemente usar un alert (el usuario pidió que sea automático).
+             alert(`Plantilla guardada y se autogeneraron ${schedules.length} horario(s) desde ${fromDate} hasta ${toDate}.`);
+          },
+          error: (err) => {
+             console.error('Error autogenerando horarios', err);
+             alert('Se guardó la plantilla pero hubo un error al autogenerar los horarios. Tal vez ya existían o es un día festivo.');
+          }
+        });
       },
       error: (err) => {
         this.formLoading.set(false);
@@ -407,6 +480,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     this.genServiceId.set(null);
     this.genDoctorUuid.set('');
     this.genServices.set([]);
+    this.genDoctors.set([]);
     this.genFrom.set(today);
     this.genTo.set(today);
     this.generateError.set(null);
@@ -416,6 +490,19 @@ export class ScheduleTemplateListComponent implements OnInit {
 
   closeGenerateModal(): void {
     this.isGenerateModalOpen.set(false);
+  }
+
+  private loadGenDoctors(stablishmentId: number): void {
+    this.genDoctorsLoading.set(true);
+    fetchAllPages((page) => this.establishmentApi.getDoctors(stablishmentId, page, 100)).subscribe({
+      next: ({ items }) => {
+        this.genDoctors.set(items);
+        this.genDoctorsLoading.set(false);
+      },
+      error: () => {
+        this.genDoctorsLoading.set(false);
+      },
+    });
   }
 
   private loadGenServices(stablishmentId: number): void {
@@ -435,20 +522,40 @@ export class ScheduleTemplateListComponent implements OnInit {
     const value = (event.target as HTMLSelectElement).value;
     const stablishmentId = value ? Number(value) : null;
     this.genStablishmentId.set(stablishmentId);
+    this.genDoctorUuid.set('');
     this.genServiceId.set(null);
     this.genServices.set([]);
+    this.genDoctors.set([]);
+    
     if (stablishmentId != null) {
+      this.loadGenDoctors(stablishmentId);
       this.loadGenServices(stablishmentId);
+    }
+  }
+
+  onGenDoctorChange(event: Event): void {
+    const doctorUuid = (event.target as HTMLSelectElement).value;
+    this.genDoctorUuid.set(doctorUuid);
+    this.genServiceId.set(null);
+    this.genServices.set([]);
+    
+    if (doctorUuid) {
+      this.genServicesLoading.set(true);
+      this.doctorApi.getById(doctorUuid).subscribe({
+        next: (doc) => {
+          this.genServices.set(doc.services || []);
+          this.genServicesLoading.set(false);
+        },
+        error: () => this.genServicesLoading.set(false)
+      });
+    } else if (this.genStablishmentId() != null) {
+      this.loadGenServices(this.genStablishmentId()!);
     }
   }
 
   onGenServiceChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.genServiceId.set(value ? Number(value) : null);
-  }
-
-  onGenDoctorChange(event: Event): void {
-    this.genDoctorUuid.set((event.target as HTMLSelectElement).value);
   }
 
   onGenFromInput(event: Event): void {

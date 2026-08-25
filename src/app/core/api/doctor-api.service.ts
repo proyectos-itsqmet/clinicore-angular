@@ -40,8 +40,16 @@ export class DoctorApiService {
     return this.http.post<AdminDoctor>(`${this.API_URL}/${doctorId}/stablishments/${stablishmentId}`, {}, { withCredentials: true });
   }
 
+  revokeStablishment(doctorId: string, stablishmentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${doctorId}/stablishments/${stablishmentId}`, { withCredentials: true });
+  }
+
   assignToService(doctorId: string, serviceId: number): Observable<AdminDoctor> {
     return this.http.post<AdminDoctor>(`${this.API_URL}/${doctorId}/services/${serviceId}`, {}, { withCredentials: true });
+  }
+
+  revokeService(doctorId: string, serviceId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/${doctorId}/services/${serviceId}`, { withCredentials: true });
   }
 
   delete(id: string): Observable<void> {
