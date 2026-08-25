@@ -39,11 +39,20 @@
 
     @if (establishmentsLoading()) {
       <div class="py-6 text-center text-xs text-ink-3">Cargando centros médicos...</div>
+    } @else if (establishmentsError()) {
+      <div class="p-4 rounded-xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">
+        {{ establishmentsError() }}
+      </div>
     } @else if (establishments().length === 0) {
       <div class="py-6 text-center text-xs text-ink-3 rounded-xl border border-dashed border-line bg-field">
         No hay establecimientos registrados en el sistema.
       </div>
     } @else {
+      @if (establishmentsIncomplete()) {
+        <div class="p-3 rounded-xl bg-red-50 text-red-800 text-xs font-bold border border-red-200" role="alert">
+          No se pudo cargar el catálogo completo de establecimientos; esta lista puede estar incompleta.
+        </div>
+      }
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         @for (est of establishments(); track est.id) {
           <button
@@ -128,8 +137,18 @@
         </p>
       </div>
       <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
-        {{ services().length }} servicios
+        {{ services()?.totalElements ?? 0 }} servicios
       </span>
+    </div>
+
+    <div class="max-w-sm">
+      <input
+        type="text"
+        placeholder="Buscar servicio por nombre..."
+        [ngModel]="servicesFilterName()"
+        (ngModelChange)="onServicesFilterChange($event)"
+        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+      />
     </div>
 
     @if (servicesLoading()) {
@@ -138,13 +157,13 @@
       <div class="p-4 rounded-xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">
         {{ servicesError() }}
       </div>
-    } @else if (services().length === 0) {
+    } @else if (!services()?.content || services()!.content.length === 0) {
       <div class="py-12 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40 p-6">
         No se encontraron servicios asociados a este establecimiento.
       </div>
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (srv of services(); track srv.id) {
+        @for (srv of services()?.content; track srv.id) {
           <div
             (click)="openTurnModal(srv)"
             class="p-4 rounded-2xl border border-line bg-surface hover:border-blue/50 hover:bg-tint/10 transition-all cursor-pointer shadow-sm flex flex-col justify-between group"
@@ -178,6 +197,28 @@
           </div>
         }
       </div>
+
+      @if (services() && services()!.totalPages > 1) {
+        <div class="flex items-center justify-between pt-3 mt-2 text-xs text-ink-3 border-t border-line">
+          <span>Página {{ services()!.number + 1 }} de {{ services()!.totalPages }}</span>
+          <div class="flex gap-2">
+            <button
+              [disabled]="services()!.first"
+              (click)="loadServicesForEstablishment(selectedEstablishment()!.id, services()!.number - 1)"
+              class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+            >
+              Anterior
+            </button>
+            <button
+              [disabled]="services()!.last"
+              (click)="loadServicesForEstablishment(selectedEstablishment()!.id, services()!.number + 1)"
+              class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      }
     }
   </div>
 </div>
@@ -210,6 +251,35 @@
 
             <!-- Filtro de Estado dentro del Modal -->
             <div class="flex items-center gap-2">
+              <!-- Indicador de conexión en tiempo real: discreto, nunca modal ni alarma.
+                   El backend transmite cambios de turnos por WebSocket; si nunca conecta,
+                   la recarga manual sigue funcionando exactamente igual que antes. -->
+              @if (connectionStatus() === 'open') {
+                <span
+                  class="inline-flex items-center gap-1.5 rounded-pill border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700"
+                  title="Los turnos se actualizan automáticamente en tiempo real"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-live animate-pulse"></span>
+                  En vivo
+                </span>
+              } @else if (connectionStatus() === 'connecting') {
+                <span
+                  class="inline-flex items-center gap-1.5 rounded-pill border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700"
+                  title="Conectando con el servidor para recibir actualizaciones automáticas"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                  Conectando...
+                </span>
+              } @else {
+                <span
+                  class="inline-flex items-center gap-1.5 rounded-pill border border-line bg-field px-2 py-1 text-[10px] font-bold text-ink-3"
+                  title="Sin conexión en tiempo real: la lista se actualiza con tus acciones o al reabrir este panel"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-ink-3/40"></span>
+                  Actualización manual
+                </span>
+              }
+
               <select
                 [value]="statusFilter()"
                 (change)="onStatusFilterChange($any($event.target).value)"
@@ -310,10 +380,34 @@
                       <td class="relative whitespace-nowrap py-3.5 pl-2 pr-4 text-right text-xs font-bold">
                         <div class="flex items-center justify-end gap-1">
                           @if (turn.status !== 'TURN_CANCELLED' && turn.status !== 'TURN_TREATED') {
+                            @if (canMarkWaiting(turn)) {
+                              <!-- Botón Registrar Ingreso (check-in: PENDING -> WAITNG) -->
+                              <button
+                                type="button"
+                                (click)="markTurnWaiting(turn)"
+                                class="inline-flex items-center rounded-pill bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 text-[11px] font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                title="Registrar el ingreso del paciente (pasa a En Espera)"
+                              >
+                                📥 Ingreso
+                              </button>
+                            }
+
+                            @if (canMarkInTreatment(turn)) {
+                              <!-- Botón Iniciar Atención (WAITNG -> IN_TREATMENT) -->
+                              <button
+                                type="button"
+                                (click)="markTurnInTreatment(turn)"
+                                class="inline-flex items-center rounded-pill bg-purple-50 text-purple-700 border border-purple-200 px-2 py-1 text-[11px] font-bold hover:bg-purple-600 hover:text-white transition-all shadow-sm"
+                                title="Iniciar la atención del paciente (pasa a En Atención)"
+                              >
+                                ▶ Atención
+                              </button>
+                            }
+
                             <!-- Botón Atender -->
                             <button
                               type="button"
-                              (click)="markTurnTreated(turn)"
+                              (click)="openMarkTreatedModal(turn)"
                               class="inline-flex items-center rounded-pill bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 text-[11px] font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
                               title="Marcar como atendido"
                             >
@@ -434,6 +528,10 @@
             
             @if (reassignLoading()) {
               <div class="py-8 text-center text-xs text-ink-3">Buscando horarios...</div>
+            } @else if (reassignError()) {
+              <div class="p-3 rounded-xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">
+                {{ reassignError() }}
+              </div>
             } @else if (!reassignSchedules()?.content || reassignSchedules()!.content!.length === 0) {
               <div class="py-6 text-center text-xs text-ink-3 rounded-xl border border-dashed border-line bg-field/50">
                 No hay horarios disponibles en esta fecha.
@@ -455,6 +553,7 @@
                     <div>
                       <p class="font-bold text-blue font-mono">⏰ {{ sched.hour }}</p>
                       <p class="text-[11px] text-ink truncate">Dr. {{ sched.doctor?.firstName }} {{ sched.doctor?.lastName }}</p>
+                      <p class="text-[10px] text-purple-700 font-semibold truncate">{{ sched.service?.name }}</p>
                     </div>
                     @if (selectedNewSchedule()?.id === sched.id) {
                       <span class="text-xs font-bold text-blue">✓ Elegido</span>
@@ -544,6 +643,58 @@
               class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50"
             >
               {{ cancelling() ? 'Cancelando...' : 'Confirmar Cancelación' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL CONFIRMACIÓN: MARCAR COMO ATENDIDO (reemplaza confirm() nativo)
+     ========================================================================= -->
+@if (isMarkTreatedModalOpen()) {
+  <div class="relative z-[60]">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeMarkTreatedModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-line">
+
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 font-extrabold flex items-center justify-center text-lg shrink-0">
+              ✓
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">
+                Marcar Turno #{{ turnToMarkTreated()?.order }} como Atendido
+              </h3>
+              <p class="text-xs text-ink-3">
+                Paciente: {{ turnToMarkTreated()?.patient?.firstName }} {{ turnToMarkTreated()?.patient?.lastName }}
+              </p>
+            </div>
+          </div>
+
+          <p class="text-xs text-ink-3">
+            Esta acción es irreversible. ¿Confirmas que deseas marcar este turno como ATENDIDO?
+          </p>
+
+          <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeMarkTreatedModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface"
+            >
+              Cerrar
+            </button>
+            <button
+              type="button"
+              [disabled]="markingTreated()"
+              (click)="confirmMarkTreated()"
+              class="rounded-pill bg-emerald-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {{ markingTreated() ? 'Guardando...' : 'Confirmar Atendido' }}
             </button>
           </div>
 

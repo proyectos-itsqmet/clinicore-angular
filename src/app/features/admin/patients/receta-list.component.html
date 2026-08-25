@@ -1,0 +1,425 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Recetas</h1>
+      <p class="mt-1 text-xs text-ink-3">
+        Una receta es inmutable una vez emitida: no se puede editar ni eliminar. Una corrección se emite como una
+        receta NUEVA.
+      </p>
+    </div>
+    @if (patientId()) {
+      <button
+        (click)="openCreateModal()"
+        class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+      >
+        + Nueva Receta
+      </button>
+    }
+  </div>
+
+  @if (!patientId()) {
+    <!-- Búsqueda de Paciente -->
+    <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm space-y-3">
+      <h3 class="text-xs font-bold text-ink uppercase tracking-wider">Selecciona un paciente</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-[11px] font-bold text-ink mb-1">Nombre</label>
+          <input
+            type="text"
+            id="patientSearchName"
+            [formControl]="patientSearchForm.controls.name"
+            (keyup.enter)="searchPatients()"
+            placeholder="Ej. Ana Lopez"
+            class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-ink mb-1">Cédula</label>
+          <input
+            type="text"
+            id="patientSearchCi"
+            [formControl]="patientSearchForm.controls.ci"
+            (keyup.enter)="searchPatients()"
+            placeholder="Ej. 0102030405"
+            class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+          />
+        </div>
+        <div class="flex items-end">
+          <button
+            type="button"
+            (click)="searchPatients()"
+            class="rounded-pill bg-blue py-2 px-4 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+          >
+            Buscar paciente
+          </button>
+        </div>
+      </div>
+
+      @if (patientSearchError()) {
+        <p class="text-xs font-bold text-red-700">{{ patientSearchError() }}</p>
+      }
+
+      @if (patientSearchLoading()) {
+        <p class="text-xs text-ink-3">Buscando pacientes...</p>
+      } @else if (patientSearchAttempted() && patientResults().length === 0) {
+        <p class="text-xs text-ink-3">No se encontraron pacientes con esos datos.</p>
+      } @else if (patientResults().length > 0) {
+        <ul class="divide-y divide-line rounded-xl border border-line overflow-hidden">
+          @for (p of patientResults(); track p.uuid) {
+            <li>
+              <button
+                type="button"
+                (click)="selectPatient(p)"
+                class="w-full text-left px-3 py-2 text-xs hover:bg-tint/30 transition-colors"
+              >
+                <span class="font-bold text-ink">{{ p.firstName }} {{ p.lastName }}</span>
+                <span class="ml-2 text-ink-3 font-mono">CI {{ p.ci }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  } @else {
+    <!-- Paciente Seleccionado -->
+    <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <p class="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Paciente</p>
+        <h2 class="font-display text-base font-extrabold text-ink">
+          {{ patient()?.firstName ?? 'Cargando…' }} {{ patient()?.lastName ?? '' }}
+        </h2>
+        @if (patient()?.ci) {
+          <p class="text-[11px] text-ink-3 font-mono">CI {{ patient()!.ci }}</p>
+        }
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a
+          [routerLink]="['/admin/pacientes/historial-clinico']"
+          [queryParams]="{ patientId: patientId() }"
+          class="rounded-pill border border-line bg-field px-3 py-1.5 text-xs font-bold text-ink hover:bg-surface transition-colors"
+        >
+          Ver historial clínico →
+        </a>
+        <button
+          type="button"
+          (click)="clearPatient()"
+          class="rounded-pill border border-line bg-field px-3 py-1.5 text-xs font-bold text-ink hover:bg-surface transition-colors"
+        >
+          Cambiar paciente
+        </button>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+        <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+      </div>
+    }
+
+    <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <table class="min-w-full divide-y divide-line">
+        <thead class="bg-field">
+          <tr>
+            <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Fecha</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Doctor</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Medicamentos</th>
+            <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line bg-surface">
+          @if (loading()) {
+            <tr>
+              <td colspan="4" class="py-12 text-center text-xs text-ink-3">Cargando recetas...</td>
+            </tr>
+          } @else if (data()?.content?.length === 0) {
+            <tr>
+              <td colspan="4" class="py-12 text-center text-xs text-ink-3">No hay recetas registradas para este paciente.</td>
+            </tr>
+          } @else {
+            @for (item of data()?.content; track item.id) {
+              <tr class="hover:bg-tint/20 transition-colors">
+                <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-bold text-ink">{{ formatIssuedDate(item.createdAt) }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">
+                  @if (item.doctorFullName) {
+                    Dr. {{ item.doctorFullName }}
+                  } @else {
+                    <span>-</span>
+                  }
+                </td>
+                <td class="px-3 py-4 text-xs text-ink">
+                  <div class="flex flex-wrap gap-1">
+                    @for (it of item.items; track $index) {
+                      <span class="inline-flex items-center rounded-pill bg-tint text-blue-text px-2 py-0.5 text-[11px] font-semibold">
+                        {{ it.medication }}
+                      </span>
+                    }
+                  </div>
+                </td>
+                <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                  <button
+                    type="button"
+                    (click)="openDetailModal(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                  >
+                    Ver detalle
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      @if (data() && !loading()) {
+        <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+          <p class="text-xs text-ink-3">
+            Mostrando <span class="font-bold text-ink">{{ data()!.numberOfElements }}</span> de
+            <span class="font-bold text-ink">{{ data()!.totalElements }}</span> recetas
+          </p>
+          <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+            <button
+              [disabled]="data()!.first"
+              (click)="loadPage(data()!.number - 1)"
+              class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+            >
+              Anterior
+            </button>
+            <span class="px-2 text-xs font-bold text-ink">Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages || 1 }}</span>
+            <button
+              [disabled]="data()!.last"
+              (click)="loadPage(data()!.number + 1)"
+              class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+            >
+              Siguiente
+            </button>
+          </nav>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- =========================================================================
+     MODAL VER DETALLE (solo lectura)
+     ========================================================================= -->
+@if (isDetailModalOpen() && viewingItem()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeDetailModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">Receta #{{ viewingItem()!.id }}</h3>
+            <button
+              type="button"
+              (click)="closeDetailModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <p class="text-xs text-ink-3 mb-3">
+            Emitida el {{ formatIssuedDate(viewingItem()!.createdAt) }}
+            @if (viewingItem()!.doctorFullName) {
+              por Dr. {{ viewingItem()!.doctorFullName }}
+            }
+          </p>
+
+          <div class="space-y-2">
+            @for (it of viewingItem()!.items; track $index) {
+              <div class="rounded-xl border border-line bg-field p-3 text-xs">
+                <p class="font-bold text-ink">{{ it.medication }} — {{ it.dosage }}</p>
+                <p class="text-ink-3">{{ it.frequency }} · {{ it.duration }}</p>
+                @if (it.instructions) {
+                  <p class="mt-1 text-ink-2 italic">{{ it.instructions }}</p>
+                }
+              </div>
+            }
+          </div>
+
+          @if (viewingItem()!.notes) {
+            <p class="mt-3 text-xs text-ink-3"><strong>Notas:</strong> {{ viewingItem()!.notes }}</p>
+          }
+
+          <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeDetailModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cerrar
+            </button>
+            <button
+              type="button"
+              (click)="openCreateModal(viewingItem()!)"
+              class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+            >
+              Emitir corrección (nueva receta)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL CREAR RECETA / EMITIR CORRECCIÓN
+     ========================================================================= -->
+@if (isCreateModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeCreateModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              {{ isCorrection() ? 'Emitir Corrección' : 'Nueva Receta' }}
+            </h3>
+            <button
+              type="button"
+              (click)="closeCreateModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (isCorrection()) {
+            <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs font-semibold text-amber-800">
+              Esto creará una receta NUEVA. Las recetas no se pueden editar: la anterior queda intacta como registro histórico.
+            </div>
+          }
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ formError() }}</span>
+            </div>
+          }
+
+          <form [formGroup]="form" (ngSubmit)="onCreateSubmit()" class="space-y-3">
+            <div>
+              <label for="prescriptionEncounter" class="block text-xs font-bold text-ink mb-1">Consulta (historia clínica) *</label>
+              @if (encountersLoading()) {
+                <p class="text-xs text-ink-3">Buscando consultas del paciente...</p>
+              } @else if (encountersForPicker().length === 0) {
+                <p class="text-xs text-red-700 font-semibold">
+                  Este paciente no tiene consultas registradas todavía.
+                  <a [routerLink]="['/admin/pacientes/historial-clinico']" [queryParams]="{ patientId: patientId() }" class="underline">
+                    Ir a Historial clínico para registrar una consulta primero.
+                  </a>
+                </p>
+              } @else {
+                <select
+                  id="prescriptionEncounter"
+                  formControlName="encounterId"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="" disabled>Selecciona una consulta...</option>
+                  @for (e of encountersForPicker(); track e.id) {
+                    <option [value]="e.id">{{ e.visitDate }} · {{ e.reasonForVisit }} · Dr. {{ e.doctorFullName }}</option>
+                  }
+                </select>
+                @if (encountersIncomplete()) {
+                  <p class="mt-1 text-[11px] text-red-700">No se pudo cargar la lista completa de consultas del paciente; puede haber más.</p>
+                }
+              }
+            </div>
+
+            <div formArrayName="items" class="space-y-3">
+              <label class="block text-xs font-bold text-ink">Medicamentos *</label>
+              @for (item of itemsArray.controls; track item; let i = $index) {
+                <div [formGroupName]="i" class="rounded-xl border border-line bg-field p-3 space-y-2">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      [attr.id]="'itemMedication' + i"
+                      formControlName="medication"
+                      placeholder="Medicamento *"
+                      class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      [attr.id]="'itemDosage' + i"
+                      formControlName="dosage"
+                      placeholder="Dosis *"
+                      class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      [attr.id]="'itemFrequency' + i"
+                      formControlName="frequency"
+                      placeholder="Frecuencia *"
+                      class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      [attr.id]="'itemDuration' + i"
+                      formControlName="duration"
+                      placeholder="Duración *"
+                      class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    [attr.id]="'itemInstructions' + i"
+                    formControlName="instructions"
+                    placeholder="Instrucciones (opcional)"
+                    class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                  <div class="flex justify-end">
+                    <button
+                      type="button"
+                      [disabled]="itemsArray.length <= 1"
+                      (click)="removeItem(i)"
+                      class="rounded-pill border border-red-200 bg-surface px-3 py-1 text-[11px] font-bold text-red-600 hover:bg-red-50 disabled:opacity-40 transition-colors"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                </div>
+              }
+              <button
+                type="button"
+                (click)="addItem()"
+                class="rounded-pill border border-line bg-field px-3 py-1.5 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                + Agregar medicamento
+              </button>
+            </div>
+
+            <div>
+              <label for="prescriptionNotes" class="block text-xs font-bold text-ink mb-1">Notas</label>
+              <textarea
+                id="prescriptionNotes"
+                formControlName="notes"
+                rows="2"
+                placeholder="Observaciones adicionales (opcional)"
+                class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+              ></textarea>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeCreateModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading() || encountersForPicker().length === 0"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : (isCorrection() ? 'Emitir Corrección' : 'Crear Receta') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

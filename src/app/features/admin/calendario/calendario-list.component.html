@@ -1,0 +1,190 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Calendario de Horarios</h1>
+      <p class="mt-1 text-xs text-ink-3">
+        Explora la disponibilidad de horarios en un rango de fechas, filtrando por establecimiento, servicio, doctor y estado.
+      </p>
+    </div>
+    <div class="flex flex-col items-start sm:items-end gap-1 shrink-0">
+      <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-xs font-bold text-blue">
+        {{ schedulesPage()?.totalElements ?? 0 }} horarios
+      </span>
+      <span class="text-[11px] text-ink-3">Rango: {{ rangeFrom() }} → {{ rangeTo() }}</span>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="flex flex-wrap items-end gap-3 bg-surface rounded-2xl border border-line p-4 shadow-sm">
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="calendarioDesde">Desde</label>
+      <input
+        id="calendarioDesde"
+        type="date"
+        [ngModel]="rangeFrom()"
+        (ngModelChange)="onRangeFromChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="calendarioHasta">Hasta</label>
+      <input
+        id="calendarioHasta"
+        type="date"
+        [ngModel]="rangeTo()"
+        (ngModelChange)="onRangeToChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="calendarioEstablecimiento">Establecimiento</label>
+      <select
+        id="calendarioEstablecimiento"
+        name="calendarioEstablecimiento"
+        [value]="filterEstablishmentId() ?? ''"
+        (change)="onEstablishmentFilterChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos</option>
+        @for (est of establishments(); track est.id) {
+          <option [value]="est.id">{{ est.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="calendarioServicio">Servicio</label>
+      <select
+        id="calendarioServicio"
+        name="calendarioServicio"
+        [value]="filterServiceId() ?? ''"
+        (change)="onServiceFilterChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos</option>
+        @for (srv of services(); track srv.id) {
+          <option [value]="srv.id">{{ srv.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="calendarioDoctor">Doctor</label>
+      <select
+        id="calendarioDoctor"
+        name="calendarioDoctor"
+        [value]="filterDoctorId() ?? ''"
+        (change)="onDoctorFilterChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos</option>
+        @for (doc of doctors(); track doc.uuid) {
+          <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="calendarioEstado">Estado</label>
+      <select
+        id="calendarioEstado"
+        name="calendarioEstado"
+        [value]="filterStatus()"
+        (change)="onStatusFilterChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos</option>
+        <option value="STATUS_FREE">Disponible</option>
+        <option value="STATUS_OCCUPIED">Ocupado</option>
+        <option value="STATUS_UNAVAILABLE">No disponible</option>
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button type="button" (click)="resetFilters()" class="text-xs font-bold text-blue hover:underline pb-2">
+        Limpiar filtros
+      </button>
+    }
+  </div>
+
+  <!-- Content -->
+  @if (loading()) {
+    <div class="py-16 text-center text-xs text-ink-3">Cargando horarios...</div>
+  } @else if (error()) {
+    <div class="p-4 rounded-2xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">
+      {{ error() }}
+    </div>
+  } @else if (groupedByDay().length === 0) {
+    <div class="py-16 text-center rounded-2xl border border-dashed border-line bg-field/40">
+      <p class="text-sm font-bold text-ink">No hay horarios para el rango y los filtros seleccionados.</p>
+      <p class="mt-1 text-xs text-ink-3">Ajusta el rango de fechas o los filtros para ver disponibilidad.</p>
+    </div>
+  } @else {
+    <div class="space-y-5">
+      @for (day of groupedByDay(); track day.date) {
+        <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
+          <div class="flex items-center gap-2 border-b border-line pb-2.5 mb-3">
+            <h2 class="font-display text-sm font-extrabold text-ink">{{ weekdayLabel(day.date) }}</h2>
+            <span class="text-xs text-ink-3">{{ day.date }}</span>
+            <span class="ml-auto inline-flex items-center rounded-pill bg-tint px-2 py-0.5 text-[11px] font-bold text-blue">
+              {{ day.slots.length }} horarios
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            @for (sch of day.slots; track sch.id) {
+              <div class="rounded-xl border border-line bg-field/40 p-3 flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono text-sm font-extrabold text-ink">{{ sch.hour }}</span>
+                  <span [class]="'inline-flex items-center rounded-pill px-2 py-0.5 text-[10px] font-bold ' + statusBadgeClass(sch.status)">
+                    {{ statusLabel(sch.status) }}
+                  </span>
+                </div>
+                @if (sch.doctor) {
+                  <p class="text-xs font-semibold text-ink truncate">Dr. {{ sch.doctor.firstName }} {{ sch.doctor.lastName }}</p>
+                } @else {
+                  <p class="text-xs text-ink-3 italic">Sin doctor asignado</p>
+                }
+                @if (sch.service) {
+                  <p class="text-[11px] text-ink-3 truncate">{{ sch.service.name }}</p>
+                }
+                @if (sch.stablishment) {
+                  <p class="text-[11px] text-ink-3 truncate">📍 {{ sch.stablishment.name }}</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (schedulesPage() && schedulesPage()!.totalPages > 1) {
+      <div class="flex items-center justify-between border-t border-line pt-4">
+        <p class="text-xs text-ink-3">
+          Página {{ schedulesPage()!.number + 1 }} de {{ schedulesPage()!.totalPages }}
+        </p>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            [disabled]="schedulesPage()!.first"
+            (click)="loadSchedules(schedulesPage()!.number - 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            [disabled]="schedulesPage()!.last"
+            (click)="loadSchedules(schedulesPage()!.number + 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink disabled:opacity-40 hover:bg-field"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>

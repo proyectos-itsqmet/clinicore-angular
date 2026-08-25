@@ -1,0 +1,89 @@
+<div class="space-y-6 max-w-7xl mx-auto">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Analytics</h1>
+      <p class="mt-1 text-xs text-ink-3">
+        Evolución diaria de turnos por estado. Filtra por rango de fechas, establecimiento y servicio.
+      </p>
+    </div>
+    @if (series(); as data) {
+      <span class="text-[11px] text-ink-3 shrink-0">Rango resuelto: {{ data.from }} → {{ data.to }}</span>
+    }
+  </div>
+
+  <!-- Filter bar -->
+  <div class="flex flex-wrap items-end gap-3 bg-surface rounded-2xl border border-line p-4 shadow-sm">
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="analyticsDesde">Desde</label>
+      <input
+        id="analyticsDesde"
+        type="date"
+        [ngModel]="rangeFrom()"
+        (ngModelChange)="onRangeFromChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="analyticsHasta">Hasta</label>
+      <input
+        id="analyticsHasta"
+        type="date"
+        [ngModel]="rangeTo()"
+        (ngModelChange)="onRangeToChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="analyticsEstablecimiento">Establecimiento</label>
+      <select
+        id="analyticsEstablecimiento"
+        name="analyticsEstablecimiento"
+        [value]="filterEstablishmentId() ?? ''"
+        (change)="onEstablishmentFilterChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos</option>
+        @for (est of establishments(); track est.id) {
+          <option [value]="est.id">{{ est.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="analyticsServicio">Servicio</label>
+      <select
+        id="analyticsServicio"
+        name="analyticsServicio"
+        [value]="filterServiceId() ?? ''"
+        (change)="onServiceFilterChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos</option>
+        @for (srv of services(); track srv.id) {
+          <option [value]="srv.id">{{ srv.name }}</option>
+        }
+      </select>
+    </div>
+
+    @if (hasActiveFilters()) {
+      <button type="button" (click)="resetFilters()" class="text-xs font-bold text-blue hover:underline pb-2">
+        Limpiar filtros
+      </button>
+    }
+  </div>
+
+  <!-- Content -->
+  @if (loading()) {
+    <div class="py-16 text-center text-xs text-ink-3">Cargando analytics...</div>
+  } @else if (error()) {
+    <div class="p-4 rounded-2xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">
+      {{ error() }}
+    </div>
+  } @else {
+    <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm">
+      <app-turns-series-chart [days]="series()?.days ?? []" />
+    </div>
+  }
+</div>

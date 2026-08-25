@@ -1,0 +1,57 @@
+<div class="space-y-3">
+  @if (bars().length === 0) {
+    <div class="py-10 text-center text-xs text-ink-3">No hay datos de turnos para graficar en este rango.</div>
+  } @else {
+    <p class="text-[11px] font-bold text-ink-3">Serie diaria · {{ rangeLabel() }}</p>
+
+    <div class="flex gap-2">
+      <div class="flex h-40 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] font-bold text-ink-3" aria-hidden="true">
+        <span>{{ maxTotal() }}</span>
+        <span>0</span>
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          class="h-40 w-full overflow-visible"
+          role="img"
+          aria-label="Turnos por día, apilados por estado, entre {{ rangeLabel() }}"
+        >
+          @for (bar of bars(); track bar.date) {
+            @for (segment of bar.segments; track segment.status) {
+              @if (segment.height > 0) {
+                <rect
+                  [attr.x]="bar.x"
+                  [attr.y]="segment.y"
+                  [attr.width]="bar.width"
+                  [attr.height]="segment.height"
+                  [attr.fill]="segment.color"
+                >
+                  <title>{{ bar.label }} · {{ segment.label }}: {{ segment.value }}</title>
+                </rect>
+              }
+            }
+          }
+        </svg>
+
+        <div class="mt-1 flex text-[9px] text-ink-3">
+          @for (bar of bars(); track bar.date) {
+            <span [style.width.%]="100 / bars().length" class="truncate text-center" [attr.title]="bar.label + ': ' + bar.total + ' turnos'">
+              {{ bar.showTick ? bar.label : '' }}
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 border-t border-line pt-3">
+      @for (entry of legend(); track entry.status) {
+        <span [class]="'inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-[11px] font-bold ' + entry.badgeClass">
+          {{ entry.label }}: {{ entry.total }}
+        </span>
+      }
+      <span class="ml-auto text-[11px] font-bold text-ink">Total del rango: {{ grandTotal() }}</span>
+    </div>
+  }
+</div>

@@ -1,0 +1,136 @@
+<div class="space-y-6 max-w-6xl mx-auto">
+  <div>
+    <h1 class="font-display text-2xl font-extrabold text-ink">Contabilidad</h1>
+    <p class="mt-1 text-xs text-ink-3">Facturación y cobros del rango seleccionado, más el saldo pendiente de la clínica en este momento.</p>
+  </div>
+
+  <!-- Saldo pendiente actual: SIEMPRE visible, deliberadamente fuera del filtro de fechas -->
+  <section class="rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
+    <p class="text-[11px] font-bold uppercase tracking-wider text-blue-900">Saldo Pendiente Actual</p>
+    <p class="mt-1 font-display text-3xl font-extrabold text-blue-900">{{ summary() ? formatMoney(summary()!.outstandingNow) : '—' }}</p>
+    <p class="mt-1 text-[11px] text-blue-800">
+      Este número no depende del rango de fechas: es la deuda total de facturas no anuladas, calculada al instante — no una foto histórica.
+    </p>
+  </section>
+
+  <!-- Filtro de rango -->
+  <div class="flex flex-wrap items-end gap-3 bg-surface rounded-2xl border border-line p-4 shadow-sm">
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="contabilidadDesde">Desde</label>
+      <input
+        id="contabilidadDesde"
+        type="date"
+        [ngModel]="rangeFrom()"
+        (ngModelChange)="onRangeFromChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-[11px] font-bold text-ink-3" for="contabilidadHasta">Hasta</label>
+      <input
+        id="contabilidadHasta"
+        type="date"
+        [ngModel]="rangeTo()"
+        (ngModelChange)="onRangeToChange($event)"
+        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+      />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="py-16 text-center text-xs text-ink-3">Generando reporte contable...</div>
+  } @else if (error()) {
+    <div class="p-4 rounded-2xl bg-red-50 text-red-800 text-xs font-bold border border-red-200">{{ error() }}</div>
+  } @else if (summary(); as s) {
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <!-- Facturado por estado -->
+      <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm">
+        <h2 class="font-display text-sm font-extrabold text-ink mb-3">Facturado por Estado (emitidas en el rango)</h2>
+        @if (s.invoicedByStatus.length === 0) {
+          <p class="py-8 text-center text-xs text-ink-3">No hay facturación registrada en este rango.</p>
+        } @else {
+          <table class="w-full">
+            <tbody>
+              @for (row of s.invoicedByStatus; track row.status) {
+                <tr>
+                  <td class="py-2 pr-3 text-xs">
+                    <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + INVOICE_STATUS_BADGE_CLASS[row.status]">
+                      {{ INVOICE_STATUS_LABELS[row.status] }}
+                    </span>
+                  </td>
+                  <td class="py-2 pr-3 text-xs text-ink-3 whitespace-nowrap">{{ row.count }} factura(s)</td>
+                  <td class="py-2 w-full">
+                    <div class="h-2 rounded-pill bg-field overflow-hidden">
+                      <div class="h-full rounded-pill bg-blue" [style.width]="barWidth(row.totalAmount, maxInvoicedAmount())"></div>
+                    </div>
+                  </td>
+                  <td class="py-2 pl-3 text-xs font-bold text-ink text-right whitespace-nowrap">{{ formatMoney(row.totalAmount) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <!-- Cobrado por método -->
+      <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm">
+        <h2 class="font-display text-sm font-extrabold text-ink mb-3">Cobrado por Método (recibido en el rango)</h2>
+        @if (s.collectedByMethod.length === 0) {
+          <p class="py-8 text-center text-xs text-ink-3">No se registraron cobros en este rango.</p>
+        } @else {
+          <table class="w-full">
+            <tbody>
+              @for (row of s.collectedByMethod; track row.method) {
+                <tr>
+                  <td class="py-2 pr-3 text-xs">
+                    <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + PAYMENT_METHOD_BADGE_CLASS[row.method]">
+                      {{ PAYMENT_METHOD_LABELS[row.method] }}
+                    </span>
+                  </td>
+                  <td class="py-2 pr-3 text-xs text-ink-3 whitespace-nowrap">{{ row.count }} pago(s)</td>
+                  <td class="py-2 w-full">
+                    <div class="h-2 rounded-pill bg-field overflow-hidden">
+                      <div class="h-full rounded-pill bg-ok" [style.width]="barWidth(row.totalAmount, maxCollectedAmount())"></div>
+                    </div>
+                  </td>
+                  <td class="py-2 pl-3 text-xs font-bold text-ink text-right whitespace-nowrap">{{ formatMoney(row.totalAmount) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+
+    <!-- Reclamos por estado -->
+    <div class="bg-surface rounded-2xl border border-line p-5 shadow-sm">
+      <h2 class="font-display text-sm font-extrabold text-ink mb-3">Reclamos por Estado (presentados en el rango)</h2>
+      @if (claimsSummaryError()) {
+        <p class="py-4 text-center text-xs font-bold text-red-600">{{ claimsSummaryError() }}</p>
+      } @else if ((claimsSummary()?.claimsByStatus ?? []).length === 0) {
+        <p class="py-8 text-center text-xs text-ink-3">No se presentaron reclamos en este rango.</p>
+      } @else {
+        <table class="w-full">
+          <tbody>
+            @for (row of claimsSummary()!.claimsByStatus; track row.status) {
+              <tr>
+                <td class="py-2 pr-3 text-xs">
+                  <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + CLAIM_STATUS_BADGE_CLASS[row.status]">
+                    {{ CLAIM_STATUS_LABELS[row.status] }}
+                  </span>
+                </td>
+                <td class="py-2 pr-3 text-xs text-ink-3 whitespace-nowrap">{{ row.count }} reclamo(s)</td>
+                <td class="py-2 w-full">
+                  <div class="h-2 rounded-pill bg-field overflow-hidden">
+                    <div class="h-full rounded-pill bg-gold-deep" [style.width]="barWidth(row.totalAmount, maxClaimedAmount())"></div>
+                  </div>
+                </td>
+                <td class="py-2 pl-3 text-xs font-bold text-ink text-right whitespace-nowrap">{{ formatMoney(row.totalAmount) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+</div>

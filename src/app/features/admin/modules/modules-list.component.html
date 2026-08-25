@@ -1,0 +1,76 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-extrabold text-ink">Módulos</h1>
+    <p class="mt-1 text-xs text-ink-3">Activa o desactiva los destinos de primer nivel del panel administrativo.</p>
+  </div>
+
+  <!-- Aviso PERMANENTE: nunca en un tooltip, nunca oculto tras un estado de carga o error. -->
+  <div class="rounded-2xl bg-amber-50 border border-amber-300 p-4 text-xs text-amber-900" role="alert">
+    <p class="font-bold">⚠️ Este panel todavía NO aplica lo que configures aquí.</p>
+    <p class="mt-1">
+      Desactivar un módulo guarda su estado y ya está: no oculta el menú del destino, no bloquea la ruta de Angular y no bloquea
+      ningún endpoint del backend. Por ejemplo, apagar "Precios" no impide crear una promoción por la API. Esto es almacenamiento
+      + API para una aplicación real que todavía no se construyó.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="rounded-2xl border border-line bg-surface p-12 text-center text-xs text-ink-3 shadow-sm">
+      Cargando módulos...
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  } @else {
+    @if (toggleError()) {
+      <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+        <h3 class="text-xs font-bold text-red-800">{{ toggleError() }}</h3>
+      </div>
+    }
+
+    <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <table class="min-w-full divide-y divide-line">
+        <thead class="bg-field">
+          <tr>
+            <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Módulo</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Clave</th>
+            <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">
+              Estado
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line bg-surface">
+          @if (modules().length === 0) {
+            <tr>
+              <td colspan="3" class="py-12 text-center text-xs text-ink-3">No hay módulos registrados.</td>
+            </tr>
+          } @else {
+            @for (item of modules(); track item.moduleKey) {
+              <tr class="hover:bg-tint/20 transition-colors">
+                <td class="px-3 py-4 text-xs font-bold text-ink">{{ item.label }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-xs font-mono text-ink-3">{{ item.moduleKey }}</td>
+                <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                  <button
+                    type="button"
+                    role="switch"
+                    [attr.aria-checked]="item.enabled"
+                    [disabled]="togglingKey() === item.moduleKey"
+                    (click)="toggle(item)"
+                    [class]="
+                      item.enabled
+                        ? 'inline-flex items-center gap-2 rounded-pill bg-blue px-3 py-1.5 text-xs font-bold text-surface shadow-cta transition-all disabled:opacity-50'
+                        : 'inline-flex items-center gap-2 rounded-pill border border-line bg-field px-3 py-1.5 text-xs font-bold text-ink-3 transition-all disabled:opacity-50'
+                    "
+                  >
+                    {{ togglingKey() === item.moduleKey ? 'Actualizando...' : item.enabled ? 'Activo' : 'Inactivo' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

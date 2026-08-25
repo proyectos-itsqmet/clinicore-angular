@@ -1,0 +1,366 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Promociones</h1>
+      <p class="mt-1 text-xs text-ink-3">Descuentos con vigencia limitada sobre un servicio. Como máximo una promoción activa por servicio y rango de fechas.</p>
+    </div>
+    <button
+      type="button"
+      (click)="openCreateModal()"
+      class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+    >
+      <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+      </svg>
+      Nueva Promoción
+    </button>
+  </div>
+
+  @if (serviciosCatalogError()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ serviciosCatalogError() }}</h3>
+    </div>
+  } @else if (serviciosCatalogIncomplete()) {
+    <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800" role="alert">
+      No se pudo cargar el catálogo completo de servicios; el selector de servicios puede estar incompleto.
+    </div>
+  }
+
+  <!-- Filtro -->
+  <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
+    <div class="flex-1 max-w-xs">
+      <label class="block text-[11px] font-bold text-ink mb-1">Servicio</label>
+      <select
+        name="promotionServicioFilter"
+        [value]="filterServicioId() ?? ''"
+        (change)="onFilterChange($event)"
+        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos los servicios</option>
+        @for (s of serviciosCatalog(); track s.id) {
+          <option [value]="s.id" [selected]="s.id === filterServicioId()">{{ s.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">ID</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Servicio</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Promoción</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Descuento</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Vigencia</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Estado</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr><td colspan="7" class="py-12 text-center text-xs text-ink-3">Cargando promociones...</td></tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr><td colspan="7" class="py-12 text-center text-xs text-ink-3">No hay promociones registradas.</td></tr>
+        } @else {
+          @for (item of data()?.content; track item.id) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-mono font-bold text-ink">#{{ item.id }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ item.servicio.name }}</td>
+              <td class="px-3 py-4 text-xs font-bold text-ink">{{ item.name }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                <span class="inline-flex items-center rounded-pill bg-tint px-2.5 py-0.5 text-[11px] font-bold text-blue">
+                  {{ discountLabel(item) }}
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">{{ item.startDate }} – {{ item.endDate }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                @if (item.currentlyActive) {
+                  <span class="inline-flex items-center rounded-pill bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                    Vigente ahora
+                  </span>
+                } @else {
+                  <span class="text-ink-3 text-xs">No vigente</span>
+                }
+              </td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <div class="inline-flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="openEditModal(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openDeleteModal(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 transition-all"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <p class="text-xs text-ink-3">
+          Mostrando <span class="font-bold text-ink">{{ data()!.numberOfElements }}</span> de
+          <span class="font-bold text-ink">{{ data()!.totalElements }}</span> promociones
+        </p>
+        <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+          <button
+            [disabled]="data()!.first"
+            (click)="loadPage(data()!.number - 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Anterior
+          </button>
+          <span class="px-2 text-xs font-bold text-ink">Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages || 1 }}</span>
+          <button
+            [disabled]="data()!.last"
+            (click)="loadPage(data()!.number + 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Siguiente
+          </button>
+        </nav>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL CREAR / EDITAR PROMOCIÓN
+     ========================================================================= -->
+@if (isFormModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeFormModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              {{ editingItem() ? 'Editar Promoción' : 'Registrar Nueva Promoción' }}
+            </h3>
+            <button
+              type="button"
+              (click)="closeFormModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 border border-red-200">
+              <div class="flex items-center gap-2">
+                <span>✕</span>
+                <span>{{ formError() }}</span>
+              </div>
+              <!-- El backend NO nombra la promoción en conflicto: se resuelve aquí y se muestra aparte, no mezclado con el mensaje anterior. -->
+              @if (conflictingPromotion(); as conflict) {
+                <p class="mt-2 pt-2 border-t border-red-200 font-bold">
+                  Promoción en conflicto: "{{ conflict.name }}" ({{ conflict.startDate }} – {{ conflict.endDate }})
+                </p>
+              }
+            </div>
+          }
+
+          <form (ngSubmit)="onFormSubmit()">
+            <div class="space-y-4">
+              <div>
+                <label for="promotionServicio" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
+                <select
+                  id="promotionServicio"
+                  [value]="formServicioId() ?? ''"
+                  (change)="onFormServicioChange($event)"
+                  name="promotionServicio"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Selecciona un servicio...</option>
+                  @for (s of serviciosCatalog(); track s.id) {
+                    <option [value]="s.id" [selected]="s.id === formServicioId()">{{ s.name }}</option>
+                  }
+                </select>
+                @if (submitAttempted() && formServicioId() == null) {
+                  <p class="mt-1 text-xs text-red-600">El servicio es requerido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="promotionName" class="block text-xs font-bold text-ink mb-1">Nombre de la Promoción *</label>
+                <input
+                  type="text"
+                  id="promotionName"
+                  [value]="formName()"
+                  (input)="onFormNameInput($event)"
+                  name="promotionName"
+                  placeholder="Ej. Verano Blanco"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (submitAttempted() && !formName().trim()) {
+                  <p class="mt-1 text-xs text-red-600">El nombre de la promoción es requerido.</p>
+                }
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="promotionDiscountType" class="block text-xs font-bold text-ink mb-1">Tipo de Descuento *</label>
+                  <select
+                    id="promotionDiscountType"
+                    [value]="formDiscountType()"
+                    (change)="onFormDiscountTypeChange($event)"
+                    name="promotionDiscountType"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  >
+                    <option value="">Selecciona...</option>
+                    <option value="PERCENTAGE">Porcentaje (%)</option>
+                    <option value="FIXED_AMOUNT">Monto Fijo ($)</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="promotionDiscountValue" class="block text-xs font-bold text-ink mb-1">
+                    Valor ({{ formDiscountType() === 'FIXED_AMOUNT' ? '$' : '%' }}) *
+                  </label>
+                  <input
+                    type="number"
+                    id="promotionDiscountValue"
+                    min="0"
+                    step="0.01"
+                    [value]="formDiscountValue()"
+                    (input)="onFormDiscountValueInput($event)"
+                    name="promotionDiscountValue"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+              </div>
+              @if (submitAttempted() && !formDiscountType()) {
+                <p class="-mt-2 text-xs text-red-600">El tipo de descuento (porcentaje o monto fijo) es obligatorio.</p>
+              }
+              @if (submitAttempted() && formDiscountType() && formDiscountValueInvalid()) {
+                @if (formPercentageExceeded()) {
+                  <p class="-mt-2 text-xs text-red-600">El porcentaje de descuento no puede superar 100.</p>
+                } @else {
+                  <p class="-mt-2 text-xs text-red-600">El valor del descuento es obligatorio y debe ser mayor a cero.</p>
+                }
+              }
+              @if (formDiscountPreview()) {
+                <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs font-bold text-amber-900">
+                  Con estos valores se aplicará: {{ formDiscountPreview() }}.
+                </div>
+              }
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="promotionStartDate" class="block text-xs font-bold text-ink mb-1">Fecha de Inicio *</label>
+                  <input
+                    type="date"
+                    id="promotionStartDate"
+                    [value]="formStartDate()"
+                    (input)="onFormStartDateInput($event)"
+                    name="promotionStartDate"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label for="promotionEndDate" class="block text-xs font-bold text-ink mb-1">Fecha de Fin *</label>
+                  <input
+                    type="date"
+                    id="promotionEndDate"
+                    [value]="formEndDate()"
+                    (input)="onFormEndDateInput($event)"
+                    name="promotionEndDate"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+              </div>
+              @if (submitAttempted() && formDateRangeInvalid()) {
+                <p class="-mt-2 text-xs text-red-600">Las fechas son requeridas y la fecha de fin no puede ser anterior a la de inicio.</p>
+              }
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeFormModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : (editingItem() ? 'Guardar Cambios' : 'Crear Promoción') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ELIMINAR PROMOCIÓN
+     ========================================================================= -->
+@if (isDeleteModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeDeleteModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">Eliminar Promoción</h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                ¿Estás seguro de que deseas eliminar la promoción (<strong>{{ deletingItem()?.name }}</strong>)?
+              </p>
+            </div>
+          </div>
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ formError() }}</span>
+            </div>
+          }
+
+          <div class="mt-2 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeDeleteModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="formLoading()"
+              (click)="confirmDelete()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ formLoading() ? 'Eliminando...' : 'Eliminar Promoción' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

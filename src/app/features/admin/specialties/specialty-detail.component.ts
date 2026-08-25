@@ -6,6 +6,7 @@ import { ServicioApiService } from '../../../core/api/servicio-api.service';
 import { EstablishmentApiService } from '../../../core/api/establishment-api.service';
 import { DoctorApiService } from '../../../core/api/doctor-api.service';
 import { ScheduleApiService } from '../../../core/api/schedule-api.service';
+import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import type { Servicio, AdminDoctor, ScheduleDTO, ScheduleStatus, Establishment, Page, CreateSchedulePayload } from '../../../core/models';
 
 @Component({
@@ -38,8 +39,11 @@ export class SpecialtyDetailComponent implements OnInit {
   protected readonly assignedEstablishmentsLoading = signal<boolean>(false);
   protected readonly establishmentSearch = signal<string>('');
 
-  // Todos los doctores para el selector al crear horario
+  // Todos los doctores para el selector al crear horario (catálogo completo:
+  // ver `loadAllDoctors` — antes se pedía una única página fija de 100 y el
+  // resto de doctores del sistema quedaba fuera del <select> sin aviso).
   protected readonly allDoctors = signal<AdminDoctor[]>([]);
+  protected readonly allDoctorsIncomplete = signal<boolean>(false);
 
   // Horarios (Schedules) del Servicio
   protected readonly schedules = signal<Page<ScheduleDTO> | null>(null);
@@ -51,8 +55,9 @@ export class SpecialtyDetailComponent implements OnInit {
   protected readonly filterStablishmentId = signal<number | null>(null);
   protected readonly filterStatus = signal<string>('');
 
-  // Catálogo Global de Establecimientos
+  // Catálogo Global de Establecimientos (completo: ver `loadEstablishments`)
   protected readonly establishments = signal<Establishment[]>([]);
+  protected readonly establishmentsIncomplete = signal<boolean>(false);
 
   // Modales
   protected readonly isEditModalOpen = signal<boolean>(false);
@@ -178,13 +183,21 @@ export class SpecialtyDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Fallback pool of doctors for the "create schedule" picker, for doctors
+   * not yet linked to this service. Used to feed a native `<select>`
+   * (visual design frozen), so this loads the COMPLETE catalog across every
+   * page instead of the old `getAll(0, 100)` — which silently hid every
+   * doctor past record 100 with no error and no indication.
+   */
   loadAllDoctors(): void {
-    this.doctorApi.getAll(0, 100).subscribe({
-      next: (page) => {
-        this.allDoctors.set(page.content);
+    fetchAllPages((page) => this.doctorApi.getAll(page, 100)).subscribe({
+      next: ({ items, complete }) => {
+        this.allDoctors.set(items);
+        this.allDoctorsIncomplete.set(!complete);
       },
       error: () => {
-        // Fallback silencioso
+        // Fallback silencioso: el <select> queda con la última página cargada (si alguna).
       }
     });
   }
@@ -215,13 +228,19 @@ export class SpecialtyDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Establishment catalog feeding the schedule filter and the create/batch
+   * `<select>`s (visual design frozen). Loads every page instead of the old
+   * `getAll(0, 100)`, which silently hid establishments past record 100.
+   */
   loadEstablishments(): void {
-    this.establishmentApi.getAll(0, 100).subscribe({
-      next: (page) => {
-        this.establishments.set(page.content);
+    fetchAllPages((page) => this.establishmentApi.getAll(page, 100)).subscribe({
+      next: ({ items, complete }) => {
+        this.establishments.set(items);
+        this.establishmentsIncomplete.set(!complete);
       },
       error: () => {
-        // Fallback silencioso
+        // Fallback silencioso: el <select> queda con la última página cargada (si alguna).
       }
     });
   }

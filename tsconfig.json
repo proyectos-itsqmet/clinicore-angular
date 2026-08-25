@@ -9,6 +9,14 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
+    // `sockjs-client` ships only a CommonJS build (`export =`, no ESM
+    // `default` export) — required so `RealtimeService` can do
+    // `import SockJS from 'sockjs-client'` instead of a namespace import,
+    // which esbuild flags as "not constructable" at bundle time (a
+    // namespace object is not callable/`new`-able). Purely additive: it
+    // only permits default-import syntax for CJS interop, it does not
+    // change type-checking for any existing ESM import in this codebase.
+    "esModuleInterop": true,
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",

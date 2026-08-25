@@ -1,0 +1,300 @@
+@if (loading()) {
+  <div class="py-16 text-center text-xs text-ink-3">Cargando factura...</div>
+} @else if (error()) {
+  <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+    <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+  </div>
+} @else if (invoice(); as inv) {
+  <div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="font-display text-2xl font-extrabold text-ink">Factura #{{ inv.id }}</h1>
+          @if (inv.status) {
+            <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + INVOICE_STATUS_BADGE_CLASS[inv.status]">
+              {{ INVOICE_STATUS_LABELS[inv.status] }}
+            </span>
+          }
+        </div>
+        <p class="mt-1 text-xs text-ink-3">Paciente: {{ inv.patient.firstName }} {{ inv.patient.lastName }} — CI {{ inv.patient.ci }}</p>
+        <p class="mt-0.5 text-[11px] text-ink-3">Emitida: {{ formatIsoDateTimeEs(inv.issuedAt) }}</p>
+        @if (inv.status === 'VOID') {
+          <p class="mt-0.5 text-[11px] text-rose-700">Anulada — motivo: {{ inv.voidReason }} ({{ formatIsoDateTimeEs(inv.voidedAt) }})</p>
+        }
+      </div>
+
+      <div class="flex flex-col items-end gap-2">
+        <div class="text-right">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-ink-3">Saldo pendiente</p>
+          <p class="font-display text-2xl font-extrabold text-ink">{{ formatMoney(inv.balance) }}</p>
+        </div>
+        <div class="flex gap-2">
+          @if (inv.status !== 'VOID' && inv.status !== 'PAID') {
+            <button
+              type="button"
+              (click)="openPaymentModal()"
+              class="rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+            >
+              Registrar Pago
+            </button>
+          }
+          <button
+            type="button"
+            [disabled]="!canVoid()"
+            [title]="canVoid() ? '' : 'Solo se pueden anular facturas no pagadas y no anuladas.'"
+            (click)="openVoidModal()"
+            class="rounded-pill border border-red-200 bg-surface px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:hover:bg-surface transition-all"
+          >
+            Anular Factura
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Totales -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-ink-3">Total facturado</p>
+        <p class="mt-1 text-lg font-extrabold text-ink">{{ formatMoney(inv.total) }}</p>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-ink-3">Total pagado</p>
+        <p class="mt-1 text-lg font-extrabold text-ink">{{ formatMoney(sumPaymentAmounts(inv.payments)) }}</p>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-ink-3">Saldo pendiente</p>
+        <p class="mt-1 text-lg font-extrabold text-ink">{{ formatMoney(inv.balance) }}</p>
+      </div>
+    </div>
+
+    <!-- Líneas de la factura: SIEMPRE el snapshot devuelto por la API, nunca recalculado -->
+    <div>
+      <h2 class="font-display text-sm font-extrabold text-ink mb-2">Líneas de la Factura</h2>
+      <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <table class="min-w-full divide-y divide-line">
+          <thead class="bg-field">
+            <tr>
+              <th scope="col" class="py-3 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Descripción</th>
+              <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Tipo</th>
+              <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Monto</th>
+              <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Cubierto Aseguradora</th>
+              <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Responsabilidad Paciente</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line bg-surface">
+            @for (item of inv.items; track item.id) {
+              <tr>
+                <td class="px-3 py-3 text-xs text-ink">
+                  {{ item.description || (item.insurerNameSnapshot ? item.insurerNameSnapshot + ' — ' + item.planNameSnapshot : '') }}
+                  @if (item.sourceId) {
+                    <span class="text-ink-3">(ref #{{ item.sourceId }})</span>
+                  }
+                </td>
+                <td class="px-3 py-3 text-xs text-ink-3">{{ INVOICE_LINE_SOURCE_LABELS[item.sourceType] }}</td>
+                <td class="px-3 py-3 text-xs font-bold text-ink">{{ formatMoney(item.amount) }}</td>
+                <td class="px-3 py-3 text-xs text-ink">{{ item.insurerCoveredAmount != null ? formatMoney(item.insurerCoveredAmount) : '—' }}</td>
+                <td class="px-3 py-3 text-xs text-ink">{{ item.patientResponsibleAmount != null ? formatMoney(item.patientResponsibleAmount) : formatMoney(item.amount) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagos -->
+    <div>
+      <h2 class="font-display text-sm font-extrabold text-ink mb-2">Pagos Registrados</h2>
+      <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+        <table class="min-w-full divide-y divide-line">
+          <thead class="bg-field">
+            <tr>
+              <th scope="col" class="py-3 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Fecha</th>
+              <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Método</th>
+              <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Monto</th>
+              <th scope="col" class="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Referencia</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line bg-surface">
+            @if ((inv.payments ?? []).length === 0) {
+              <tr><td colspan="4" class="py-8 text-center text-xs text-ink-3">Todavía no se han registrado pagos.</td></tr>
+            } @else {
+              @for (pmt of inv.payments; track pmt.id) {
+                <tr>
+                  <td class="px-3 py-3 text-xs text-ink-3">{{ formatIsoDateTimeEs(pmt.paidAt) }}</td>
+                  <td class="px-3 py-3 text-xs text-ink">{{ PAYMENT_METHOD_LABELS[pmt.method] }}</td>
+                  <td class="px-3 py-3 text-xs font-bold text-ink">{{ formatMoney(pmt.amount) }}</td>
+                  <td class="px-3 py-3 text-xs text-ink-3">{{ pmt.reference || '—' }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Reclamo a la aseguradora -->
+    @if (hasInsurerCoverage()) {
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <h2 class="font-display text-sm font-extrabold text-ink mb-1">Reclamo a la Aseguradora</h2>
+        <p class="text-xs text-ink-3 mb-3">
+          Esta factura tiene líneas cubiertas por una aseguradora. Presentar un reclamo NO cambia el total ni el saldo de la factura — el
+          rechazo de un reclamo solo indica que la deuda pasa a ser responsabilidad del paciente.
+        </p>
+        @if (claimError()) {
+          <div class="mb-3 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 border border-red-200">{{ claimError() }}</div>
+        }
+        @if (claimSuccess()) {
+          <div class="mb-3 rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-800 border border-emerald-200">{{ claimSuccess() }}</div>
+        }
+        <button
+          type="button"
+          [disabled]="claimSubmitting()"
+          (click)="submitClaim()"
+          class="rounded-pill bg-tint text-blue px-4 py-2 text-xs font-bold hover:bg-blue hover:text-white disabled:opacity-50 transition-all"
+        >
+          {{ claimSubmitting() ? 'Enviando...' : 'Presentar Reclamo' }}
+        </button>
+      </div>
+    }
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL REGISTRAR PAGO
+     ========================================================================= -->
+@if (isPaymentModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closePaymentModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">Registrar Pago</h3>
+            <button type="button" (click)="closePaymentModal()" class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors">✕</button>
+          </div>
+
+          @if (invoice(); as inv) {
+            <p class="mb-4 text-xs text-ink-3">
+              Saldo pendiente actual: <span class="font-bold text-ink">{{ formatMoney(inv.balance) }}</span>
+            </p>
+          }
+
+          @if (paymentFormError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ paymentFormError() }}</span>
+            </div>
+          }
+
+          <form name="registerPaymentForm" (ngSubmit)="onSubmitPayment()">
+            <div class="space-y-4">
+              <div>
+                <label for="paymentAmount" class="block text-xs font-bold text-ink mb-1">Monto *</label>
+                <input
+                  type="number"
+                  id="paymentAmount"
+                  name="paymentAmount"
+                  min="0.01"
+                  step="0.01"
+                  [value]="paymentAmount()"
+                  (input)="onPaymentAmountInput($event)"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+                @if (paymentSubmitAttempted() && !paymentFormValid()) {
+                  <p class="mt-1 text-xs text-red-600">El monto del pago debe ser mayor a cero.</p>
+                }
+              </div>
+
+              <div>
+                <label for="paymentMethod" class="block text-xs font-bold text-ink mb-1">Método de Pago *</label>
+                <select
+                  id="paymentMethod"
+                  name="paymentMethod"
+                  [value]="paymentMethod()"
+                  (change)="onPaymentMethodChange($event)"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  @for (method of PAYMENT_METHODS; track method) {
+                    <option [value]="method">{{ PAYMENT_METHOD_LABELS[method] }}</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label for="paymentReference" class="block text-xs font-bold text-ink mb-1">Referencia (opcional)</label>
+                <input
+                  type="text"
+                  id="paymentReference"
+                  name="paymentReference"
+                  [value]="paymentReference()"
+                  (input)="onPaymentReferenceInput($event)"
+                  placeholder="N° de comprobante, últimos 4 dígitos, etc."
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button type="button" (click)="closePaymentModal()" class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors">Cancelar</button>
+              <button type="submit" [disabled]="paymentFormLoading()" class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all">
+                {{ paymentFormLoading() ? 'Guardando...' : 'Registrar Pago' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ANULAR FACTURA
+     ========================================================================= -->
+@if (isVoidModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeVoidModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">⚠️</div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">Anular Factura</h3>
+              <p class="text-xs text-ink-3 mt-0.5">Esta acción es solo para Administradores y requiere un motivo. La factura pasa a estado "Anulada".</p>
+            </div>
+          </div>
+
+          @if (voidFormError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ voidFormError() }}</span>
+            </div>
+          }
+
+          <form name="voidInvoiceForm" (ngSubmit)="onSubmitVoid()">
+            <label for="voidReason" class="block text-xs font-bold text-ink mb-1">Motivo de anulación *</label>
+            <textarea
+              id="voidReason"
+              name="voidReason"
+              rows="3"
+              [value]="voidReason()"
+              (input)="onVoidReasonInput($event)"
+              placeholder="Ej. Factura duplicada, error de digitación..."
+              class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+            ></textarea>
+            @if (voidSubmitAttempted() && !voidFormValid()) {
+              <p class="mt-1 text-xs text-red-600">El motivo de anulación es obligatorio.</p>
+            }
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button type="button" (click)="closeVoidModal()" class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors">Cancelar</button>
+              <button type="submit" [disabled]="voidFormLoading()" class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all">
+                {{ voidFormLoading() ? 'Anulando...' : 'Anular Factura' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

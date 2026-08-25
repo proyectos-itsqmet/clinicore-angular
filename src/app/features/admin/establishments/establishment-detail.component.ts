@@ -29,15 +29,21 @@ export class EstablishmentDetailComponent implements OnInit {
   protected readonly loading = signal<boolean>(true);
   protected readonly error = signal<string | null>(null);
 
-  // Listas asociadas al establecimiento
-  protected readonly doctors = signal<AdminDoctor[]>([]);
+  // Listas asociadas al establecimiento (paginadas: antes se pedía una única
+  // página fija de 100 elementos y todo lo que hubiera después simplemente
+  // desaparecía sin aviso; ahora cada lista es una `Page<T>` real con
+  // búsqueda por nombre y paginación, igual que los modales de asignación).
+  protected readonly doctors = signal<Page<AdminDoctor> | null>(null);
   protected readonly doctorsLoading = signal<boolean>(true);
+  protected readonly doctorsFilterName = signal<string>('');
 
-  protected readonly services = signal<Servicio[]>([]);
+  protected readonly services = signal<Page<Servicio> | null>(null);
   protected readonly servicesLoading = signal<boolean>(true);
+  protected readonly servicesFilterName = signal<string>('');
 
-  protected readonly operators = signal<Operator[]>([]);
+  protected readonly operators = signal<Page<Operator> | null>(null);
   protected readonly operatorsLoading = signal<boolean>(true);
+  protected readonly operatorsFilterName = signal<string>('');
 
   // Modales
   protected readonly isEditModalOpen = signal<boolean>(false);
@@ -117,11 +123,12 @@ export class EstablishmentDetailComponent implements OnInit {
     });
   }
 
-  loadDoctors(): void {
+  loadDoctors(page: number = 0): void {
     this.doctorsLoading.set(true);
-    this.establishmentApi.getDoctors(this.establishmentId, 0, 100).subscribe({
-      next: (page) => {
-        this.doctors.set(page.content || []);
+    const name = this.doctorsFilterName().trim() || undefined;
+    this.establishmentApi.getDoctors(this.establishmentId, page, 10, name).subscribe({
+      next: (pageData) => {
+        this.doctors.set(pageData);
         this.doctorsLoading.set(false);
       },
       error: () => {
@@ -130,11 +137,17 @@ export class EstablishmentDetailComponent implements OnInit {
     });
   }
 
-  loadServices(): void {
+  onDoctorsFilterChange(name: string): void {
+    this.doctorsFilterName.set(name);
+    this.loadDoctors(0);
+  }
+
+  loadServices(page: number = 0): void {
     this.servicesLoading.set(true);
-    this.establishmentApi.getServices(this.establishmentId, 0, 100).subscribe({
-      next: (page) => {
-        this.services.set(page.content || []);
+    const name = this.servicesFilterName().trim() || undefined;
+    this.establishmentApi.getServices(this.establishmentId, page, 10, name).subscribe({
+      next: (pageData) => {
+        this.services.set(pageData);
         this.servicesLoading.set(false);
       },
       error: () => {
@@ -143,17 +156,28 @@ export class EstablishmentDetailComponent implements OnInit {
     });
   }
 
-  loadOperators(): void {
+  onServicesFilterChange(name: string): void {
+    this.servicesFilterName.set(name);
+    this.loadServices(0);
+  }
+
+  loadOperators(page: number = 0): void {
     this.operatorsLoading.set(true);
-    this.establishmentApi.getOperators(this.establishmentId, 0, 100).subscribe({
-      next: (page) => {
-        this.operators.set(page.content || []);
+    const name = this.operatorsFilterName().trim() || undefined;
+    this.establishmentApi.getOperators(this.establishmentId, page, 10, name).subscribe({
+      next: (pageData) => {
+        this.operators.set(pageData);
         this.operatorsLoading.set(false);
       },
       error: () => {
         this.operatorsLoading.set(false);
       }
     });
+  }
+
+  onOperatorsFilterChange(name: string): void {
+    this.operatorsFilterName.set(name);
+    this.loadOperators(0);
   }
 
   // --- Modal Editar Establecimiento ---

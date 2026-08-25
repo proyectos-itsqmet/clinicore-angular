@@ -249,6 +249,11 @@
             <option [value]="est.id">{{ est.name }}</option>
           }
         </select>
+        @if (establishmentsIncomplete()) {
+          <span class="text-xs text-red-600 font-medium" role="alert">
+            No se pudo cargar el catálogo completo de establecimientos; la lista puede estar incompleta.
+          </span>
+        }
 
         <!-- Filtro Estado -->
         <select
@@ -1033,6 +1038,11 @@
                     ) {
                       <p class="mt-1 text-xs text-red-600">Debes seleccionar un doctor.</p>
                     }
+                    @if (allDoctorsIncomplete()) {
+                      <p class="mt-1 text-xs text-red-600" role="alert">
+                        No se pudo cargar el catálogo completo de doctores; puede que falten opciones.
+                      </p>
+                    }
                   </div>
 
                   <!-- Establecimiento -->
@@ -1060,6 +1070,11 @@
                     ) {
                       <p class="mt-1 text-xs text-red-600">
                         Debes seleccionar un establecimiento válido.
+                      </p>
+                    }
+                    @if (establishmentsIncomplete()) {
+                      <p class="mt-1 text-xs text-red-600" role="alert">
+                        No se pudo cargar el catálogo completo de establecimientos; puede que falten opciones.
                       </p>
                     }
                   </div>

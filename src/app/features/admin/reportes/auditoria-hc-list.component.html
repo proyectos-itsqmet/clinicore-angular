@@ -1,0 +1,120 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-extrabold text-ink">Auditoría de Historias Clínicas</h1>
+    <p class="mt-1 text-xs text-ink-3">
+      Quién accedió a la información clínica de cada paciente, cuándo y con qué rol. Es un registro de LECTURAS, no
+      de ediciones.
+    </p>
+  </div>
+
+  <!-- Filtro por paciente -->
+  <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
+    <div class="flex-1">
+      <label class="block text-[11px] font-bold text-ink mb-1">Filtrar por UUID de paciente</label>
+      <input
+        type="text"
+        id="auditPatientFilter"
+        placeholder="Ej. a1b2c3d4-..."
+        [ngModel]="patientFilter()"
+        (ngModelChange)="patientFilter.set($event)"
+        (keyup.enter)="applyFilter()"
+        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs font-mono text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none"
+      />
+    </div>
+    <button
+      type="button"
+      (click)="applyFilter()"
+      class="rounded-pill bg-blue py-2 px-4 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+    >
+      Filtrar
+    </button>
+    @if (patientFilter()) {
+      <button
+        type="button"
+        (click)="resetFilter()"
+        class="rounded-pill border border-line bg-surface py-2 px-2.5 text-xs font-semibold text-ink-3 hover:bg-field"
+        title="Limpiar filtro"
+      >
+        ✕
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Fecha / Hora</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Paciente</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Accedido por</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Tipo de recurso</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Detalle</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr>
+            <td colspan="5" class="py-12 text-center text-xs text-ink-3">Cargando registros de auditoría...</td>
+          </tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr>
+            <td colspan="5" class="py-12 text-center text-xs text-ink-3">No hay registros de auditoría para este filtro.</td>
+          </tr>
+        } @else {
+          @for (row of data()?.content; track row.id) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-bold text-ink">{{ formatAccessedAt(row.accessedAt) }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-mono text-ink-3">{{ row.patientUuid.slice(0, 8) }}…</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                <div class="font-mono text-ink-3">{{ row.accessedByUuid.slice(0, 8) }}…</div>
+                <span [class]="'inline-flex items-center rounded-pill px-2 py-0.5 text-[10px] font-bold mt-1 ' + roleBadgeClass(row.accessedByRole)">
+                  {{ roleLabel(row.accessedByRole) }}
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ resourceTypeLabel(row.resourceType) }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs">
+                @if (isListRead(row.resourceType)) {
+                  <span class="italic text-ink-3">Listado completo</span>
+                } @else {
+                  <span class="font-mono font-bold text-ink">#{{ row.resourceId }}</span>
+                }
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <p class="text-xs text-ink-3">
+          Mostrando <span class="font-bold text-ink">{{ data()!.numberOfElements }}</span> de
+          <span class="font-bold text-ink">{{ data()!.totalElements }}</span> accesos
+        </p>
+        <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+          <button
+            [disabled]="data()!.first"
+            (click)="loadPage(data()!.number - 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Anterior
+          </button>
+          <span class="px-2 text-xs font-bold text-ink">Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages || 1 }}</span>
+          <button
+            [disabled]="data()!.last"
+            (click)="loadPage(data()!.number + 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Siguiente
+          </button>
+        </nav>
+      </div>
+    }
+  </div>
+</div>

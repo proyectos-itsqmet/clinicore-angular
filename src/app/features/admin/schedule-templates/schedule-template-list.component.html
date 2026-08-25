@@ -1,0 +1,565 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-display text-2xl font-extrabold text-ink">Horarios de Atención</h1>
+      <p class="mt-1 text-xs text-ink-3">Plantillas semanales recurrentes que alimentan la generación de horarios.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        (click)="openGenerateModal()"
+        class="inline-flex items-center rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-all"
+      >
+        Generar Horarios
+      </button>
+      <button
+        type="button"
+        (click)="openCreateModal()"
+        class="inline-flex items-center rounded-pill bg-blue px-4 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright transition-all"
+      >
+        <svg class="-ml-1 mr-1.5 h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+        </svg>
+        Nueva Plantilla
+      </button>
+    </div>
+  </div>
+
+  <!-- Aviso PERMANENTE: una plantilla es un GENERADOR, nunca toca un horario ya creado. -->
+  <div class="rounded-2xl bg-amber-50 border border-amber-300 p-4 text-xs text-amber-900" role="alert">
+    <p class="font-bold">⚠️ Una plantilla afecta SOLO la generación futura de horarios.</p>
+    <p class="mt-1">
+      Crear, editar o eliminar una plantilla nunca modifica ni elimina un horario ya generado (libre u ocupado). Si necesitas depurar
+      horarios existentes, hazlo manualmente desde <strong>Calendario</strong>.
+    </p>
+  </div>
+
+  @if (establishmentsIncomplete() || doctorsCatalogIncomplete()) {
+    <div class="rounded-2xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800" role="alert">
+      No se pudo cargar el catálogo completo de establecimientos o doctores; algunos selectores pueden estar incompletos.
+    </div>
+  }
+
+  <!-- Filtro por establecimiento -->
+  <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
+    <div class="flex-1 max-w-xs">
+      <label class="block text-[11px] font-bold text-ink mb-1">Establecimiento</label>
+      <select
+        id="filterStablishmentId"
+        [value]="filterStablishmentId() ?? ''"
+        (change)="onFilterChange($event)"
+        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+      >
+        <option value="">Todos los establecimientos</option>
+        @for (est of establishments(); track est.id) {
+          <option [value]="est.id">{{ est.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="rounded-2xl bg-red-50 p-4 border border-red-200">
+      <h3 class="text-xs font-bold text-red-800">{{ error() }}</h3>
+    </div>
+  }
+
+  <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+    <table class="min-w-full divide-y divide-line">
+      <thead class="bg-field">
+        <tr>
+          <th scope="col" class="py-3.5 pl-5 pr-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Establecimiento</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Servicio</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Doctor</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Día</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Horario</th>
+          <th scope="col" class="px-3 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-3">Vigencia</th>
+          <th scope="col" class="relative py-3.5 pl-3 pr-5 text-right text-[11px] font-bold uppercase tracking-wider text-ink-3">
+            Acciones
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line bg-surface">
+        @if (loading()) {
+          <tr>
+            <td colspan="7" class="py-12 text-center text-xs text-ink-3">Cargando plantillas de horario...</td>
+          </tr>
+        } @else if (data()?.content?.length === 0) {
+          <tr>
+            <td colspan="7" class="py-12 text-center text-xs text-ink-3">No hay plantillas de horario registradas.</td>
+          </tr>
+        } @else {
+          @for (item of data()?.content; track item.id) {
+            <tr class="hover:bg-tint/20 transition-colors">
+              <td class="px-3 py-4 text-xs font-bold text-ink">{{ item.stablishment.name }}</td>
+              <td class="px-3 py-4 text-xs text-ink">{{ item.servicio.name }}</td>
+              <td class="px-3 py-4 text-xs text-ink-3">
+                {{ item.doctor ? item.doctor.firstName + ' ' + item.doctor.lastName : 'Cualquiera (pool)' }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink">{{ dayLabel(item.dayOfWeek) }}</td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs font-mono text-ink">
+                {{ item.startTime.slice(0, 5) }} - {{ item.endTime.slice(0, 5) }}
+                <span class="block text-[10px] font-sans text-ink-3">cada {{ item.slotIntervalMinutes }} min</span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-xs text-ink-3">
+                {{ formatIsoDateEs(item.validFrom) }} — {{ item.validUntil ? formatIsoDateEs(item.validUntil) : 'sin fecha de fin' }}
+              </td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-5 text-right text-xs font-bold">
+                <div class="inline-flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="openEditModal(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-tint text-blue px-3 py-1.5 hover:bg-blue hover:text-white transition-all shadow-sm"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openDeleteModal(item)"
+                    class="inline-flex items-center gap-1 rounded-pill bg-surface text-red-600 px-3 py-1.5 border border-red-200 hover:bg-red-50 transition-all"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (data() && !loading()) {
+      <div class="flex items-center justify-between border-t border-line bg-surface px-5 py-3.5">
+        <p class="text-xs text-ink-3">
+          Mostrando <span class="font-bold text-ink">{{ data()!.numberOfElements }}</span> de
+          <span class="font-bold text-ink">{{ data()!.totalElements }}</span> plantillas
+        </p>
+        <nav class="inline-flex items-center gap-1" aria-label="Pagination">
+          <button
+            [disabled]="data()!.first"
+            (click)="loadPage(data()!.number - 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Anterior
+          </button>
+          <span class="px-2 text-xs font-bold text-ink">Pág. {{ data()!.number + 1 }} de {{ data()!.totalPages || 1 }}</span>
+          <button
+            [disabled]="data()!.last"
+            (click)="loadPage(data()!.number + 1)"
+            class="rounded-pill border border-line px-3 py-1 text-xs font-bold text-ink hover:bg-field disabled:opacity-40 transition-colors"
+          >
+            Siguiente
+          </button>
+        </nav>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- =========================================================================
+     MODAL CREAR / EDITAR PLANTILLA
+     ========================================================================= -->
+@if (isFormModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeFormModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              {{ editingItem() ? 'Editar Plantilla de Horario' : 'Nueva Plantilla de Horario' }}
+            </h3>
+            <button
+              type="button"
+              (click)="closeFormModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ formError() }}</span>
+            </div>
+          }
+
+          @if (editingItem()) {
+            <div class="mb-4 rounded-xl bg-amber-50 border border-amber-300 p-3 text-[11px] text-amber-900" role="note">
+              ⚠️ Estás editando una plantilla ya utilizada. Los horarios que ya se generaron con la versión anterior
+              <strong>NO cambiarán ni se eliminarán</strong> — ve a <strong>Calendario</strong> si necesitas ajustarlos manualmente.
+            </div>
+          }
+
+          <form (ngSubmit)="onSubmit()">
+            <div class="space-y-4">
+              <div>
+                <label for="templateStablishment" class="block text-xs font-bold text-ink mb-1">Establecimiento *</label>
+                <select
+                  id="templateStablishment"
+                  name="templateStablishment"
+                  [value]="formStablishmentId() ?? ''"
+                  (change)="onFormStablishmentChange($event)"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Selecciona un establecimiento...</option>
+                  @for (est of establishments(); track est.id) {
+                    <option [value]="est.id">{{ est.name }}</option>
+                  }
+                </select>
+                @if (submitAttempted() && formStablishmentId() == null) {
+                  <p class="mt-1 text-xs text-red-600">El establecimiento es requerido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="templateService" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
+                <select
+                  id="templateService"
+                  name="templateService"
+                  [value]="formServiceId() ?? ''"
+                  (change)="onFormServiceChange($event)"
+                  [disabled]="formStablishmentId() == null"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
+                >
+                  <option value="">{{ formStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Selecciona un servicio...' }}</option>
+                  @for (svc of formServices(); track svc.id) {
+                    <option [value]="svc.id">{{ svc.name }}</option>
+                  }
+                </select>
+                @if (submitAttempted() && formServiceId() == null) {
+                  <p class="mt-1 text-xs text-red-600">El servicio es requerido.</p>
+                }
+              </div>
+
+              <div>
+                <label for="templateDoctor" class="block text-xs font-bold text-ink mb-1">Doctor</label>
+                <select
+                  id="templateDoctor"
+                  name="templateDoctor"
+                  [value]="formDoctorUuid()"
+                  (change)="onFormDoctorChange($event)"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Cualquier doctor disponible (pool)</option>
+                  @for (doc of doctorsCatalog(); track doc.uuid) {
+                    <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
+                  }
+                </select>
+                <p class="mt-1 text-[11px] text-ink-3">
+                  Si el doctor no tiene asignado el servicio o el establecimiento, el servidor rechazará el guardado.
+                </p>
+              </div>
+
+              <div>
+                <label for="templateDayOfWeek" class="block text-xs font-bold text-ink mb-1">Día de la Semana *</label>
+                <select
+                  id="templateDayOfWeek"
+                  name="templateDayOfWeek"
+                  [value]="formDayOfWeek()"
+                  (change)="onFormDayOfWeekChange($event)"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Selecciona un día...</option>
+                  @for (day of DAY_OF_WEEK_OPTIONS; track day.value) {
+                    <option [value]="day.value">{{ day.label }}</option>
+                  }
+                </select>
+                @if (submitAttempted() && !formDayOfWeek()) {
+                  <p class="mt-1 text-xs text-red-600">El día de la semana es requerido.</p>
+                }
+                <p class="mt-1 text-[11px] text-ink-3">
+                  Cada plantilla corresponde a <strong>UN solo día de la semana</strong>. Para un rango como "Lunes a Viernes", deberás
+                  crear una plantilla por cada día.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="templateStartTime" class="block text-xs font-bold text-ink mb-1">Hora de Inicio *</label>
+                  <input
+                    type="time"
+                    id="templateStartTime"
+                    name="templateStartTime"
+                    [value]="formStartTime()"
+                    (input)="onFormStartTimeInput($event)"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label for="templateEndTime" class="block text-xs font-bold text-ink mb-1">Hora de Fin *</label>
+                  <input
+                    type="time"
+                    id="templateEndTime"
+                    name="templateEndTime"
+                    [value]="formEndTime()"
+                    (input)="onFormEndTimeInput($event)"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+              </div>
+              @if (submitAttempted() && formStartTime() && formEndTime() && !(formStartTime() < formEndTime())) {
+                <p class="-mt-2 text-xs text-red-600">La hora de fin debe ser posterior a la hora de inicio.</p>
+              }
+
+              <div>
+                <label for="templateSlotInterval" class="block text-xs font-bold text-ink mb-1">Intervalo entre Turnos (minutos) *</label>
+                <input
+                  type="number"
+                  id="templateSlotInterval"
+                  name="templateSlotInterval"
+                  min="1"
+                  [value]="formSlotIntervalMinutes()"
+                  (input)="onFormSlotIntervalInput($event)"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="templateValidFrom" class="block text-xs font-bold text-ink mb-1">Vigente Desde *</label>
+                  <input
+                    type="date"
+                    id="templateValidFrom"
+                    name="templateValidFrom"
+                    [value]="formValidFrom()"
+                    (input)="onFormValidFromInput($event)"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label for="templateValidUntil" class="block text-xs font-bold text-ink mb-1">Vigente Hasta</label>
+                  <input
+                    type="date"
+                    id="templateValidUntil"
+                    name="templateValidUntil"
+                    [value]="formValidUntil()"
+                    (input)="onFormValidUntilInput($event)"
+                    placeholder="Sin fecha de fin"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+              </div>
+              @if (submitAttempted() && formValidUntil() && formValidUntil() < formValidFrom()) {
+                <p class="-mt-2 text-xs text-red-600">La fecha de fin de vigencia no puede ser anterior a la fecha de inicio.</p>
+              }
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeFormModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                [disabled]="formLoading()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ formLoading() ? 'Guardando...' : (editingItem() ? 'Guardar Cambios' : 'Crear Plantilla') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL ELIMINAR PLANTILLA
+     ========================================================================= -->
+@if (isDeleteModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeDeleteModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-red-100 text-red-600 font-extrabold flex items-center justify-center text-lg shadow-inner shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <h3 class="font-display text-base font-extrabold text-ink">Eliminar Plantilla de Horario</h3>
+              <p class="text-xs text-ink-3 mt-0.5">
+                ¿Estás seguro de que deseas eliminar esta plantilla ({{ deletingItem()?.servicio?.name }},
+                {{ deletingItem() ? dayLabel(deletingItem()!.dayOfWeek) : '' }})?
+              </p>
+            </div>
+          </div>
+
+          <div class="mb-4 rounded-xl bg-amber-50 border border-amber-300 p-3 text-[11px] text-amber-900" role="note">
+            ⚠️ Eliminar esta plantilla <strong>NO afecta los horarios que ya se generaron</strong> con ella (libres u ocupados).
+            Bórralos manualmente desde <strong>Calendario</strong> si corresponde.
+          </div>
+
+          @if (formError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ formError() }}</span>
+            </div>
+          }
+
+          <div class="mt-2 flex justify-end gap-2 border-t border-line pt-3">
+            <button
+              type="button"
+              (click)="closeDeleteModal()"
+              class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="formLoading()"
+              (click)="confirmDelete()"
+              class="rounded-pill bg-red-600 px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-red-700 disabled:opacity-50 transition-all"
+            >
+              {{ formLoading() ? 'Eliminando...' : 'Eliminar Plantilla' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL GENERAR HORARIOS DESDE PLANTILLAS
+     ========================================================================= -->
+@if (isGenerateModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeGenerateModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">Generar Horarios desde Plantillas</h3>
+            <button
+              type="button"
+              (click)="closeGenerateModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <p class="mb-4 text-[11px] text-ink-3">
+            Genera horarios para el período indicado usando la plantilla aplicable a cada día. Los feriados y las ausencias de
+            doctores registradas se omiten automáticamente.
+          </p>
+
+          @if (generateSuccessMessage()) {
+            <div class="mb-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs font-bold text-emerald-800">
+              {{ generateSuccessMessage() }}
+            </div>
+          }
+
+          @if (generateError()) {
+            <div class="mb-4 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-800 flex items-center gap-2 border border-red-200">
+              <span>✕</span>
+              <span>{{ generateError() }}</span>
+            </div>
+          }
+
+          <form (ngSubmit)="onGenerateSubmit()">
+            <div class="space-y-4">
+              <div>
+                <label for="genStablishment" class="block text-xs font-bold text-ink mb-1">Establecimiento *</label>
+                <select
+                  id="genStablishment"
+                  name="genStablishment"
+                  [value]="genStablishmentId() ?? ''"
+                  (change)="onGenStablishmentChange($event)"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Selecciona un establecimiento...</option>
+                  @for (est of establishments(); track est.id) {
+                    <option [value]="est.id">{{ est.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label for="genService" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
+                <select
+                  id="genService"
+                  name="genService"
+                  [value]="genServiceId() ?? ''"
+                  (change)="onGenServiceChange($event)"
+                  [disabled]="genStablishmentId() == null"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
+                >
+                  <option value="">{{ genStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Selecciona un servicio...' }}</option>
+                  @for (svc of genServices(); track svc.id) {
+                    <option [value]="svc.id">{{ svc.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label for="genDoctor" class="block text-xs font-bold text-ink mb-1">Doctor</label>
+                <select
+                  id="genDoctor"
+                  name="genDoctor"
+                  [value]="genDoctorUuid()"
+                  (change)="onGenDoctorChange($event)"
+                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                >
+                  <option value="">Cualquier doctor (pool)</option>
+                  @for (doc of doctorsCatalog(); track doc.uuid) {
+                    <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="genFrom" class="block text-xs font-bold text-ink mb-1">Desde *</label>
+                  <input
+                    type="date"
+                    id="genFrom"
+                    name="genFrom"
+                    [value]="genFrom()"
+                    (input)="onGenFromInput($event)"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label for="genTo" class="block text-xs font-bold text-ink mb-1">Hasta *</label>
+                  <input
+                    type="date"
+                    id="genTo"
+                    name="genTo"
+                    [value]="genTo()"
+                    (input)="onGenToInput($event)"
+                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2 border-t border-line pt-3">
+              <button
+                type="button"
+                (click)="closeGenerateModal()"
+                class="rounded-pill border border-line bg-field px-4 py-2 text-xs font-bold text-ink hover:bg-surface transition-colors"
+              >
+                Cerrar
+              </button>
+              <button
+                type="submit"
+                [disabled]="generateLoading() || !genValid()"
+                class="rounded-pill bg-blue px-5 py-2 text-xs font-bold text-surface shadow-cta hover:bg-blue-bright disabled:opacity-50 transition-all"
+              >
+                {{ generateLoading() ? 'Generando...' : 'Generar' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

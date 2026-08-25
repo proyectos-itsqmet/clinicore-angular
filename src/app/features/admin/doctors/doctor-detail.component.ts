@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DoctorApiService } from '../../../core/api/doctor-api.service';
 import { EstablishmentApiService } from '../../../core/api/establishment-api.service';
@@ -15,6 +15,7 @@ import type { AdminDoctor, Establishment, Servicio, Page } from '../../../core/m
 })
 export class DoctorDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly doctorApi = inject(DoctorApiService);
   private readonly establishmentApi = inject(EstablishmentApiService);
   private readonly servicioApi = inject(ServicioApiService);
@@ -26,6 +27,7 @@ export class DoctorDetailComponent implements OnInit {
 
   // Modales
   protected readonly isEditModalOpen = signal<boolean>(false);
+  protected readonly isDeleteModalOpen = signal<boolean>(false);
   protected readonly isAssignEstModalOpen = signal<boolean>(false);
   protected readonly isAssignServiceModalOpen = signal<boolean>(false);
   protected readonly formLoading = signal<boolean>(false);
@@ -124,6 +126,36 @@ export class DoctorDetailComponent implements OnInit {
       error: () => {
         this.formLoading.set(false);
         alert('Error al actualizar la información del doctor.');
+      }
+    });
+  }
+
+  // --- Modal Eliminar Doctor ---
+  openDeleteModal(): void {
+    this.isDeleteModalOpen.set(true);
+  }
+
+  closeDeleteModal(): void {
+    this.isDeleteModalOpen.set(false);
+  }
+
+  confirmDelete(): void {
+    this.formLoading.set(true);
+    this.doctorApi.delete(this.doctorId).subscribe({
+      next: () => {
+        this.formLoading.set(false);
+        this.closeDeleteModal();
+        alert('Doctor eliminado correctamente.');
+        this.router.navigate(['/admin/administracion/doctores']);
+      },
+      error: (err) => {
+        this.formLoading.set(false);
+        // El backend ahora rechaza el borrado con un motivo claro (p. ej. turnos
+        // reservados asociados) — mostrar ESE mensaje, no uno genérico, es el
+        // punto de esta tarea.
+        const msg = err?.error?.message || err?.error?.error || 'Error al eliminar el doctor.';
+        alert(msg);
+        this.closeDeleteModal();
       }
     });
   }
