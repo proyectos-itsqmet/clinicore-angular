@@ -30,7 +30,7 @@ export type RealtimeConnectionStatus = 'connecting' | 'open' | 'closed';
 export class RealtimeService {
   private readonly platformId = inject(PLATFORM_ID);
 
-  private readonly BROKER_URL = `${environment.apiUrl}/ws-turns`;
+  private get BROKER_URL(): string { return `${environment.apiUrl}/ws-turns`; }
 
   /** First retry waits 1s; each subsequent retry doubles, capped at 30s. */
   private readonly INITIAL_RECONNECT_DELAY_MS = 1000;
