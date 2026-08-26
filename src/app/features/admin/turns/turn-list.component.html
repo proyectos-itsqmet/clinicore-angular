@@ -431,12 +431,25 @@
                         </div>
                       </td>
 
-                      <!-- Paciente -->
+                      <!-- Paciente. El nombre es un enlace a su ficha: la cola
+                           de turnos es la pantalla operativa (llamar, marcar
+                           atendido), y desde aca se sale al historial, las
+                           recetas y el resumen clinico. El modal sigue siendo
+                           modal a proposito — quien atiende la cola trabaja
+                           aca toda la mañana y no debe perder el filtro ni la
+                           pagina — pero necesitaba una puerta de salida. -->
                       <td class="px-3 py-3.5 text-xs">
                         @if (turn.patient) {
-                          <div class="font-bold text-ink">
+                          <a
+                            [routerLink]="['/admin/pacientes/informacion', turn.patient.uuid]"
+                            class="group inline-flex items-center gap-1 font-bold text-blue hover:underline"
+                            [title]="'Ver ficha de ' + turn.patient.firstName + ' ' + turn.patient.lastName"
+                          >
                             {{ turn.patient.firstName }} {{ turn.patient.lastName }}
-                          </div>
+                            <svg class="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                              <path d="M6 3.5L10.5 8L6 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                          </a>
                           <div class="text-[11px] text-ink-3 font-mono">
                             CI: {{ turn.patient.ci }}
                           </div>

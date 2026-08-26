@@ -10,7 +10,7 @@ import { RealtimeService } from '../../../core/realtime/realtime.service';
 import { ConsultorioApiService } from '../../../core/api/consultorio-api.service';
 import type { Consultorio, Establishment, Servicio, Turn, Page, ScheduleDTO, TurnStatus } from '../../../core/models';
 
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 export interface TurnBoardDTO {
   id: number;
@@ -52,7 +52,7 @@ export function buildStablishmentTopic(stablishmentId: number, date: string): st
 
 @Component({
   selector: 'app-turn-list',
-  imports: [CommonModule, FormsModule, DecimalPipe],
+  imports: [CommonModule, FormsModule, DecimalPipe, RouterLink],
   templateUrl: './turn-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
