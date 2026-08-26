@@ -5,7 +5,17 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { DoctorApiService } from '../../../core/api/doctor-api.service';
 import { EstablishmentApiService } from '../../../core/api/establishment-api.service';
 import { ServicioApiService } from '../../../core/api/servicio-api.service';
-import type { AdminDoctor, Establishment, Servicio, Page } from '../../../core/models';
+import { ConsultorioApiService } from '../../../core/api/consultorio-api.service';
+import { ScheduleTemplateApiService } from '../../../core/api/schedule-template-api.service';
+import type {
+  AdminDoctor,
+  Consultorio,
+  Establishment,
+  Page,
+  ScheduleTemplate,
+  ScheduleTemplateWrite,
+  Servicio,
+} from '../../../core/models';
 
 @Component({
   selector: 'app-doctor-detail',
@@ -19,6 +29,8 @@ export class DoctorDetailComponent implements OnInit {
   private readonly doctorApi = inject(DoctorApiService);
   private readonly establishmentApi = inject(EstablishmentApiService);
   private readonly servicioApi = inject(ServicioApiService);
+  private readonly consultorioApi = inject(ConsultorioApiService);
+  private readonly scheduleTemplateApi = inject(ScheduleTemplateApiService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly doctor = signal<AdminDoctor | null>(null);
@@ -51,6 +63,24 @@ export class DoctorDetailComponent implements OnInit {
   protected readonly assignServiceError = signal<string | null>(null);
 
   // Formularios
+  // --- Consultorios por jornada ------------------------------------------
+  //
+  // The room is NOT a property of the doctor: `Doctor.stablishments` is a
+  // many-to-many, so "Consultorio 3" only means something inside one site.
+  // It lives on the schedule template, which already carries site + service +
+  // doctor + weekday + hours. That is why this card lists SHIFTS rather than
+  // offering a single field: the same doctor can be in room 3 on Mondays and
+  // room 5 on Wednesdays.
+  /** Backend sends DayOfWeek as its uppercase English enum name. */
+  protected readonly DAY_LABELS: Record<string, string> = { MONDAY: 'Lunes', TUESDAY: 'Martes', WEDNESDAY: 'Miércoles', THURSDAY: 'Jueves', FRIDAY: 'Viernes', SATURDAY: 'Sábado', SUNDAY: 'Domingo' };
+  protected readonly doctorTemplates = signal<ScheduleTemplate[]>([]);
+  protected readonly templatesLoading = signal<boolean>(true);
+  protected readonly templatesError = signal<string | null>(null);
+  /** Rooms keyed by establishment id: each shift only offers its own site rooms. */
+  protected readonly consultoriosByEst = signal<Record<number, Consultorio[]>>({});
+  protected readonly savingTemplateId = signal<number | null>(null);
+  protected readonly consultorioFeedback = signal<{ kind: 'success' | 'error'; text: string } | null>(null);
+
   protected readonly editForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     firstName: ['', Validators.required],
@@ -72,6 +102,92 @@ export class DoctorDetailComponent implements OnInit {
     }
   }
 
+  /** The doctor shifts, so an admin can set the room for each one. */
+  loadDoctorTemplates(): void {
+    const uuid = this.doctor()?.uuid;
+    if (!uuid) {
+      this.templatesLoading.set(false);
+      return;
+    }
+
+    this.templatesLoading.set(true);
+    this.templatesError.set(null);
+
+    // size 100: a doctor has a handful of weekly shifts, not a paginated list.
+    this.scheduleTemplateApi.getAll(0, 100, { doctorId: uuid }).subscribe({
+      next: (page) => {
+        this.doctorTemplates.set(page.content ?? []);
+        this.loadConsultoriosForTemplates(page.content ?? []);
+        this.templatesLoading.set(false);
+      },
+      error: () => {
+        this.templatesError.set('No pudimos cargar las jornadas de este doctor.');
+        this.templatesLoading.set(false);
+      },
+    });
+  }
+
+  /** One request per DISTINCT site, not per shift: several shifts share a site. */
+  private loadConsultoriosForTemplates(templates: ScheduleTemplate[]): void {
+    const estIds = [
+      ...new Set(templates.map((t) => t.stablishment?.id).filter((id): id is number => id != null)),
+    ];
+
+    for (const estId of estIds) {
+      this.consultorioApi.getByEstablishment(estId).subscribe({
+        next: (rooms) => this.consultoriosByEst.update((map) => ({ ...map, [estId]: rooms })),
+        // A site with no rooms yet is not an error: the select stays empty and
+        // the board shows the turn without a room until an admin loads them.
+        error: () => this.consultoriosByEst.update((map) => ({ ...map, [estId]: [] })),
+      });
+    }
+  }
+
+  protected roomsFor(template: ScheduleTemplate): Consultorio[] {
+    const estId = template.stablishment?.id;
+    return estId == null ? [] : (this.consultoriosByEst()[estId] ?? []);
+  }
+
+  /**
+   * Saves the room for one shift. Sends the WHOLE template back because
+   * `PUT /api/schedule-templates/{id}` replaces it: omitting a field would
+   * blank it out rather than leave it alone.
+   */
+  protected onConsultorioChange(template: ScheduleTemplate, rawValue: string): void {
+    const consultorioId = rawValue ? Number(rawValue) : null;
+
+    const payload: ScheduleTemplateWrite = {
+      stablishment: { id: template.stablishment.id },
+      servicio: { id: template.servicio.id },
+      doctor: template.doctor?.uuid ? { uuid: template.doctor.uuid } : null,
+      consultorio: consultorioId == null ? null : { id: consultorioId },
+      dayOfWeek: template.dayOfWeek,
+      startTime: template.startTime,
+      endTime: template.endTime,
+      slotIntervalMinutes: template.slotIntervalMinutes,
+      validFrom: template.validFrom,
+      validUntil: template.validUntil ?? null,
+    };
+
+    this.savingTemplateId.set(template.id);
+    this.consultorioFeedback.set(null);
+
+    this.scheduleTemplateApi.update(template.id, payload).subscribe({
+      next: (updated) => {
+        this.doctorTemplates.update((list) => list.map((t) => (t.id === updated.id ? updated : t)));
+        this.savingTemplateId.set(null);
+        this.consultorioFeedback.set({ kind: 'success', text: 'Consultorio actualizado.' });
+      },
+      error: (err) => {
+        this.savingTemplateId.set(null);
+        this.consultorioFeedback.set({
+          kind: 'error',
+          text: err?.error?.error || err?.error?.message || 'No pudimos guardar el consultorio.',
+        });
+      },
+    });
+  }
+
   loadDoctor(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -79,6 +195,8 @@ export class DoctorDetailComponent implements OnInit {
       next: (doc) => {
         this.doctor.set(doc);
         this.loading.set(false);
+        // Needs the uuid, so it can only run once the doctor is in hand.
+        this.loadDoctorTemplates();
       },
       error: () => {
         this.error.set('No se pudo cargar la información del doctor.');

@@ -7,6 +7,20 @@ import { Observable, Subject } from 'rxjs';
 import type { Establishment, Page, ScheduleDTO, Servicio, Turn, TurnStatus } from '../../../core/models';
 import { RealtimeService } from '../../../core/realtime/realtime.service';
 import { buildStablishmentTopic, TurnListComponent } from './turn-list.component';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+
+/**
+ * Local yyyy-MM-dd, computed here on purpose rather than imported from the
+ * component. Sharing the helper would make these assertions tautological:
+ * if someone put `toISOString()` back, both sides would agree and the tests
+ * would stay green while the board silently showed the wrong day.
+ */
+function expectedLocalIsoDate(d: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 
 const ESTABLISHMENTS_URL = 'http://localhost:8080/api/stablishments';
 const TURNS_URL = 'http://localhost:8080/api/turns';
@@ -97,6 +111,21 @@ describe('TurnListComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
+        // FIXED 2026-08-25. This spec never provided ActivatedRoute while the
+        // component has injected it all along (it reads `queryParams` to
+        // preselect a sede), so every test here died on NG0201 before reaching
+        // its own assertions: 22 of 24 red for a reason none of them was about.
+        //
+        // `queryParams` has to be a real observable, not `{}` — the component
+        // subscribes to it during init, and a missing `.subscribe` throws just
+        // as loudly as the missing provider did.
+        //
+        // Same shape doctor-detail and establishment-detail already use.
+        {
+          provide: ActivatedRoute,
+          useValue: { queryParams: of({}), snapshot: { queryParamMap: new Map() } },
+        },
         { provide: RealtimeService, useValue: fakeRealtime },
       ],
     });
@@ -381,7 +410,7 @@ describe('TurnListComponent', () => {
   });
 
   describe('realtime auto-refresh', () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = expectedLocalIsoDate();
 
     it('refetches the current page exactly once when an inbound realtime signal arrives', () => {
       const fixture = create(); // establishment(1) auto-selected, today by default
@@ -426,7 +455,7 @@ describe('TurnListComponent', () => {
       const tomorrow = (() => {
         const d = new Date();
         d.setDate(d.getDate() + 1);
-        return d.toISOString().split('T')[0];
+        return expectedLocalIsoDate(d);
       })();
       const topicToday = buildStablishmentTopic(1, today);
       const topicTomorrow = buildStablishmentTopic(1, tomorrow);

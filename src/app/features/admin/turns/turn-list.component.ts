@@ -7,7 +7,8 @@ import { TurnApiService } from '../../../core/api/turn-api.service';
 import { ScheduleApiService } from '../../../core/api/schedule-api.service';
 import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { RealtimeService } from '../../../core/realtime/realtime.service';
-import type { Establishment, Servicio, Turn, Page, ScheduleDTO, TurnStatus } from '../../../core/models';
+import { ConsultorioApiService } from '../../../core/api/consultorio-api.service';
+import type { Consultorio, Establishment, Servicio, Turn, Page, ScheduleDTO, TurnStatus } from '../../../core/models';
 
 import { ActivatedRoute } from '@angular/router';
 
@@ -27,6 +28,24 @@ export interface TurnBoardDTO {
  * pure function so both the component and its tests build the exact same
  * string independently of each other.
  */
+/**
+ * LOCAL `yyyy-MM-dd`. Never `toISOString().split('T')[0]`.
+ *
+ * FIXED 2026-08-25. Both callers used `toISOString`, which is UTC. This
+ * clinic runs at UTC-5, so from 19:00 local onwards `toISOString` already
+ * reports TOMORROW: the board defaulted to the wrong day every evening, the
+ * "Hoy" preset produced tomorrow, and the STOMP subscription pointed at a
+ * topic nothing would ever publish to. No error, no log — the screen simply
+ * stopped updating during the busiest hours.
+ *
+ * The backend builds that path segment from a `LocalDate`, which is the
+ * clinic’s calendar day, so the client has to speak the same calendar.
+ */
+export function localIsoDate(date: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export function buildStablishmentTopic(stablishmentId: number, date: string): string {
   return `/topic/stablishment/${stablishmentId}/${date}`;
 }
@@ -65,7 +84,7 @@ export class TurnListComponent implements OnInit, OnDestroy {
   protected readonly selectedEstablishment = signal<Establishment | null>(null);
 
   // 2. Fecha de Consulta
-  protected readonly selectedDate = signal<string>(new Date().toISOString().split('T')[0]);
+  protected readonly selectedDate = signal<string>(localIsoDate());
 
   // 3. Servicios del Establecimiento Seleccionado (paginado + búsqueda: antes
   // `getServices(id, 0, 100)` truncaba en el registro 100 sin aviso).
@@ -99,6 +118,14 @@ export class TurnListComponent implements OnInit, OnDestroy {
   protected readonly cancelling = signal<boolean>(false);
 
   // 7. Modal de Confirmación: Marcar como Atendido (reemplaza confirm() nativo)
+  // --- Llamado con consultorio ---------------------------------------------
+  private readonly consultorioApi = inject(ConsultorioApiService);
+  protected readonly isCallModalOpen = signal<boolean>(false);
+  protected readonly turnToCall = signal<Turn | null>(null);
+  protected readonly callRooms = signal<Consultorio[]>([]);
+  protected readonly callRoomId = signal<number | null>(null);
+  protected readonly callSubmitting = signal<boolean>(false);
+
   protected readonly isMarkTreatedModalOpen = signal<boolean>(false);
   protected readonly turnToMarkTreated = signal<Turn | null>(null);
   protected readonly markingTreated = signal<boolean>(false);
@@ -268,7 +295,7 @@ export class TurnListComponent implements OnInit, OnDestroy {
     if (preset === 'tomorrow') {
       d.setDate(d.getDate() + 1);
     }
-    const isoDate = d.toISOString().split('T')[0];
+    const isoDate = localIsoDate(d);
     this.onDateChange(isoDate);
   }
 
@@ -344,13 +371,60 @@ export class TurnListComponent implements OnInit, OnDestroy {
     return turn.status === 'TURN_WAITNG';
   }
 
-  markTurnInTreatment(turn: Turn): void {
-    this.turnApi.markAsInTreatment(turn.id).subscribe({
+  /**
+   * Opens the call dialog instead of firing straight away.
+   *
+   * The room is prefilled from the shift an admin configured, so the common
+   * case is one click. The operator only intervenes on the days a doctor is
+   * sitting somewhere else — which is exactly why an empty required field
+   * here would be wrong: rushed, forty times a day, it would get skipped or
+   * mis-picked, and the patient walks to the wrong door.
+   */
+  protected openCallModal(turn: Turn): void {
+    this.turnToCall.set(turn);
+    this.callRoomId.set(null);
+    this.callRooms.set([]);
+    this.isCallModalOpen.set(true);
+
+    const est = this.selectedEstablishment();
+    if (!est) {
+      return;
+    }
+
+    this.consultorioApi.getByEstablishment(est.id).subscribe({
+      // Only ACTIVE rooms: a deactivated one is still referenced by past
+      // turns and must keep resolving, but nobody should be sent there now.
+      next: (rooms) => this.callRooms.set(rooms.filter((r) => r.active)),
+      error: () => this.callRooms.set([]),
+    });
+  }
+
+  protected closeCallModal(): void {
+    this.isCallModalOpen.set(false);
+    this.turnToCall.set(null);
+    this.callRooms.set([]);
+    this.callRoomId.set(null);
+  }
+
+  protected confirmCall(): void {
+    const turn = this.turnToCall();
+    if (!turn) {
+      return;
+    }
+    this.callSubmitting.set(true);
+    this.markTurnInTreatment(turn, this.callRoomId());
+  }
+
+  markTurnInTreatment(turn: Turn, consultorioId: number | null = null): void {
+    this.turnApi.markAsInTreatment(turn.id, consultorioId).subscribe({
       next: () => {
+        this.callSubmitting.set(false);
+        this.closeCallModal();
         this.showFeedback('success', `El turno #${turn.order} inició su atención (En Atención).`);
         this.loadTurnsForService(this.turnsData()?.number ?? 0);
       },
       error: (err) => {
+        this.callSubmitting.set(false);
         const msg = err?.error?.error || err?.error?.message || 'Error al iniciar la atención del turno.';
         this.showFeedback('error', msg);
       }

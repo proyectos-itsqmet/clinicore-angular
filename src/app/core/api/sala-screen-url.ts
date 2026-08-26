@@ -8,13 +8,13 @@ import { InjectionToken } from '@angular/core';
  * so a base URL is enough. This one is per-sede, and the mock cannot be: there
  * is a single `jsons/sala/pantalla.json`, not one file per sede.
  *
- * Putting the whole URL shape behind the token means the sede id is plumbed
- * through FOR REAL today — the route param reaches this function — while the
- * mock is free to ignore it. When the backend exists, this factory becomes
+ * WIRED 2026-08-25. Esta factory devolvia un unico archivo estatico e IGNORABA
+ * el sedeId por completo, por eso cada /sala/<lo-que-sea> pintaba exactamente
+ * el mismo payload quemado.
  *
- *   factory: () => (sedeId: string) => `/api/sala/${encodeURIComponent(sedeId)}/pantalla`
- *
- * and NOTHING else in the app changes. No consumer, no component, no test.
+ * El backend acepta el id numerico O el nombre de la sede, asi que /sala/matriz
+ * sigue andando como URL que alguien escribe una sola vez en el navegador de un
+ * televisor y no vuelve a tocar.
  *
  * Same generated-copy caveat as the landing mocks applies: `public/mock/sala`
  * is a COPY of `jsons/sala`, refreshed only by the npm pre-hooks (`prestart`,
@@ -24,5 +24,6 @@ import { InjectionToken } from '@angular/core';
  */
 export const SALA_SCREEN_URL = new InjectionToken<(sedeId: string) => string>('SALA_SCREEN_URL', {
   providedIn: 'root',
-  factory: () => () => '/mock/sala/pantalla.json',
+  factory: () => (sedeId: string) =>
+    `http://localhost:8080/api/sala/${encodeURIComponent(sedeId)}/pantalla`,
 });

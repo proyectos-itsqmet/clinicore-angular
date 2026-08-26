@@ -19,6 +19,7 @@ export * from './coverage.model';
 // (`GET /api/sala/{sedeId}/pantalla`), otra superficie y otro endpoint.
 export * from './waiting-room.model';
 export * from './page.model';
+export * from './consultorio.model';
 export * from './establishment.model';
 export * from './operator.model';
 export * from './doctor.model';
