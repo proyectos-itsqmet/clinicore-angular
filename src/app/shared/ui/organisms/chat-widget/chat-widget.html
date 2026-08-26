@@ -1,0 +1,109 @@
+<!-- Panel de conversación. Se monta solo cuando está abierto: cerrado, este
+     componente es únicamente un botón, y no vale la pena tener el árbol del
+     panel en el DOM de la landing. -->
+@if (open()) {
+  <div
+    role="dialog"
+    aria-label="Asistente de atención al cliente"
+    class="fixed bottom-20 right-4 z-50 flex h-[28rem] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl sm:bottom-24 sm:right-6"
+  >
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between gap-2 border-b border-line bg-field px-4 py-3">
+      <div>
+        <p class="font-display text-sm font-extrabold text-ink">Asistente</p>
+        <p class="text-[10px] text-ink-3">Información sobre médicos, turnos y sedes</p>
+      </div>
+      <button
+        type="button"
+        (click)="toggle()"
+        aria-label="Cerrar el asistente"
+        class="rounded-pill p-1.5 text-ink-3 transition-colors hover:bg-surface hover:text-ink"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mensajes. aria-live para que un lector de pantalla anuncie la respuesta
+         cuando llega, sin que el visitante tenga que ir a buscarla. -->
+    <div #scrollArea class="flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
+      @for (message of messages(); track $index) {
+        @if (message.from === 'bot') {
+          <div class="max-w-[85%] whitespace-pre-line rounded-2xl rounded-bl-sm bg-field px-3 py-2 text-xs leading-relaxed text-ink">
+            {{ message.text }}
+          </div>
+        } @else {
+          <div class="ml-auto max-w-[85%] whitespace-pre-line rounded-2xl rounded-br-sm bg-blue px-3 py-2 text-xs leading-relaxed text-surface">
+            {{ message.text }}
+          </div>
+        }
+      }
+
+      @if (sending()) {
+        <div class="flex max-w-[85%] items-center gap-2 rounded-2xl rounded-bl-sm bg-field px-3 py-2.5">
+          <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:0ms]"></span>
+          <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:150ms]"></span>
+          <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:300ms]"></span>
+        </div>
+      }
+    </div>
+
+    <!-- Entrada -->
+    <form (ngSubmit)="send()" class="border-t border-line bg-field px-3 py-3">
+      <div class="flex items-end gap-2">
+        <label class="sr-only" for="chat-input">Escriba su consulta</label>
+        <input
+          id="chat-input"
+          name="mensaje"
+          type="text"
+          autocomplete="off"
+          [maxlength]="maxLength"
+          [disabled]="sending()"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+          placeholder="¿Qué doctores tienen?"
+          class="min-w-0 flex-1 rounded-pill border border-line bg-surface px-3.5 py-2 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none disabled:opacity-60"
+        />
+        <button
+          type="submit"
+          [disabled]="sending() || !draft().trim()"
+          aria-label="Enviar consulta"
+          class="flex-none rounded-pill bg-blue p-2 text-surface shadow-cta transition-all hover:bg-blue-bright disabled:opacity-40"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2.5 8h11M9 3.5L13.5 8L9 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+      <p class="mt-2 px-1 text-[10px] leading-snug text-ink-3">
+        Para agendar o consultar un turno suyo, ingrese a su cuenta.
+      </p>
+    </form>
+  </div>
+}
+
+<!-- Botón flotante -->
+<button
+  type="button"
+  (click)="toggle()"
+  [attr.aria-expanded]="open()"
+  [attr.aria-label]="open() ? 'Cerrar el asistente' : 'Abrir el asistente de atención al cliente'"
+  class="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-blue text-surface shadow-cta transition-all hover:bg-blue-bright hover:scale-105 sm:bottom-6 sm:right-6"
+>
+  @if (open()) {
+    <svg class="h-5 w-5" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg>
+  } @else {
+    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M17 9.5c0 3.31-3.13 6-7 6-.83 0-1.63-.12-2.36-.35L4 16.5l1.1-2.6C3.8 12.75 3 11.2 3 9.5c0-3.31 3.13-6 7-6s7 2.69 7 6z"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  }
+</button>
