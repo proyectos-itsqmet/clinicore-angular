@@ -6,12 +6,15 @@ import type { Page, Patient } from '../models';
 @Injectable({ providedIn: 'root' })
 export class PatientApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/patients';
+  private readonly API_URL = '/api/patients';
 
-  getAll(name?: string, ci?: string, page: number = 0, size: number = 10): Observable<Page<Patient>> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+  getAll(
+    name?: string,
+    ci?: string,
+    page: number = 0,
+    size: number = 10,
+  ): Observable<Page<Patient>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
 
     if (name && name.trim()) {
       params = params.set('name', name.trim());
@@ -22,6 +25,10 @@ export class PatientApiService {
     }
 
     return this.http.get<Page<Patient>>(this.API_URL, { params, withCredentials: true });
+  }
+
+  getMyInfo(): Observable<Patient> {
+    return this.http.get<Patient>(`${this.API_URL}/me`, { withCredentials: true });
   }
 
   getById(id: string): Observable<Patient> {

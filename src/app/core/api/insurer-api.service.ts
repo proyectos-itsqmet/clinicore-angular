@@ -7,7 +7,7 @@ import type { Insurer, InsurerCreate, Page } from '../models';
 @Injectable({ providedIn: 'root' })
 export class InsurerApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/insurers';
+  private readonly API_URL = '/api/insurers';
 
   getAll(page: number = 0, size: number = 10, name?: string): Observable<Page<Insurer>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());

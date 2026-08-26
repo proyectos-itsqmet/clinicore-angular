@@ -12,7 +12,7 @@ import type { Payment, PaymentCreate } from '../models';
 @Injectable({ providedIn: 'root' })
 export class PaymentApiService {
   private readonly http = inject(HttpClient);
-  private readonly INVOICES_URL = 'http://localhost:8080/api/invoices';
+  private readonly INVOICES_URL = '/api/invoices';
 
   /**
    * `POST /api/invoices/{invoiceId}/payments`. Overpayment (`amount >

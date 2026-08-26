@@ -7,9 +7,9 @@ import type { Encounter, Page, Patient, Prescription } from '../../../core/model
 import { RecetaListComponent } from './receta-list.component';
 
 const PATIENT_ID = 'patient-uuid-1';
-const PATIENTS_URL = 'http://localhost:8080/api/patients';
-const PRESCRIPTIONS_URL = `http://localhost:8080/api/patients/${PATIENT_ID}/prescriptions`;
-const ENCOUNTERS_URL = `http://localhost:8080/api/patients/${PATIENT_ID}/encounters`;
+const PATIENTS_URL = '/api/patients';
+const PRESCRIPTIONS_URL = `/api/patients/${PATIENT_ID}/prescriptions`;
+const ENCOUNTERS_URL = `/api/patients/${PATIENT_ID}/encounters`;
 
 function patient(overrides: Partial<Patient> = {}): Patient {
   return { uuid: PATIENT_ID, email: 'ana@test.com', firstName: 'Ana', lastName: 'Lopez', ci: '0102030405', ...overrides };
@@ -183,7 +183,7 @@ describe('RecetaListComponent', () => {
 
     (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit', { cancelable: true }));
 
-    const req = httpMock.expectOne('http://localhost:8080/api/prescriptions');
+    const req = httpMock.expectOne('/api/prescriptions');
     expect(req.request.body.encounterId).toBe(1);
     expect(req.request.body.items).toEqual([
       { medication: 'Ibuprofeno', dosage: '400mg', frequency: 'Cada 8 horas', duration: '5 días', instructions: '' },

@@ -5,8 +5,8 @@ import { TestBed } from '@angular/core/testing';
 import type { AccountingSummary, ClaimsSummary } from '../../../core/models';
 import { ContabilidadComponent } from './contabilidad.component';
 
-const SUMMARY_URL = 'http://localhost:8080/api/accounting/summary';
-const CLAIMS_SUMMARY_URL = 'http://localhost:8080/api/accounting/claims-summary';
+const SUMMARY_URL = '/api/accounting/summary';
+const CLAIMS_SUMMARY_URL = '/api/accounting/claims-summary';
 
 function summary(overrides: Partial<AccountingSummary> = {}): AccountingSummary {
   return {

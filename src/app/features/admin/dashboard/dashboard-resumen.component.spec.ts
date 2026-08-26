@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { MetricsSummary } from '../../../core/models';
 import { DashboardResumenComponent } from './dashboard-resumen.component';
 
-const SUMMARY_URL = 'http://localhost:8080/api/metrics/summary';
+const SUMMARY_URL = '/api/metrics/summary';
 
 function summary(overrides: Partial<MetricsSummary> = {}): MetricsSummary {
   return {

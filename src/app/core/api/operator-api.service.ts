@@ -6,7 +6,7 @@ import type { Page, Operator, OperatorCreate } from '../models';
 @Injectable({ providedIn: 'root' })
 export class OperatorApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/operators';
+  private readonly API_URL = '/api/operators';
 
   getAll(page: number = 0, size: number = 10): Observable<Page<Operator>> {
     const params = new HttpParams()

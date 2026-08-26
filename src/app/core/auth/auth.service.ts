@@ -48,7 +48,7 @@ export interface PatientRegistrationRequest {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly BASE_AUTH_URL = 'http://localhost:8080/auth';
+  private readonly BASE_AUTH_URL = '/auth';
 
   readonly currentUser = signal<LoginResponse | null>(null);
 

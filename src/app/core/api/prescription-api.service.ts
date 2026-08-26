@@ -11,7 +11,7 @@ import type { Page, Prescription, PrescriptionCreate } from '../models';
 @Injectable({ providedIn: 'root' })
 export class PrescriptionApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = '/api';
 
   /** "pacientes/recetas": `GET /api/patients/{patientId}/prescriptions`. */
   getHistoryForPatient(patientId: string, page: number = 0, size: number = 10): Observable<Page<Prescription>> {

@@ -6,8 +6,8 @@ import { provideRouter } from '@angular/router';
 import type { Invoice, Page, Patient } from '../../../core/models';
 import { FacturacionListComponent } from './facturacion-list.component';
 
-const INVOICES_URL = 'http://localhost:8080/api/invoices';
-const PATIENTS_URL = 'http://localhost:8080/api/patients';
+const INVOICES_URL = '/api/invoices';
+const PATIENTS_URL = '/api/patients';
 
 function patient(overrides: Partial<Patient> = {}): Patient {
   return { uuid: 'patient-1', email: 'p@x.com', firstName: 'Juan', lastName: 'Perez', ci: '0102030405', ...overrides };

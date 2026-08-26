@@ -5,10 +5,10 @@ import { TestBed } from '@angular/core/testing';
 import type { AdminDoctor, Establishment, Page, ScheduleDTO, ScheduleTemplate, Servicio } from '../../../core/models';
 import { ScheduleTemplateListComponent } from './schedule-template-list.component';
 
-const ESTABLISHMENTS_URL = 'http://localhost:8080/api/stablishments';
-const DOCTORS_URL = 'http://localhost:8080/api/doctors';
-const TEMPLATES_URL = 'http://localhost:8080/api/schedule-templates';
-const SCHEDULES_URL = 'http://localhost:8080/api/schedules';
+const ESTABLISHMENTS_URL = '/api/stablishments';
+const DOCTORS_URL = '/api/doctors';
+const TEMPLATES_URL = '/api/schedule-templates';
+const SCHEDULES_URL = '/api/schedules';
 
 function establishment(id: number, overrides: Partial<Establishment> = {}): Establishment {
   return { id, name: `Sede ${id}`, address: 'Av. Siempre Viva', ...overrides };

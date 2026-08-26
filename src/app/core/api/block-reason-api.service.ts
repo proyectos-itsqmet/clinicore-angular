@@ -6,7 +6,7 @@ import type { BlockReason, BlockReasonCreate, Page } from '../models';
 @Injectable({ providedIn: 'root' })
 export class BlockReasonApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/block-reasons';
+  private readonly API_URL = '/api/block-reasons';
 
   getAll(page: number = 0, size: number = 10, description?: string): Observable<Page<BlockReason>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());

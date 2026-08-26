@@ -7,7 +7,7 @@ import type { Page, Servicio } from '../../../core/models';
 import { PreciosCitasListComponent } from './precios-citas-list.component';
 
 /** Same endpoint `administracion/especialidades` already reads — no new API. */
-const API_URL = 'http://localhost:8080/api/services';
+const API_URL = '/api/services';
 
 function servicio(id: number, price: number, discount = 0): Servicio {
   return { id, name: `Consulta ${id}`, price, discount };

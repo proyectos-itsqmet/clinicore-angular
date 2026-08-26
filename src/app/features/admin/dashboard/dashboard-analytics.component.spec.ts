@@ -5,9 +5,9 @@ import { TestBed } from '@angular/core/testing';
 import type { Establishment, Page, Servicio, TurnsSeries } from '../../../core/models';
 import { DashboardAnalyticsComponent } from './dashboard-analytics.component';
 
-const TURNS_SERIES_URL = 'http://localhost:8080/api/metrics/turns';
-const ESTABLISHMENTS_URL = 'http://localhost:8080/api/stablishments';
-const SERVICES_URL = 'http://localhost:8080/api/services';
+const TURNS_SERIES_URL = '/api/metrics/turns';
+const ESTABLISHMENTS_URL = '/api/stablishments';
+const SERVICES_URL = '/api/services';
 
 function establishment(id: number): Establishment {
   return { id, name: `Sede ${id}`, address: `Dirección ${id}` };

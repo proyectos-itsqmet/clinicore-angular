@@ -7,7 +7,7 @@ import type { AdminDoctor } from '../../../core/models';
 import { DoctorDetailComponent } from './doctor-detail.component';
 
 const DOCTOR_ID = 'doctor-uuid-1';
-const DOCTOR_URL = `http://localhost:8080/api/doctors/${DOCTOR_ID}`;
+const DOCTOR_URL = `/api/doctors/${DOCTOR_ID}`;
 
 function doctor(): AdminDoctor {
   return {

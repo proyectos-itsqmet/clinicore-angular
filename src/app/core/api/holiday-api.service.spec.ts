@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { Holiday, Page } from '../models';
 import { HolidayApiService } from './holiday-api.service';
 
-const API_URL = 'http://localhost:8080/api/holidays';
+const API_URL = '/api/holidays';
 
 function holiday(id: number, overrides: Partial<Holiday> = {}): Holiday {
   return {

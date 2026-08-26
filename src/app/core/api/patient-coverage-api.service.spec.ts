@@ -6,8 +6,8 @@ import type { CoveragePlan, PatientCoverage } from '../models';
 import { PatientCoverageApiService } from './patient-coverage-api.service';
 
 const PATIENT_ID = 'patient-uuid-1';
-const PATIENTS_URL = `http://localhost:8080/api/patients/${PATIENT_ID}/coverages`;
-const API_URL = 'http://localhost:8080/api/patient-coverages';
+const PATIENTS_URL = `/api/patients/${PATIENT_ID}/coverages`;
+const API_URL = '/api/patient-coverages';
 
 function plan(): CoveragePlan {
   return { id: 1, insurer: { id: 1, name: 'IESS', type: 'INSURER_PUBLIC' }, name: 'Plan Base', coveragePercentage: 80 };

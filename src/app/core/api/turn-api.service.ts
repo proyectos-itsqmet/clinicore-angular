@@ -6,9 +6,12 @@ import type { Page, Turn, TurnFilterParams, TurnStatus } from '../models';
 @Injectable({ providedIn: 'root' })
 export class TurnApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/turns';
+  private readonly API_URL = '/api/turns';
 
-  getTurnsByPatient(patientId: string, filterParams: TurnFilterParams = {}): Observable<Page<Turn>> {
+  getTurnsByPatient(
+    patientId: string,
+    filterParams: TurnFilterParams = {},
+  ): Observable<Page<Turn>> {
     let params = new HttpParams()
       .set('page', (filterParams.page ?? 0).toString())
       .set('size', (filterParams.size ?? 10).toString());
@@ -31,7 +34,7 @@ export class TurnApiService {
 
     return this.http.get<Page<Turn>>(`${this.API_URL}/patient/${patientId}`, {
       params,
-      withCredentials: true
+      withCredentials: true,
     });
   }
 
@@ -58,20 +61,22 @@ export class TurnApiService {
 
     return this.http.get<Page<Turn>>(`${this.API_URL}/me`, {
       params,
-      withCredentials: true
+      withCredentials: true,
     });
   }
 
-  getAll(filterParams: {
-    stablishmentId?: number;
-    doctorId?: string;
-    serviceId?: number;
-    date?: string;
-    status?: TurnStatus | string;
-    page?: number;
-    size?: number;
-    sort?: string;
-  } = {}): Observable<Page<Turn>> {
+  getAll(
+    filterParams: {
+      stablishmentId?: number;
+      doctorId?: string;
+      serviceId?: number;
+      date?: string;
+      status?: TurnStatus | string;
+      page?: number;
+      size?: number;
+      sort?: string;
+    } = {},
+  ): Observable<Page<Turn>> {
     let params = new HttpParams()
       .set('page', (filterParams.page ?? 0).toString())
       .set('size', (filterParams.size ?? 10).toString());
@@ -97,7 +102,7 @@ export class TurnApiService {
 
     return this.http.get<Page<Turn>>(this.API_URL, {
       params,
-      withCredentials: true
+      withCredentials: true,
     });
   }
 
@@ -105,12 +110,17 @@ export class TurnApiService {
     return this.http.post<Turn>(this.API_URL, payload, { withCredentials: true });
   }
 
-  createByStaff(payload: { schedule: { id: number }; patient: { uuid: string } }): Observable<Turn> {
+  createByStaff(payload: {
+    schedule: { id: number };
+    patient: { uuid: string };
+  }): Observable<Turn> {
     return this.http.post<Turn>(`${this.API_URL}/staff`, payload, { withCredentials: true });
   }
 
   cancelByStaff(id: number, reason?: string): Observable<Turn> {
-    return this.http.put<Turn>(`${this.API_URL}/${id}/staff-cancel`, reason ? { reason } : {}, { withCredentials: true });
+    return this.http.put<Turn>(`${this.API_URL}/${id}/staff-cancel`, reason ? { reason } : {}, {
+      withCredentials: true,
+    });
   }
 
   cancelMyTurn(id: number): Observable<Turn> {
@@ -118,7 +128,11 @@ export class TurnApiService {
   }
 
   reassign(id: number, scheduleId: number): Observable<Turn> {
-    return this.http.put<Turn>(`${this.API_URL}/${id}/reassign`, { scheduleId }, { withCredentials: true });
+    return this.http.put<Turn>(
+      `${this.API_URL}/${id}/reassign`,
+      { scheduleId },
+      { withCredentials: true },
+    );
   }
 
   markAsWaiting(id: number): Observable<Turn> {
@@ -135,10 +149,16 @@ export class TurnApiService {
    */
   markAsInTreatment(id: number, consultorioId?: number | null): Observable<Turn> {
     const body = consultorioId == null ? {} : { consultorioId };
-    return this.http.put<Turn>(`${this.API_URL}/${id}/in-treatment`, body, { withCredentials: true });
+    return this.http.put<Turn>(`${this.API_URL}/${id}/in-treatment`, body, {
+      withCredentials: true,
+    });
   }
 
   markAsTreated(id: number): Observable<Turn> {
     return this.http.put<Turn>(`${this.API_URL}/${id}/treated`, {}, { withCredentials: true });
+  }
+
+  markAsTreatedAdmin(id: number): Observable<Turn> {
+    return this.http.put<Turn>(`${this.API_URL}/${id}/treated/admin`, {}, { withCredentials: true });
   }
 }

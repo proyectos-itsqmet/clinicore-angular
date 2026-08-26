@@ -4,6 +4,7 @@ import { Client, ReconnectionTimeMode } from '@stomp/stompjs';
 import type { IMessage, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { NEVER, Observable, Subject } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 /**
  * Coarse connection state for the small "live vs. stale" indicator.
@@ -29,8 +30,7 @@ export type RealtimeConnectionStatus = 'connecting' | 'open' | 'closed';
 export class RealtimeService {
   private readonly platformId = inject(PLATFORM_ID);
 
-  /** Matches the `.addEndpoint("/ws-turns").withSockJS()` registration in `WebSocketConfig`. */
-  private readonly BROKER_URL = 'http://localhost:8080/ws-turns';
+  private readonly BROKER_URL = `${environment.apiUrl}/ws-turns`;
 
   /** First retry waits 1s; each subsequent retry doubles, capped at 30s. */
   private readonly INITIAL_RECONNECT_DELAY_MS = 1000;

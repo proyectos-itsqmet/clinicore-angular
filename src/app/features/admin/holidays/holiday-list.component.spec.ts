@@ -6,9 +6,9 @@ import { provideRouter } from '@angular/router';
 import type { BlockReason, Establishment, Holiday, Page } from '../../../core/models';
 import { HolidayListComponent } from './holiday-list.component';
 
-const HOLIDAYS_URL = 'http://localhost:8080/api/holidays';
-const ESTABLISHMENTS_URL = 'http://localhost:8080/api/stablishments';
-const BLOCK_REASONS_URL = 'http://localhost:8080/api/block-reasons';
+const HOLIDAYS_URL = '/api/holidays';
+const ESTABLISHMENTS_URL = '/api/stablishments';
+const BLOCK_REASONS_URL = '/api/block-reasons';
 
 function establishment(id: number, name = `Sede ${id}`): Establishment {
   return { id, name, address: `Dirección ${id}` };

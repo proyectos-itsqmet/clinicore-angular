@@ -13,6 +13,7 @@ import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { extractApiErrorMessage, formatIsoDateEs, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
 import { coveragePlanPricingSummary } from '../coverage/coverage-plan-pricing.util';
 import type { CoveragePlan, Page, Patient, PatientCoverage, Turn, TurnFilterParams, TurnStatus, ScheduleDTO, Establishment, Servicio } from '../../../core/models';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-patient-detail',
@@ -30,6 +31,7 @@ export class PatientDetailComponent implements OnInit {
   private readonly coveragePlanApi = inject(CoveragePlanApiService);
   private readonly patientCoverageApi = inject(PatientCoverageApiService);
   private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
 
   protected patientId = '';
   protected readonly patient = signal<Patient | null>(null);
@@ -505,7 +507,13 @@ export class PatientDetailComponent implements OnInit {
     }
 
     this.markingTreatedId.set(turn.id);
-    this.turnApi.markAsTreated(turn.id).subscribe({
+    
+    const userRole = this.authService.currentUser()?.role;
+    const request = userRole === 'ROLE_ADMIN' 
+      ? this.turnApi.markAsTreatedAdmin(turn.id)
+      : this.turnApi.markAsTreated(turn.id);
+
+    request.subscribe({
       next: () => {
         this.markingTreatedId.set(null);
         this.actionMessage.set({

@@ -12,7 +12,7 @@ import type {
 @Injectable({ providedIn: 'root' })
 export class ScheduleApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/schedules';
+  private readonly API_URL = '/api/schedules';
 
   create(payload: CreateSchedulePayload): Observable<ScheduleDTO> {
     return this.http.post<ScheduleDTO>(`${this.API_URL}/create`, payload, { withCredentials: true });

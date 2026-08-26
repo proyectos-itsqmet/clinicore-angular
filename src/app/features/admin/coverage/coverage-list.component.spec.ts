@@ -5,8 +5,8 @@ import { TestBed } from '@angular/core/testing';
 import type { CoveragePlan, Insurer, Page } from '../../../core/models';
 import { CoverageListComponent } from './coverage-list.component';
 
-const INSURERS_URL = 'http://localhost:8080/api/insurers';
-const PLANS_URL = 'http://localhost:8080/api/coverage-plans';
+const INSURERS_URL = '/api/insurers';
+const PLANS_URL = '/api/coverage-plans';
 
 function insurer(id: number, overrides: Partial<Insurer> = {}): Insurer {
   return { id, name: `Aseguradora ${id}`, type: 'INSURER_PRIVATE', createdAt: '2026-08-24T10:00:00Z', ...overrides };

@@ -7,11 +7,11 @@ import type { CoveragePlan, Establishment, Page, Patient, PatientCoverage, Servi
 import { PatientDetailComponent } from './patient-detail.component';
 
 const PATIENT_ID = 'patient-uuid-1';
-const PATIENTS_URL = `http://localhost:8080/api/patients/${PATIENT_ID}`;
-const TURNS_URL = `http://localhost:8080/api/turns/patient/${PATIENT_ID}`;
-const ESTABLISHMENTS_URL = 'http://localhost:8080/api/stablishments';
-const SERVICES_URL = 'http://localhost:8080/api/services';
-const SCHEDULES_URL = 'http://localhost:8080/api/schedules';
+const PATIENTS_URL = `/api/patients/${PATIENT_ID}`;
+const TURNS_URL = `/api/turns/patient/${PATIENT_ID}`;
+const ESTABLISHMENTS_URL = '/api/stablishments';
+const SERVICES_URL = '/api/services';
+const SCHEDULES_URL = '/api/schedules';
 
 function patient(): Patient {
   return { uuid: PATIENT_ID, email: 'ana@test.com', firstName: 'Ana', lastName: 'Lopez', ci: '0102030405' };
@@ -307,9 +307,9 @@ describe('PatientDetailComponent', () => {
   });
 
   describe('Coberturas de Seguro tab (lazy: no request until opened)', () => {
-    const COVERAGES_URL = `http://localhost:8080/api/patients/${PATIENT_ID}/coverages`;
-    const COVERAGE_PLANS_URL = 'http://localhost:8080/api/coverage-plans';
-    const PATIENT_COVERAGES_URL = 'http://localhost:8080/api/patient-coverages';
+    const COVERAGES_URL = `/api/patients/${PATIENT_ID}/coverages`;
+    const COVERAGE_PLANS_URL = '/api/coverage-plans';
+    const PATIENT_COVERAGES_URL = '/api/patient-coverages';
 
     function openCoberturasTab(fixture: Fixture): void {
       const tabButton = Array.from(fixture.nativeElement.querySelectorAll('button')).find(

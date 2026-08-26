@@ -6,7 +6,7 @@ import type { Page, Servicio, ServicioCreate, AdminDoctor, ScheduleDTO, Schedule
 @Injectable({ providedIn: 'root' })
 export class ServicioApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/services';
+  private readonly API_URL = '/api/services';
 
   getAll(page: number = 0, size: number = 10, name?: string): Observable<Page<Servicio>> {
     let params = new HttpParams()
@@ -57,15 +57,15 @@ export class ServicioApiService {
   }
 
   assignStablishment(serviceId: number, stablishmentId: number): Observable<any> {
-    return this.http.post(`http://localhost:8080/api/stablishments/${stablishmentId}/services/${serviceId}`, {}, { withCredentials: true });
+    return this.http.post(`/api/stablishments/${stablishmentId}/services/${serviceId}`, {}, { withCredentials: true });
   }
 
   revokeStablishment(serviceId: number, stablishmentId: number): Observable<void> {
-    return this.http.delete<void>(`http://localhost:8080/api/stablishments/${stablishmentId}/services/${serviceId}`, { withCredentials: true });
+    return this.http.delete<void>(`/api/stablishments/${stablishmentId}/services/${serviceId}`, { withCredentials: true });
   }
 
   revokeDoctor(serviceId: number, doctorId: string): Observable<void> {
-    return this.http.delete<void>(`http://localhost:8080/api/doctors/${doctorId}/services/${serviceId}`, { withCredentials: true });
+    return this.http.delete<void>(`/api/doctors/${doctorId}/services/${serviceId}`, { withCredentials: true });
   }
 
   getSchedules(

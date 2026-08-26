@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { Branding, BrandingUpdate } from '../models';
 import { BrandingApiService } from './branding-api.service';
 
-const API_URL = 'http://localhost:8080/api/branding';
+const API_URL = '/api/branding';
 
 describe('BrandingApiService', () => {
   let service: BrandingApiService;

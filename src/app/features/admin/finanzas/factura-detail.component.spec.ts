@@ -7,8 +7,8 @@ import type { Invoice } from '../../../core/models';
 import { FacturaDetailComponent } from './factura-detail.component';
 
 const INVOICE_ID = 5;
-const INVOICE_URL = `http://localhost:8080/api/invoices/${INVOICE_ID}`;
-const CLAIMS_URL = 'http://localhost:8080/api/claims';
+const INVOICE_URL = `/api/invoices/${INVOICE_ID}`;
+const CLAIMS_URL = '/api/claims';
 
 function baseInvoice(overrides: Partial<Invoice> = {}): Invoice {
   return {

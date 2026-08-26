@@ -6,7 +6,7 @@ import { provideRouter } from '@angular/router';
 import type { Page, Servicio } from '../../../core/models';
 import { PreciosDescuentosListComponent } from './precios-descuentos-list.component';
 
-const API_URL = 'http://localhost:8080/api/services';
+const API_URL = '/api/services';
 
 function servicio(id: number, price: number, discount = 0): Servicio {
   return { id, name: `Consulta ${id}`, price, discount, netPrice: price - discount };

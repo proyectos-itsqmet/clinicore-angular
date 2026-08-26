@@ -7,7 +7,7 @@ import type { Page, SessionPlan, SessionPlanCreate } from '../models';
 @Injectable({ providedIn: 'root' })
 export class SessionPlanApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/session-plans';
+  private readonly API_URL = '/api/session-plans';
 
   getAll(page: number = 0, size: number = 10, servicioId?: number): Observable<Page<SessionPlan>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());

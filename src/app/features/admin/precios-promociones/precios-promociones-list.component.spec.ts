@@ -5,8 +5,8 @@ import { TestBed } from '@angular/core/testing';
 import type { Page, Promotion, Servicio } from '../../../core/models';
 import { PreciosPromocionesListComponent } from './precios-promociones-list.component';
 
-const SERVICIOS_URL = 'http://localhost:8080/api/services';
-const PROMOTIONS_URL = 'http://localhost:8080/api/promotions';
+const SERVICIOS_URL = '/api/services';
+const PROMOTIONS_URL = '/api/promotions';
 
 const OVERLAP_MESSAGE =
   'Ya existe una promoción vigente para este servicio en ese rango de fechas. Ajuste las fechas o finalice la promoción existente antes de crear esta.';

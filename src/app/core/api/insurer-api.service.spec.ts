@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { Insurer, Page } from '../models';
 import { InsurerApiService } from './insurer-api.service';
 
-const API_URL = 'http://localhost:8080/api/insurers';
+const API_URL = '/api/insurers';
 
 function insurer(id: number, overrides: Partial<Insurer> = {}): Insurer {
   return { id, name: `Aseguradora ${id}`, type: 'INSURER_PRIVATE', createdAt: '2026-08-24T10:00:00Z', ...overrides };

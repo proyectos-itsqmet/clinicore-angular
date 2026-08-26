@@ -6,7 +6,7 @@ import type { Page, AdminDoctor, DoctorCreate } from '../models';
 @Injectable({ providedIn: 'root' })
 export class DoctorApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/doctors';
+  private readonly API_URL = '/api/doctors';
 
   getAll(page: number = 0, size: number = 10, name?: string, ci?: string): Observable<Page<AdminDoctor>> {
     let params = new HttpParams()

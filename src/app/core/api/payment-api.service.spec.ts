@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { Payment } from '../models';
 import { PaymentApiService } from './payment-api.service';
 
-const INVOICES_URL = 'http://localhost:8080/api/invoices';
+const INVOICES_URL = '/api/invoices';
 
 function payment(id: number, overrides: Partial<Payment> = {}): Payment {
   return { id, amount: 20, method: 'CASH', paidAt: '2026-08-24T10:00:00-05:00', ...overrides };

@@ -27,5 +27,5 @@ import { InjectionToken } from '@angular/core';
  */
 export const LANDING_DATA_BASE_URL = new InjectionToken<string>('LANDING_DATA_BASE_URL', {
   providedIn: 'root',
-  factory: () => 'http://localhost:8080/api/landing',
+  factory: () => '/api/landing',
 });

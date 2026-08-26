@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { Page, ScheduleTemplate, ScheduleTemplateWrite } from '../models';
 import { ScheduleTemplateApiService } from './schedule-template-api.service';
 
-const API_URL = 'http://localhost:8080/api/schedule-templates';
+const API_URL = '/api/schedule-templates';
 
 function template(overrides: Partial<ScheduleTemplate> = {}): ScheduleTemplate {
   return {

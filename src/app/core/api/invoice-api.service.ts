@@ -15,8 +15,8 @@ import type { Invoice, InvoiceCreate, InvoiceStatus, Page } from '../models';
 @Injectable({ providedIn: 'root' })
 export class InvoiceApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/invoices';
-  private readonly PATIENTS_URL = 'http://localhost:8080/api/patients';
+  private readonly API_URL = '/api/invoices';
+  private readonly PATIENTS_URL = '/api/patients';
 
   /** `POST /api/invoices` (ROLE_EMPLOYEE or ROLE_ADMIN). */
   create(payload: InvoiceCreate): Observable<Invoice> {
@@ -45,7 +45,7 @@ export class InvoiceApiService {
   /** `GET /api/doctors/me/invoices` - para que los doctores vean sus facturas emitidas. */
   getMyInvoices(page: number = 0, size: number = 10): Observable<Page<Invoice>> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
-    return this.http.get<Page<Invoice>>('http://localhost:8080/api/doctors/me/invoices', { params, withCredentials: true });
+    return this.http.get<Page<Invoice>>('/api/doctors/me/invoices', { params, withCredentials: true });
   }
 
   /** `GET /api/patients/{patientId}/invoices` — the "ver facturas de este paciente" screen. */

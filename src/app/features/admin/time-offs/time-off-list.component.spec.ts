@@ -6,9 +6,9 @@ import { ActivatedRoute, provideRouter } from '@angular/router';
 import type { AdminDoctor, BlockReason, Page, TimeOff, TimeOffKind } from '../../../core/models';
 import { TimeOffListComponent } from './time-off-list.component';
 
-const TIME_OFFS_URL = 'http://localhost:8080/api/time-offs';
-const DOCTORS_URL = 'http://localhost:8080/api/doctors';
-const BLOCK_REASONS_URL = 'http://localhost:8080/api/block-reasons';
+const TIME_OFFS_URL = '/api/time-offs';
+const DOCTORS_URL = '/api/doctors';
+const BLOCK_REASONS_URL = '/api/block-reasons';
 
 function doctor(uuid: string, firstName = 'Ana', lastName = 'Lopez'): AdminDoctor {
   return { uuid, email: `${uuid}@test.com`, firstName, lastName, speciality: 'Pediatría', gender: 'F', ci: '0102030405' };

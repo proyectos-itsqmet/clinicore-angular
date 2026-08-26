@@ -35,7 +35,7 @@ export interface MetricsTurnsSeriesParams extends MetricsDateRangeParams {
 @Injectable({ providedIn: 'root' })
 export class MetricsApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/metrics';
+  private readonly API_URL = '/api/metrics';
 
   getSummary(): Observable<MetricsSummary> {
     return this.http.get<MetricsSummary>(`${this.API_URL}/summary`, { withCredentials: true });

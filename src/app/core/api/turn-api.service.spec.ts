@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { Turn } from '../models';
 import { TurnApiService } from './turn-api.service';
 
-const API_URL = 'http://localhost:8080/api/turns';
+const API_URL = '/api/turns';
 
 function turn(id: number, overrides: Partial<Turn> = {}): Turn {
   return {

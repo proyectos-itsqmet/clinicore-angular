@@ -6,7 +6,7 @@ import type { Holiday, HolidayCreate, Page } from '../models';
 @Injectable({ providedIn: 'root' })
 export class HolidayApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/holidays';
+  private readonly API_URL = '/api/holidays';
 
   getAll(page: number = 0, size: number = 10, stablishmentId?: number): Observable<Page<Holiday>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());

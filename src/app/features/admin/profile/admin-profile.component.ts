@@ -72,7 +72,7 @@ export class AdminProfileComponent {
       apiCall = this.operatorApi.changeMyPassword({ password, repeatedPassword });
     } else {
       // ROLE_ADMIN
-      apiCall = this.http.put('http://localhost:8080/api/admins/change-password', { password, repeatedPassword }, { withCredentials: true });
+      apiCall = this.http.put('/api/admins/change-password', { password, repeatedPassword }, { withCredentials: true });
     }
 
     apiCall.subscribe({

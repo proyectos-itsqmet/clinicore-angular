@@ -7,7 +7,7 @@ import type { ClinicalAccessLog, Page } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ClinicalAccessLogApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/clinical-access-logs';
+  private readonly API_URL = '/api/clinical-access-logs';
 
   getAll(patientId?: string, page: number = 0, size: number = 10): Observable<Page<ClinicalAccessLog>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());

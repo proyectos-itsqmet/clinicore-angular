@@ -5,10 +5,10 @@ import { TestBed } from '@angular/core/testing';
 import type { AdminDoctor, Establishment, Page, ScheduleDTO, Servicio } from '../../../core/models';
 import { CalendarioListComponent } from './calendario-list.component';
 
-const SCHEDULES_URL = 'http://localhost:8080/api/schedules';
-const ESTABLISHMENTS_URL = 'http://localhost:8080/api/stablishments';
-const SERVICES_URL = 'http://localhost:8080/api/services';
-const DOCTORS_URL = 'http://localhost:8080/api/doctors';
+const SCHEDULES_URL = '/api/schedules';
+const ESTABLISHMENTS_URL = '/api/stablishments';
+const SERVICES_URL = '/api/services';
+const DOCTORS_URL = '/api/doctors';
 
 function establishment(id: number): Establishment {
   return { id, name: `Sede ${id}`, address: `Dirección ${id}` };

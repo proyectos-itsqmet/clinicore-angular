@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { Page, TimeOff } from '../models';
 import { TimeOffApiService } from './time-off-api.service';
 
-const API_URL = 'http://localhost:8080/api/time-offs';
+const API_URL = '/api/time-offs';
 
 function timeOff(id: number, overrides: Partial<TimeOff> = {}): TimeOff {
   return {
