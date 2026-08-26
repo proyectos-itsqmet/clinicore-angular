@@ -15,15 +15,8 @@ export interface SiteNav {
   primary: NavLink[];
 }
 
-export interface SiteMedicalDirector {
-  label: string;
-  name: string;
-  registrationNumber: string;
-}
-
 export interface SiteFooter {
   description: string;
-  medicalDirector: SiteMedicalDirector;
   specialtyLinks: NavLink[];
   patientLinks: NavLink[];
   legalLinks: NavLink[];
