@@ -1,3 +1,4 @@
+import type { ConsultorioRef } from './consultorio.model';
 import type { Establishment } from './establishment.model';
 import type { Servicio } from './servicio.model';
 
@@ -12,13 +13,19 @@ export interface ScheduleTemplateDoctorRef {
 }
 
 /**
- * `administracion/horarios` — a weekly recurring GENERATION PATTERN, never a
- * fact about an already-created `Schedule` row. See `ScheduleTemplate`'s own
- * docblock in Backend_QMS: `ScheduleTemplateService` has no dependency on
- * `ScheduleRepository` at all, by design — editing or deleting a template
- * only changes what a FUTURE `POST /api/schedules/generate-from-template`
- * call produces. An already-generated `Schedule` (free or booked) is never
- * touched, swept, or invalidated by any write on this resource.
+ * `administracion/horarios` — a weekly recurring GENERATION PATTERN.
+ *
+ * CORRECTED 2026-08-25. This block used to state that
+ * `ScheduleTemplateService` had no `ScheduleRepository` dependency "by
+ * design", so an already-generated `Schedule` was never touched by a write
+ * here. That is NO LONGER TRUE: the service now injects `ScheduleRepository`
+ * and `sweepTemplateSchedules` runs `deleteAll` on both update and delete.
+ *
+ * What still holds: only slots with `STATUS_FREE` are swept, so a booked slot
+ * survives. What no longer holds: the guarantee is a runtime filter now, not a
+ * structural impossibility — and the suite that proved it
+ * (`ScheduleTemplateServiceTest`, 454 lines) was deleted in commit 7f69968.
+ * Treat "editing a template deletes future free slots" as real behaviour.
  *
  * `startTime`/`endTime` travel as `"HH:mm:ss"` — Jackson's default
  * `LocalTime` serialization, the same convention `ScheduleDTO.hour` already
@@ -31,6 +38,13 @@ export interface ScheduleTemplate {
   servicio: Pick<Servicio, 'id' | 'name' | 'price'>;
   /** Absent/null = "pool" slot: any doctor assigned to this service at this establishment, not tied to one specific doctor. */
   doctor?: ScheduleTemplateDoctorRef | null;
+  /**
+   * Default consulting room for this shift, set by an administrator. Copied
+   * onto every `Schedule` generated from this template, and inherited by a
+   * turn when the operator calls it. Absent on templates created before rooms
+   * existed — the operator can still pick one at call time.
+   */
+  consultorio?: ConsultorioRef | null;
   dayOfWeek: DayOfWeek;
   startTime: string;
   endTime: string;
@@ -52,6 +66,8 @@ export interface ScheduleTemplateWrite {
   stablishment: { id: number };
   servicio: { id: number };
   doctor?: { uuid: string } | null;
+  /** Must belong to the SAME establishment as the template; the backend rejects a mismatch. */
+  consultorio?: { id: number } | null;
   dayOfWeek: DayOfWeek;
   startTime: string;
   endTime: string;

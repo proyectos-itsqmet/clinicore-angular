@@ -125,8 +125,17 @@ export class TurnApiService {
     return this.http.put<Turn>(`${this.API_URL}/${id}/waiting`, {}, { withCredentials: true });
   }
 
-  markAsInTreatment(id: number): Observable<Turn> {
-    return this.http.put<Turn>(`${this.API_URL}/${id}/in-treatment`, {}, { withCredentials: true });
+  /**
+   * Calls a turn (WAITNG -> IN_TREATMENT).
+   *
+   * `consultorioId` omitted does NOT mean "no room": the backend falls back
+   * to the room the slot already carried, which came from the shift an admin
+   * configured. Passing one overrides it for this call only, for the days a
+   * doctor is sitting somewhere else.
+   */
+  markAsInTreatment(id: number, consultorioId?: number | null): Observable<Turn> {
+    const body = consultorioId == null ? {} : { consultorioId };
+    return this.http.put<Turn>(`${this.API_URL}/${id}/in-treatment`, body, { withCredentials: true });
   }
 
   markAsTreated(id: number): Observable<Turn> {

@@ -38,18 +38,6 @@
     }
   </div>
 
-  <div id="agenda">
-    @if (bookingError()) {
-      <app-error-state message="No pudimos cargar la agenda." (retry)="reloadBooking()" />
-    } @else {
-      <app-booking-section
-        [availability]="bookingAvailability()"
-        [loading]="bookingLoading()"
-        (booked)="onBooked($event)"
-      />
-    }
-  </div>
-
   @if (howItWorksError()) {
     <app-error-state message="No pudimos cargar el paso a paso." (retry)="reloadHowItWorks()" />
   } @else {
@@ -63,12 +51,6 @@
       <app-doctors-section [doctors]="doctors()" [loading]="doctorsLoading()" />
     }
   </div>
-
-  @if (medicalRecordError()) {
-    <app-error-state message="No pudimos cargar la historia clínica." (retry)="reloadMedicalRecord()" />
-  } @else {
-    <app-medical-record-bento [record]="medicalRecord()" [loading]="medicalRecordLoading()" />
-  }
 
   <div id="sedes">
     @if (locationsError()) {

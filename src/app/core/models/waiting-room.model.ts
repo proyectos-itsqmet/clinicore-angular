@@ -1,4 +1,6 @@
 export interface WaitingRoomSite {
+  /** Numeric id, needed to build the STOMP topic even when the route addressed the site by name. */
+  stablishmentId: number;
   brand: string;
   location: string;
 }
@@ -50,7 +52,12 @@ export interface WaitingRoomCurrentCall {
  */
 export interface WaitingRoomScreen {
   site: WaitingRoomSite;
-  current: WaitingRoomCurrentCall;
+  /**
+   * NULL when nobody is being attended right now — first thing in the
+   * morning, or between two patients. The mock never had this case, so the
+   * screen used to read `current.ticket` unconditionally.
+   */
+  current: WaitingRoomCurrentCall | null;
   history: WaitingRoomCall[];
   ticker: string;
 }

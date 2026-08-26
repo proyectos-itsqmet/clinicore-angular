@@ -7,7 +7,16 @@ import { DoctorApiService } from '../../../core/api/doctor-api.service';
 import { ServicioApiService } from '../../../core/api/servicio-api.service';
 import { OperatorApiService } from '../../../core/api/operator-api.service';
 import { PatientApiService } from '../../../core/api/patient-api.service';
-import type { Establishment, AdminDoctor, Servicio, Operator, Patient, Page } from '../../../core/models';
+import { ConsultorioApiService } from '../../../core/api/consultorio-api.service';
+import type {
+  AdminDoctor,
+  Consultorio,
+  Establishment,
+  Operator,
+  Page,
+  Patient,
+  Servicio,
+} from '../../../core/models';
 
 @Component({
   selector: 'app-establishment-detail',
@@ -23,6 +32,7 @@ export class EstablishmentDetailComponent implements OnInit {
   private readonly servicioApi = inject(ServicioApiService);
   private readonly operatorApi = inject(OperatorApiService);
   private readonly patientApi = inject(PatientApiService);
+  private readonly consultorioApi = inject(ConsultorioApiService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly establishment = signal<Establishment | null>(null);
@@ -46,6 +56,22 @@ export class EstablishmentDetailComponent implements OnInit {
   protected readonly operatorsFilterName = signal<string>('');
 
   // Modales
+  // --- Consultorios -------------------------------------------------------
+  //
+  // A room belongs to ONE site, which is why the catalogue lives on this
+  // screen and not in a global list: the same code "03" exists at several
+  // sites and means a different door in each.
+  protected readonly consultorios = signal<Consultorio[]>([]);
+  protected readonly consultoriosLoading = signal<boolean>(true);
+  protected readonly consultorioFeedback = signal<{ kind: 'success' | 'error'; text: string } | null>(null);
+  protected readonly consultorioBusyId = signal<number | null>(null);
+  protected readonly savingConsultorio = signal<boolean>(false);
+
+  protected readonly consultorioForm = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.maxLength(8)]],
+    label: ['', [Validators.required]],
+  });
+
   protected readonly isEditModalOpen = signal<boolean>(false);
   protected readonly isDeleteModalOpen = signal<boolean>(false);
   protected readonly isAssignDoctorModalOpen = signal<boolean>(false);
@@ -88,6 +114,101 @@ export class EstablishmentDetailComponent implements OnInit {
   });
 
   private establishmentId: number = 0;
+
+  loadConsultorios(): void {
+    this.consultoriosLoading.set(true);
+    this.consultorioApi.getByEstablishment(this.establishmentId).subscribe({
+      next: (rooms) => {
+        this.consultorios.set(rooms);
+        this.consultoriosLoading.set(false);
+      },
+      error: () => {
+        this.consultorios.set([]);
+        this.consultoriosLoading.set(false);
+      },
+    });
+  }
+
+  protected onCreateConsultorio(): void {
+    if (this.consultorioForm.invalid) {
+      this.consultorioForm.markAllAsTouched();
+      return;
+    }
+
+    const { code, label } = this.consultorioForm.getRawValue();
+    this.savingConsultorio.set(true);
+    this.consultorioFeedback.set(null);
+
+    this.consultorioApi
+      .create({ code: code.trim(), label: label.trim(), stablishment: { id: this.establishmentId } })
+      .subscribe({
+        next: () => {
+          this.consultorioForm.reset({ code: '', label: '' });
+          this.savingConsultorio.set(false);
+          this.consultorioFeedback.set({ kind: 'success', text: 'Consultorio creado.' });
+          this.loadConsultorios();
+        },
+        error: (err) => {
+          this.savingConsultorio.set(false);
+          // El backend rechaza un código repetido EN ESTA SEDE con un mensaje
+          // en español; se muestra tal cual en vez de inventar uno genérico.
+          this.consultorioFeedback.set({
+            kind: 'error',
+            text: err?.error?.error || err?.error?.message || 'No pudimos crear el consultorio.',
+          });
+        },
+      });
+  }
+
+  /**
+   * Un consultorio fuera de servicio se DESACTIVA. Borrarlo dejaría a las
+   * plantillas que lo usan apuntando al vacío, y el backend lo rechaza.
+   */
+  protected onToggleConsultorio(room: Consultorio): void {
+    this.consultorioBusyId.set(room.id);
+    this.consultorioFeedback.set(null);
+
+    this.consultorioApi
+      .update(room.id, {
+        code: room.code,
+        label: room.label,
+        stablishment: { id: this.establishmentId },
+        active: !room.active,
+      })
+      .subscribe({
+        next: (updated) => {
+          this.consultorios.update((list) => list.map((r) => (r.id === updated.id ? updated : r)));
+          this.consultorioBusyId.set(null);
+        },
+        error: (err) => {
+          this.consultorioBusyId.set(null);
+          this.consultorioFeedback.set({
+            kind: 'error',
+            text: err?.error?.error || err?.error?.message || 'No pudimos actualizar el consultorio.',
+          });
+        },
+      });
+  }
+
+  protected onDeleteConsultorio(room: Consultorio): void {
+    this.consultorioBusyId.set(room.id);
+    this.consultorioFeedback.set(null);
+
+    this.consultorioApi.delete(room.id).subscribe({
+      next: () => {
+        this.consultorios.update((list) => list.filter((r) => r.id !== room.id));
+        this.consultorioBusyId.set(null);
+        this.consultorioFeedback.set({ kind: 'success', text: 'Consultorio eliminado.' });
+      },
+      error: (err) => {
+        this.consultorioBusyId.set(null);
+        this.consultorioFeedback.set({
+          kind: 'error',
+          text: err?.error?.error || err?.error?.message || 'No pudimos eliminar el consultorio.',
+        });
+      },
+    });
+  }
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');

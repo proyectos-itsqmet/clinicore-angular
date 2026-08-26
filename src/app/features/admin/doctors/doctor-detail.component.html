@@ -203,6 +203,97 @@
         </div>
       </div>
 
+      <!-- Card Consultorios por jornada -->
+      <!--
+        The room is not a field on the doctor: a doctor works at several sites
+        and "Consultorio 3" only means something inside one of them. It belongs
+        to the shift, so this card lists shifts.
+      -->
+      <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="font-display text-base font-extrabold text-ink">Consultorios por jornada</h2>
+            <p class="text-xs text-ink-3">
+              El consultorio se asigna a cada jornada, no al doctor: puede atender en uno distinto por sede y por día.
+            </p>
+          </div>
+        </div>
+
+        @if (consultorioFeedback(); as fb) {
+          <div
+            class="mb-3 rounded-2xl px-3.5 py-2 text-xs font-bold border"
+            [class]="fb.kind === 'success'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+              : 'bg-red-50 text-red-600 border-red-100'"
+          >
+            {{ fb.text }}
+          </div>
+        }
+
+        @if (templatesLoading()) {
+          <div class="p-8 text-center text-xs text-ink-3">Cargando jornadas…</div>
+        } @else if (templatesError()) {
+          <div class="p-8 text-center text-xs text-red-600 rounded-2xl border border-dashed border-red-200 bg-red-50/40">
+            {{ templatesError() }}
+          </div>
+        } @else if (doctorTemplates().length === 0) {
+          <div class="p-8 text-center text-xs text-ink-3 rounded-2xl border border-dashed border-line bg-field/40">
+            Este doctor no tiene jornadas configuradas. Creá una en
+            <a routerLink="/admin/administracion/horarios" class="font-bold text-blue hover:underline">Horarios de atención</a>
+            y después asignale el consultorio acá.
+          </div>
+        } @else {
+          <div class="space-y-2">
+            @for (tpl of doctorTemplates(); track tpl.id) {
+              <div class="p-3.5 rounded-2xl border border-line bg-surface flex flex-wrap items-center justify-between gap-3 shadow-sm">
+                <div class="min-w-0">
+                  <h4 class="text-xs font-bold text-ink truncate">
+                    {{ tpl.stablishment.name }} · {{ tpl.servicio.name }}
+                  </h4>
+                  <p class="text-[11px] text-ink-3 font-semibold">
+                    {{ DAY_LABELS[tpl.dayOfWeek] }} · {{ tpl.startTime.slice(0, 5) }}–{{ tpl.endTime.slice(0, 5) }}
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  @if (roomsFor(tpl).length === 0) {
+                    <span class="text-[11px] text-ink-3 italic">
+                      Sin consultorios cargados en esta sede
+                    </span>
+                  } @else {
+                    <!--
+                      (change) + [selected], deliberately NOT [ngModel] and NOT
+                      [value] on the <select>. Two known traps in this codebase:
+                      a <select [value]> loses its prefill when its options come
+                      from a @for that had not rendered yet, and [ngModel] with
+                      (ngModelChange) inside a form never fires under Angular 22
+                      + vitest.
+                    -->
+                    <select
+                      [disabled]="savingTemplateId() === tpl.id"
+                      (change)="onConsultorioChange(tpl, $any($event.target).value)"
+                      class="rounded-pill border border-line bg-field px-3 py-1.5 text-xs font-bold text-ink focus:border-blue focus:outline-none disabled:opacity-50"
+                      [attr.aria-label]="'Consultorio para ' + tpl.stablishment.name + ' ' + DAY_LABELS[tpl.dayOfWeek]"
+                    >
+                      <option value="" [selected]="!tpl.consultorio">Sin asignar</option>
+                      @for (room of roomsFor(tpl); track room.id) {
+                        <option [value]="room.id" [selected]="tpl.consultorio?.id === room.id">
+                          {{ room.label }}
+                        </option>
+                      }
+                    </select>
+                  }
+
+                  @if (savingTemplateId() === tpl.id) {
+                    <span class="text-[11px] text-ink-3 font-semibold">Guardando…</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
     </div>
   }
 </div>

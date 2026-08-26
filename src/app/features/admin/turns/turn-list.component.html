@@ -487,7 +487,7 @@
                               <!-- Botón Iniciar Atención (WAITNG -> IN_TREATMENT) -->
                               <button
                                 type="button"
-                                (click)="markTurnInTreatment(turn)"
+                                (click)="openCallModal(turn)"
                                 class="inline-flex items-center rounded-pill bg-purple-50 text-purple-700 border border-purple-200 px-2 py-1 text-[11px] font-bold hover:bg-purple-600 hover:text-white transition-all shadow-sm"
                                 title="Iniciar la atención del paciente (pasa a En Atención)"
                               >
@@ -789,6 +789,85 @@
             </button>
           </div>
 
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- =========================================================================
+     MODAL LLAMAR TURNO (elige consultorio)
+
+     El consultorio llega precargado desde la jornada que configuró un admin,
+     así que el caso normal es confirmar. El operador sólo lo cambia los días
+     que el médico está atendiendo en otro lado.
+     ========================================================================= -->
+@if (isCallModalOpen()) {
+  <div class="relative z-50">
+    <div class="fixed inset-0 bg-navy-deep/75 backdrop-blur-md transition-opacity" (click)="closeCallModal()"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="relative transform overflow-hidden rounded-2xl bg-surface p-6 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-line">
+          <div class="flex items-center justify-between border-b border-line pb-3 mb-4">
+            <h3 class="font-display text-base font-extrabold text-ink">
+              Llamar turno #{{ turnToCall()?.order }}
+            </h3>
+            <button
+              type="button"
+              (click)="closeCallModal()"
+              class="w-7 h-7 rounded-full bg-field border border-line text-ink-3 hover:text-ink flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <label for="call_room" class="block text-xs font-bold text-ink mb-1">Consultorio</label>
+
+          @if (callRooms().length === 0) {
+            <p class="text-[11px] text-ink-3 rounded-2xl border border-dashed border-line bg-field/40 p-3">
+              Esta sede no tiene consultorios activos. El turno se va a llamar con el consultorio
+              que ya tenía el cupo, si tiene uno.
+            </p>
+          } @else {
+            <!--
+              (change) + [selected], NO [ngModel] ni [value] en el <select>: dos
+              trampas conocidas de este proyecto, un select con [value] pierde el
+              prefill cuando sus options vienen de un @for que todavía no renderizó,
+              y [ngModel] dentro de un form no dispara en Angular 22 + vitest.
+            -->
+            <select
+              id="call_room"
+              (change)="callRoomId.set($any($event.target).value ? +$any($event.target).value : null)"
+              class="w-full rounded-pill border border-line bg-field px-3 py-2 text-xs font-bold text-ink focus:border-blue focus:outline-none"
+            >
+              <option value="" [selected]="callRoomId() === null">Usar el del horario</option>
+              @for (room of callRooms(); track room.id) {
+                <option [value]="room.id" [selected]="callRoomId() === room.id">{{ room.label }}</option>
+              }
+            </select>
+            <p class="mt-2 text-[11px] text-ink-3">
+              "Usar el del horario" toma el consultorio que un administrador asignó a esa jornada.
+              Cambialo sólo si hoy el médico está atendiendo en otro.
+            </p>
+          }
+
+          <div class="mt-5 flex justify-end gap-2">
+            <button
+              type="button"
+              (click)="closeCallModal()"
+              class="rounded-pill border border-line px-4 py-2 text-xs font-bold text-ink hover:bg-field transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              [disabled]="callSubmitting()"
+              (click)="confirmCall()"
+              class="rounded-pill bg-purple-600 px-4 py-2 text-xs font-bold text-white shadow-cta hover:bg-purple-700 transition-all disabled:opacity-50"
+            >
+              ▶ Llamar
+            </button>
+          </div>
         </div>
       </div>
     </div>

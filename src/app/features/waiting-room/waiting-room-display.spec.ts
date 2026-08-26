@@ -17,7 +17,7 @@ function call(n: number, room = '01'): WaitingRoomCall {
 
 function payload(history: WaitingRoomCall[]): WaitingRoomScreen {
   return {
-    site: { brand: 'CliniCore', location: 'Sede [NOMBRE] · [CIUDAD]' },
+    site: { stablishmentId: 1, brand: 'CliniCore', location: 'Sede [NOMBRE] · [CIUDAD]' },
     current: {
       ticket: 'B-042',
       room: '03',

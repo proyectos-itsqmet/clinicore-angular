@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 
 import { SalaApi } from '../../core/api';
+import { RealtimeService } from '../../core/realtime/realtime.service';
 import type { WaitingRoomScreen } from '../../core/models';
 import { Figure } from '../../shared/ui/atoms/figure/figure';
 import { Kicker } from '../../shared/ui/atoms/kicker/kicker';
@@ -71,8 +72,17 @@ interface QueueRow {
   host: { class: 'contents' },
 })
 export class WaitingRoomDisplay {
-  /** How often the screen re-asks the endpoint. See `jsons/sala/README.md`. */
-  private static readonly POLL_MS = 5_000;
+  /**
+   * Safety net, NOT the live channel any more. The socket drives refreshes;
+   * this only covers the window where the socket dropped and has not
+   * reconnected, so a TV can be at most this stale rather than frozen.
+   *
+   * It was 5s when polling WAS the mechanism. The README did the arithmetic:
+   * 12 requests a minute per screen, 48 for a clinic with four rooms, all
+   * day, to notice a change that the backend already knows about the
+   * instant it happens.
+   */
+  private static readonly POLL_MS = 60_000;
 
   /**
    * The clock only renders `HH:mm`, and `minuteTick` stores the epoch
@@ -100,6 +110,7 @@ export class WaitingRoomDisplay {
   readonly sedeId = input.required<string>();
 
   private readonly api = inject(SalaApi);
+  private readonly realtime = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly lastGood = signal<WaitingRoomScreen | undefined>(undefined);
@@ -143,9 +154,14 @@ export class WaitingRoomDisplay {
       return [];
     }
 
+    // `current` is null when nobody is being attended: the queue is then just
+    // the history, with no golden row. Spreading a null here is what would
+    // throw out of this computed and blank the TV.
     const composed: QueueRow[] = [
-      { ticket: data.current.ticket, room: data.current.room, current: true },
-      ...data.history.map((call) => ({ ticket: call.ticket, room: call.room, current: false })),
+      ...(data.current
+        ? [{ ticket: data.current.ticket, room: data.current.room, current: true }]
+        : []),
+      ...(data.history ?? []).map((call) => ({ ticket: call.ticket, room: call.room, current: false })),
     ];
 
     const seen = new Set<string>();
@@ -182,6 +198,23 @@ export class WaitingRoomDisplay {
       }
     });
 
+    // The live channel. A message on this topic means "something changed on
+    // this board"; the screen then re-fetches the authoritative state over
+    // REST rather than trusting the payload — the rule RealtimeService
+    // documents, and the reason the anonymous topic can stay anonymous.
+    //
+    // The socket alone cannot paint this screen: it emits ONE turn per event,
+    // so a TV switched on at 3pm would have no morning history. The REST call
+    // is the cold start; the socket only says "ask again".
+    effect((onCleanup) => {
+      const topic = this.boardTopic();
+      if (!topic) {
+        return;
+      }
+      const sub = this.realtime.subscribeTopic(topic).subscribe(() => this.api.screen.reload());
+      onCleanup(() => sub.unsubscribe());
+    });
+
     afterNextRender(() => {
       const poll = setInterval(() => this.api.screen.reload(), WaitingRoomDisplay.POLL_MS);
       const clock = setInterval(
@@ -194,6 +227,35 @@ export class WaitingRoomDisplay {
         clearInterval(clock);
       });
     });
+  }
+
+  /**
+   * `/topic/stablishment/{id}/{yyyy-MM-dd}` — exactly what
+   * `TurnService#broadcastTurnUpdate` publishes to.
+   *
+   * Depends on `minuteTick`, so it recomputes as the clock advances and the
+   * subscription follows the board across midnight. A TV runs for months; it
+   * cannot hold yesterday’s topic.
+   */
+  protected readonly boardTopic = computed(() => {
+    const id = this.data()?.site?.stablishmentId;
+    if (id == null) {
+      return null;
+    }
+    return `/topic/stablishment/${id}/${WaitingRoomDisplay.localIsoDate(new Date(this.minuteTick()))}`;
+  });
+
+  /**
+   * LOCAL yyyy-MM-dd, never `toISOString().slice(0, 10)`.
+   *
+   * The backend builds this segment from a `LocalDate`, which is the clinic’s
+   * calendar day. `toISOString` is UTC: from 19:00 in UTC-5 it already reports
+   * TOMORROW, so the screen would subscribe to an empty topic every evening
+   * and silently stop updating for the busiest hours of the day.
+   */
+  private static localIsoDate(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
   private static startOfMinute(epochMs: number): number {
