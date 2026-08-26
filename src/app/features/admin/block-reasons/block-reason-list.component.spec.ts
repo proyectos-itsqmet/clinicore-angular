@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { BlockReason, Page } from '../../../core/models';
 import { BlockReasonListComponent } from './block-reason-list.component';
 
-const API_URL = 'http://localhost:8080/api/block-reasons';
+const API_URL = '/api/block-reasons';
 
 function blockReason(id: number, description = `Motivo ${id}`): BlockReason {
   return { id, description };

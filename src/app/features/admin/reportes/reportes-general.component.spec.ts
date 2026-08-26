@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { DayTurns, TurnsSeries } from '../../../core/models';
 import { ReportesGeneralComponent } from './reportes-general.component';
 
-const URL = 'http://localhost:8080/api/metrics/turns';
+const URL = '/api/metrics/turns';
 
 function emptyBreakdown() {
   return { byStatus: { TURN_PENDING: 0, TURN_WAITNG: 0, TURN_IN_TREATMENT: 0, TURN_TREATED: 0, TURN_CANCELLED: 0 }, total: 0 };

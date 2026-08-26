@@ -7,9 +7,9 @@ import type { Encounter, Page, Patient, Turn } from '../../../core/models';
 import { HistorialClinicoListComponent } from './historial-clinico-list.component';
 
 const PATIENT_ID = 'patient-uuid-1';
-const PATIENTS_URL = 'http://localhost:8080/api/patients';
-const ENCOUNTERS_URL = `http://localhost:8080/api/patients/${PATIENT_ID}/encounters`;
-const TURNS_BY_PATIENT_URL = `http://localhost:8080/api/turns/patient/${PATIENT_ID}`;
+const PATIENTS_URL = '/api/patients';
+const ENCOUNTERS_URL = `/api/patients/${PATIENT_ID}/encounters`;
+const TURNS_BY_PATIENT_URL = `/api/turns/patient/${PATIENT_ID}`;
 
 function patient(overrides: Partial<Patient> = {}): Patient {
   return { uuid: PATIENT_ID, email: 'ana@test.com', firstName: 'Ana', lastName: 'Lopez', ci: '0102030405', ...overrides };
@@ -201,7 +201,7 @@ describe('HistorialClinicoListComponent', () => {
 
     (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit', { cancelable: true }));
 
-    const createReq = httpMock.expectOne('http://localhost:8080/api/encounters');
+    const createReq = httpMock.expectOne('/api/encounters');
     expect(createReq.request.body).toEqual({ turnId: 55, reasonForVisit: 'Chequeo general', diagnosis: 'Sano' });
     createReq.flush(encounter(1, { turnId: 55, reasonForVisit: 'Chequeo general', diagnosis: 'Sano' }));
 
@@ -244,7 +244,7 @@ describe('HistorialClinicoListComponent', () => {
 
     (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit', { cancelable: true }));
 
-    const updateReq = httpMock.expectOne('http://localhost:8080/api/encounters/1');
+    const updateReq = httpMock.expectOne('/api/encounters/1');
     expect(updateReq.request.method).toBe('PUT');
     expect(updateReq.request.body.turnId).toBe(77);
     expect(updateReq.request.body.diagnosis).toBe('Migraña crónica');
@@ -279,7 +279,7 @@ describe('HistorialClinicoListComponent', () => {
     (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit', { cancelable: true }));
 
     httpMock
-      .expectOne('http://localhost:8080/api/encounters')
+      .expectOne('/api/encounters')
       .flush({ message: 'Solo se puede registrar una historia clínica para un turno atendido' }, { status: 400, statusText: 'Bad Request' });
     fixture.detectChanges();
 

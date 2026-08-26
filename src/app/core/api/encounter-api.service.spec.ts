@@ -27,7 +27,7 @@ describe('EncounterApiService', () => {
     service.getHistoryForPatient(PATIENT_ID, 1, 5).subscribe();
 
     const req = httpMock.expectOne(
-      (r) => r.url === `http://localhost:8080/api/patients/${PATIENT_ID}/encounters`,
+      (r) => r.url === `/api/patients/${PATIENT_ID}/encounters`,
     );
     expect(req.request.params.get('page')).toBe('1');
     expect(req.request.params.get('size')).toBe('5');
@@ -37,7 +37,7 @@ describe('EncounterApiService', () => {
   it('requests a single encounter by id', () => {
     service.getById(7).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/encounters/7');
+    const req = httpMock.expectOne('/api/encounters/7');
     expect(req.request.method).toBe('GET');
     req.flush({ id: 7 });
   });
@@ -51,7 +51,7 @@ describe('EncounterApiService', () => {
 
     service.create(payload).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/encounters');
+    const req = httpMock.expectOne('/api/encounters');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
     req.flush({ id: 1, ...payload });
@@ -67,7 +67,7 @@ describe('EncounterApiService', () => {
 
     service.update(1, payload).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/encounters/1');
+    const req = httpMock.expectOne('/api/encounters/1');
     expect(req.request.method).toBe('PUT');
     expect(req.request.body.turnId).toBe(42);
     req.flush({ id: 1, ...payload });

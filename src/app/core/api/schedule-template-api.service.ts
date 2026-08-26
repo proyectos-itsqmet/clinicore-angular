@@ -7,7 +7,7 @@ import type { Page, ScheduleTemplate, ScheduleTemplateWrite } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ScheduleTemplateApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/schedule-templates';
+  private readonly API_URL = '/api/schedule-templates';
 
   getAll(
     page: number = 0,

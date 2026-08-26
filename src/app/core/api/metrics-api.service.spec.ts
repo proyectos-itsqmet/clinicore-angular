@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { MetricsSummary } from '../models';
 import { MetricsApiService } from './metrics-api.service';
 
-const API_URL = 'http://localhost:8080/api/metrics';
+const API_URL = '/api/metrics';
 
 function emptyBreakdown() {
   return {

@@ -7,10 +7,10 @@ import type { AdminDoctor, Establishment, Operator, Page, Servicio } from '../..
 import { EstablishmentDetailComponent } from './establishment-detail.component';
 
 const ESTABLISHMENT_ID = 42;
-const ESTABLISHMENT_URL = `http://localhost:8080/api/stablishments/${ESTABLISHMENT_ID}`;
-const DOCTORS_URL = `http://localhost:8080/api/stablishments/${ESTABLISHMENT_ID}/doctors`;
-const SERVICES_URL = `http://localhost:8080/api/stablishments/${ESTABLISHMENT_ID}/services`;
-const OPERATORS_URL = `http://localhost:8080/api/stablishments/${ESTABLISHMENT_ID}/operators`;
+const ESTABLISHMENT_URL = `/api/stablishments/${ESTABLISHMENT_ID}`;
+const DOCTORS_URL = `/api/stablishments/${ESTABLISHMENT_ID}/doctors`;
+const SERVICES_URL = `/api/stablishments/${ESTABLISHMENT_ID}/services`;
+const OPERATORS_URL = `/api/stablishments/${ESTABLISHMENT_ID}/operators`;
 
 function establishment(): Establishment {
   return { id: ESTABLISHMENT_ID, name: 'Sede Matriz', address: 'Av. Amazonas' };

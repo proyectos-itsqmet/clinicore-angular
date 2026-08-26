@@ -25,5 +25,5 @@ import { InjectionToken } from '@angular/core';
 export const SALA_SCREEN_URL = new InjectionToken<(sedeId: string) => string>('SALA_SCREEN_URL', {
   providedIn: 'root',
   factory: () => (sedeId: string) =>
-    `http://localhost:8080/api/sala/${encodeURIComponent(sedeId)}/pantalla`,
+    `/api/sala/${encodeURIComponent(sedeId)}/pantalla`,
 });

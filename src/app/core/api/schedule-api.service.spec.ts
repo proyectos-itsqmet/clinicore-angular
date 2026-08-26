@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { GenerateSchedulesFromTemplateRequest, ScheduleDTO } from '../models';
 import { ScheduleApiService } from './schedule-api.service';
 
-const API_URL = 'http://localhost:8080/api/schedules';
+const API_URL = '/api/schedules';
 
 /**
  * Only covers `generateSchedulesFromTemplates`, the method added for

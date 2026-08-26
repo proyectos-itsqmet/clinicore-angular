@@ -27,7 +27,7 @@ describe('PrescriptionApiService', () => {
     service.getHistoryForPatient(PATIENT_ID, 0, 10).subscribe();
 
     const req = httpMock.expectOne(
-      (r) => r.url === `http://localhost:8080/api/patients/${PATIENT_ID}/prescriptions`,
+      (r) => r.url === `/api/patients/${PATIENT_ID}/prescriptions`,
     );
     expect(req.request.params.get('page')).toBe('0');
     expect(req.request.params.get('size')).toBe('10');
@@ -37,7 +37,7 @@ describe('PrescriptionApiService', () => {
   it('requests a single prescription by id', () => {
     service.getById(9).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/prescriptions/9');
+    const req = httpMock.expectOne('/api/prescriptions/9');
     expect(req.request.method).toBe('GET');
     req.flush({ id: 9 });
   });
@@ -54,7 +54,7 @@ describe('PrescriptionApiService', () => {
 
     service.create(payload).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/prescriptions');
+    const req = httpMock.expectOne('/api/prescriptions');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
     expect(req.request.body.items.length).toBe(2);

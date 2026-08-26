@@ -7,7 +7,7 @@ import type { Page, Establishment, EstablishmentCreate, AdminDoctor, Servicio, O
 export class EstablishmentApiService {
   private readonly http = inject(HttpClient);
   // URL base de la API, usando el nombre que proporcionó el usuario en los endpoints (stablishments)
-  private readonly API_URL = 'http://localhost:8080/api/stablishments';
+  private readonly API_URL = '/api/stablishments';
 
   getAll(page: number = 0, size: number = 10, name?: string): Observable<Page<Establishment>> {
     let params = new HttpParams()

@@ -14,7 +14,7 @@ import type { Consultorio, ConsultorioWrite } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ConsultorioApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/consultorios';
+  private readonly API_URL = '/api/consultorios';
 
   /**
    * There is no "list every room" call by design: a room without its site is

@@ -17,8 +17,8 @@ import type { PatientCoverage, PatientCoverageCreate } from '../models';
 @Injectable({ providedIn: 'root' })
 export class PatientCoverageApiService {
   private readonly http = inject(HttpClient);
-  private readonly PATIENTS_URL = 'http://localhost:8080/api/patients';
-  private readonly API_URL = 'http://localhost:8080/api/patient-coverages';
+  private readonly PATIENTS_URL = '/api/patients';
+  private readonly API_URL = '/api/patient-coverages';
 
   /** `GET /api/patients/{patientId}/coverages` — this patient's full coverage history, most recent `validFrom` first. */
   getForPatient(patientId: string): Observable<PatientCoverage[]> {

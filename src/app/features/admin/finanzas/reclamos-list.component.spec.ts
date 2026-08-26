@@ -6,7 +6,7 @@ import { provideRouter } from '@angular/router';
 import type { Claim, Page } from '../../../core/models';
 import { ReclamosListComponent } from './reclamos-list.component';
 
-const CLAIMS_URL = 'http://localhost:8080/api/claims';
+const CLAIMS_URL = '/api/claims';
 
 function claim(id: number, overrides: Partial<Claim> = {}): Claim {
   return {

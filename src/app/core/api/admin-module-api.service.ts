@@ -12,7 +12,7 @@ import type { AdminModule } from '../models';
 @Injectable({ providedIn: 'root' })
 export class AdminModuleApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/admin-modules';
+  private readonly API_URL = '/api/admin-modules';
 
   /** Bare array, not `Page<T>` — fixed catalog of 12 rows, see `AdminModule`'s own docblock. */
   getAll(): Observable<AdminModule[]> {

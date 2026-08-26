@@ -6,7 +6,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import type { ClinicalAccessLog, Page } from '../../../core/models';
 import { AuditoriaHcListComponent } from './auditoria-hc-list.component';
 
-const URL = 'http://localhost:8080/api/clinical-access-logs';
+const URL = '/api/clinical-access-logs';
 const PATIENT_ID = 'patient-uuid-1';
 
 function log(id: number, overrides: Partial<ClinicalAccessLog> = {}): ClinicalAccessLog {

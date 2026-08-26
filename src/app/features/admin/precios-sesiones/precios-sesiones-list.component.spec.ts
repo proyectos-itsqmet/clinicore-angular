@@ -5,8 +5,8 @@ import { TestBed } from '@angular/core/testing';
 import type { Page, Servicio, SessionPlan } from '../../../core/models';
 import { PreciosSesionesListComponent } from './precios-sesiones-list.component';
 
-const SERVICIOS_URL = 'http://localhost:8080/api/services';
-const PLANS_URL = 'http://localhost:8080/api/session-plans';
+const SERVICIOS_URL = '/api/services';
+const PLANS_URL = '/api/session-plans';
 
 function servicio(id: number, name: string, price: number, discount = 0): Servicio {
   return { id, name, price, discount, netPrice: price - discount };

@@ -12,7 +12,7 @@ import type { Claim, ClaimStatus, Page } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ClaimApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/claims';
+  private readonly API_URL = '/api/claims';
 
   /** `POST /api/claims` — only `invoiceId` is client-supplied; insurerName/planName/amountClaimed are derived server-side from the invoice's own line snapshots. */
   create(invoiceId: number): Observable<Claim> {

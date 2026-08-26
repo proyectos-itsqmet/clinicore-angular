@@ -13,7 +13,7 @@ import type { AccountingSummary, ClaimsSummary } from '../models';
 @Injectable({ providedIn: 'root' })
 export class AccountingApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/accounting';
+  private readonly API_URL = '/api/accounting';
 
   /**
    * `GET /api/accounting/summary`. `invoicedByStatus`/`collectedByMethod` are

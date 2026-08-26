@@ -6,7 +6,7 @@ import type { Page, TimeOff, TimeOffCreate, TimeOffKind } from '../models';
 @Injectable({ providedIn: 'root' })
 export class TimeOffApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/time-offs';
+  private readonly API_URL = '/api/time-offs';
 
   getAll(
     page: number = 0,

@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { PatientsMetrics } from '../../../core/models';
 import { MetricasPacientesComponent } from './metricas-pacientes.component';
 
-const URL = 'http://localhost:8080/api/metrics/patients';
+const URL = '/api/metrics/patients';
 
 function response(overrides: Partial<PatientsMetrics> = {}): PatientsMetrics {
   return {

@@ -9,6 +9,7 @@ import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { RealtimeService } from '../../../core/realtime/realtime.service';
 import { ConsultorioApiService } from '../../../core/api/consultorio-api.service';
 import type { Consultorio, Establishment, Servicio, Turn, Page, ScheduleDTO, TurnStatus } from '../../../core/models';
+import { AuthService } from '../../../core/auth/auth.service';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -62,6 +63,7 @@ export class TurnListComponent implements OnInit, OnDestroy {
   private readonly scheduleApi = inject(ScheduleApiService);
   private readonly realtime = inject(RealtimeService);
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
 
   /** Small "live vs. stale" indicator — see `RealtimeService` for the state machine. */
   protected readonly connectionStatus = this.realtime.status;
@@ -447,7 +449,13 @@ export class TurnListComponent implements OnInit, OnDestroy {
     if (!turn) return;
 
     this.markingTreated.set(true);
-    this.turnApi.markAsTreated(turn.id).subscribe({
+    
+    const userRole = this.authService.currentUser()?.role;
+    const request = userRole === 'ROLE_ADMIN' 
+      ? this.turnApi.markAsTreatedAdmin(turn.id)
+      : this.turnApi.markAsTreated(turn.id);
+
+    request.subscribe({
       next: () => {
         this.markingTreated.set(false);
         this.closeMarkTreatedModal();

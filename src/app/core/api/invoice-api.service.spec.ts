@@ -5,8 +5,8 @@ import { TestBed } from '@angular/core/testing';
 import type { Invoice, Page } from '../models';
 import { InvoiceApiService } from './invoice-api.service';
 
-const API_URL = 'http://localhost:8080/api/invoices';
-const PATIENTS_URL = 'http://localhost:8080/api/patients';
+const API_URL = '/api/invoices';
+const PATIENTS_URL = '/api/patients';
 
 function invoice(id: number, overrides: Partial<Invoice> = {}): Invoice {
   return {

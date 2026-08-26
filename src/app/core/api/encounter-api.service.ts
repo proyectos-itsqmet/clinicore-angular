@@ -11,7 +11,7 @@ import type { Encounter, EncounterCreate, Page } from '../models';
 @Injectable({ providedIn: 'root' })
 export class EncounterApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = '/api';
 
   /** "pacientes/historial-clinico": `GET /api/patients/{patientId}/encounters`. */
   getHistoryForPatient(patientId: string, page: number = 0, size: number = 10): Observable<Page<Encounter>> {

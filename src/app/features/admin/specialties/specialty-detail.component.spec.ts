@@ -8,12 +8,12 @@ import type { AdminDoctor, Establishment, Page, Servicio } from '../../../core/m
 import { SpecialtyDetailComponent } from './specialty-detail.component';
 
 const SERVICE_ID = 7;
-const SERVICE_URL = `http://localhost:8080/api/services/${SERVICE_ID}`;
-const DOCTORS_BY_SERVICE_URL = `http://localhost:8080/api/services/${SERVICE_ID}/doctors`;
-const ESTABLISHMENTS_BY_SERVICE_URL = `http://localhost:8080/api/services/${SERVICE_ID}/stablishments`;
-const SCHEDULES_URL = `http://localhost:8080/api/services/${SERVICE_ID}/schedules`;
-const ALL_ESTABLISHMENTS_URL = 'http://localhost:8080/api/stablishments';
-const ALL_DOCTORS_URL = 'http://localhost:8080/api/doctors';
+const SERVICE_URL = `/api/services/${SERVICE_ID}`;
+const DOCTORS_BY_SERVICE_URL = `/api/services/${SERVICE_ID}/doctors`;
+const ESTABLISHMENTS_BY_SERVICE_URL = `/api/services/${SERVICE_ID}/stablishments`;
+const SCHEDULES_URL = `/api/services/${SERVICE_ID}/schedules`;
+const ALL_ESTABLISHMENTS_URL = '/api/stablishments';
+const ALL_DOCTORS_URL = '/api/doctors';
 
 function servicio(): Servicio {
   return { id: SERVICE_ID, name: 'Consulta General', price: 25 };

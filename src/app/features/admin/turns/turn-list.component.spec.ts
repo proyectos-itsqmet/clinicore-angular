@@ -22,9 +22,9 @@ function expectedLocalIsoDate(d: Date = new Date()): string {
 }
 
 
-const ESTABLISHMENTS_URL = 'http://localhost:8080/api/stablishments';
-const TURNS_URL = 'http://localhost:8080/api/turns';
-const SCHEDULES_URL = 'http://localhost:8080/api/schedules';
+const ESTABLISHMENTS_URL = '/api/stablishments';
+const TURNS_URL = '/api/turns';
+const SCHEDULES_URL = '/api/schedules';
 
 /**
  * Fakes `RealtimeService` with a `Subject` per topic so tests can simulate

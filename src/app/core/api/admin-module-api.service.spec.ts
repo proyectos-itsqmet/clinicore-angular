@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { AdminModule } from '../models';
 import { AdminModuleApiService } from './admin-module-api.service';
 
-const API_URL = 'http://localhost:8080/api/admin-modules';
+const API_URL = '/api/admin-modules';
 
 function adminModule(overrides: Partial<AdminModule> = {}): AdminModule {
   return { id: 1, moduleKey: 'dashboard', label: 'Dashboard', enabled: true, ...overrides };

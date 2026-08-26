@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { Claim, Page } from '../models';
 import { ClaimApiService } from './claim-api.service';
 
-const API_URL = 'http://localhost:8080/api/claims';
+const API_URL = '/api/claims';
 
 function claim(id: number, overrides: Partial<Claim> = {}): Claim {
   return {

@@ -7,7 +7,7 @@ import type { Page, ServicePackage, ServicePackageCreate } from '../models';
 @Injectable({ providedIn: 'root' })
 export class ServicePackageApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/packages';
+  private readonly API_URL = '/api/packages';
 
   getAll(page: number = 0, size: number = 10, name?: string): Observable<Page<ServicePackage>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());

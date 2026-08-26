@@ -13,7 +13,7 @@ import type { Branding, BrandingUpdate } from '../models';
 @Injectable({ providedIn: 'root' })
 export class BrandingApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api/branding';
+  private readonly API_URL = '/api/branding';
 
   get(): Observable<Branding> {
     return this.http.get<Branding>(this.API_URL, { withCredentials: true });

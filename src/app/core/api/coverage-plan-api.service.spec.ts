@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import type { CoveragePlan, Insurer, Page } from '../models';
 import { CoveragePlanApiService } from './coverage-plan-api.service';
 
-const API_URL = 'http://localhost:8080/api/coverage-plans';
+const API_URL = '/api/coverage-plans';
 
 function insurer(id: number): Insurer {
   return { id, name: `Aseguradora ${id}`, type: 'INSURER_PRIVATE' };

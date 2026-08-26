@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { BrandingPageComponent } from './branding-page.component';
 
-const API_URL = 'http://localhost:8080/api/branding';
+const API_URL = '/api/branding';
 
 type Fixture = ReturnType<typeof TestBed.createComponent<BrandingPageComponent>>;
 

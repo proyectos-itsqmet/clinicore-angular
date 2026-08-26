@@ -5,8 +5,8 @@ import { TestBed } from '@angular/core/testing';
 import type { Page, PackageItem, Servicio, ServicePackage } from '../../../core/models';
 import { PreciosPaquetesListComponent } from './precios-paquetes-list.component';
 
-const SERVICIOS_URL = 'http://localhost:8080/api/services';
-const PACKAGES_URL = 'http://localhost:8080/api/packages';
+const SERVICIOS_URL = '/api/services';
+const PACKAGES_URL = '/api/packages';
 
 function servicio(id: number, name: string, price: number, discount = 0): Servicio {
   return { id, name, price, discount, netPrice: price - discount };

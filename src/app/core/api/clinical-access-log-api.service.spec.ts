@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ClinicalAccessLogApiService } from './clinical-access-log-api.service';
 
-const URL = 'http://localhost:8080/api/clinical-access-logs';
+const URL = '/api/clinical-access-logs';
 
 describe('ClinicalAccessLogApiService', () => {
   let service: ClinicalAccessLogApiService;
