@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 
+import type { HttpResourceRef } from '@angular/common/http';
 import { LandingApi } from '../../core/api';
 import { ErrorState } from '../../shared/ui/molecules/error-state/error-state';
 import { ClosingCta } from '../../shared/ui/organisms/closing-cta/closing-cta';
@@ -67,59 +68,120 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingPage {
+  /**
+   * The section payload: live first, bundled contract second, empty last.
+   *
+   * `hasValue()` and not `value() ?? x`: reading `value()` on a resource in the
+   * error state RETHROWS rather than returning undefined, so the `??` would
+   * throw straight out of the computed — taking down the very section this is
+   * meant to keep standing.
+   *
+   * The empty fixture stays the answer WHILE LOADING, so the organism paints
+   * its skeleton. Only a failed request reaches the bundled copy.
+   */
+  private pick<T>(
+    primary: HttpResourceRef<T | undefined>,
+    fallback: HttpResourceRef<T | undefined>,
+    empty: T,
+  ) {
+    return computed(() => {
+      if (primary.hasValue()) {
+        return primary.value() ?? empty;
+      }
+      if (fallback.hasValue()) {
+        return fallback.value() ?? empty;
+      }
+      return empty;
+    });
+  }
+
+  /**
+   * A section is only in ERROR when the API failed AND the bundled copy failed
+   * too. With just the API down there is content to show, so an error box
+   * would be a lie — and thirteen of them stacked is what a visitor used to
+   * meet whenever the backend restarted.
+   */
+  private bothFailed<T>(
+    primary: HttpResourceRef<T | undefined>,
+    fallback: HttpResourceRef<T | undefined>,
+  ) {
+    return computed(() => !!primary.error() && !!fallback.error());
+  }
+
+  /** Still loading while either leg is in flight, so the skeleton covers both. */
+  private eitherLoading<T>(
+    primary: HttpResourceRef<T | undefined>,
+    fallback: HttpResourceRef<T | undefined>,
+  ) {
+    return computed(() => primary.isLoading() || fallback.isLoading());
+  }
+
   private readonly api = inject(LandingApi);
 
-  protected readonly site = computed(() => this.api.site.value() ?? EMPTY_SITE);
-  protected readonly siteLoading = this.api.site.isLoading;
-  protected readonly siteError = this.api.site.error;
+  protected readonly site = this.pick(this.api.site, this.api.siteFallback, EMPTY_SITE);
+  protected readonly siteLoading = this.eitherLoading(this.api.site, this.api.siteFallback);
+  protected readonly siteError = this.bothFailed(this.api.site, this.api.siteFallback);
 
-  protected readonly hero = computed(() => this.api.hero.value() ?? EMPTY_HERO);
-  protected readonly heroLoading = this.api.hero.isLoading;
-  protected readonly heroError = this.api.hero.error;
+  protected readonly hero = this.pick(this.api.hero, this.api.heroFallback, EMPTY_HERO);
+  protected readonly heroLoading = this.eitherLoading(this.api.hero, this.api.heroFallback);
+  protected readonly heroError = this.bothFailed(this.api.hero, this.api.heroFallback);
 
-  protected readonly quickAccess = computed(() => this.api.quickAccess.value() ?? EMPTY_QUICK_ACCESS);
-  protected readonly quickAccessLoading = this.api.quickAccess.isLoading;
-  protected readonly quickAccessError = this.api.quickAccess.error;
+  protected readonly quickAccess = this.pick(this.api.quickAccess, this.api.quickAccessFallback, EMPTY_QUICK_ACCESS);
+  protected readonly quickAccessLoading = this.eitherLoading(this.api.quickAccess, this.api.quickAccessFallback);
+  protected readonly quickAccessError = this.bothFailed(this.api.quickAccess, this.api.quickAccessFallback);
 
   /** `app-stats-band` needs both `stats` and `insurers` — one section, one combined state. */
-  protected readonly stats = computed(() => this.api.stats.value() ?? EMPTY_STATS);
-  protected readonly insurers = computed(() => this.api.insurers.value() ?? EMPTY_INSURERS);
-  protected readonly statsBandLoading = computed(() => this.api.stats.isLoading() || this.api.insurers.isLoading());
-  protected readonly statsBandError = computed(() => this.api.stats.error() ?? this.api.insurers.error());
+  protected readonly stats = this.pick(this.api.stats, this.api.statsFallback, EMPTY_STATS);
+  protected readonly insurers = this.pick(this.api.insurers, this.api.insurersFallback, EMPTY_INSURERS);
+  protected readonly statsBandLoading = computed(
+    () => this.eitherLoading(this.api.stats, this.api.statsFallback)()
+      || this.eitherLoading(this.api.insurers, this.api.insurersFallback)(),
+  );
+  protected readonly statsBandError = computed(
+    () => this.bothFailed(this.api.stats, this.api.statsFallback)()
+      || this.bothFailed(this.api.insurers, this.api.insurersFallback)(),
+  );
 
-  protected readonly specialties = computed(() => this.api.specialties.value() ?? EMPTY_SPECIALTIES);
-  protected readonly specialtiesLoading = this.api.specialties.isLoading;
-  protected readonly specialtiesError = this.api.specialties.error;
+  protected readonly specialties = this.pick(this.api.specialties, this.api.specialtiesFallback, EMPTY_SPECIALTIES);
+  protected readonly specialtiesLoading = this.eitherLoading(this.api.specialties, this.api.specialtiesFallback);
+  protected readonly specialtiesError = this.bothFailed(this.api.specialties, this.api.specialtiesFallback);
 
-  protected readonly howItWorks = computed(() => this.api.howItWorks.value() ?? EMPTY_HOW_IT_WORKS);
-  protected readonly howItWorksLoading = this.api.howItWorks.isLoading;
-  protected readonly howItWorksError = this.api.howItWorks.error;
+  protected readonly howItWorks = this.pick(this.api.howItWorks, this.api.howItWorksFallback, EMPTY_HOW_IT_WORKS);
+  protected readonly howItWorksLoading = this.eitherLoading(this.api.howItWorks, this.api.howItWorksFallback);
+  protected readonly howItWorksError = this.bothFailed(this.api.howItWorks, this.api.howItWorksFallback);
 
-  protected readonly doctors = computed(() => this.api.doctors.value() ?? EMPTY_DOCTORS);
-  protected readonly doctorsLoading = this.api.doctors.isLoading;
-  protected readonly doctorsError = this.api.doctors.error;
+  protected readonly doctors = this.pick(this.api.doctors, this.api.doctorsFallback, EMPTY_DOCTORS);
+  protected readonly doctorsLoading = this.eitherLoading(this.api.doctors, this.api.doctorsFallback);
+  protected readonly doctorsError = this.bothFailed(this.api.doctors, this.api.doctorsFallback);
 
   /** Also feeds `app-site-footer`'s `locations` input (its sede boxes reuse `LocationItem`). */
-  protected readonly locations = computed(() => this.api.locations.value() ?? EMPTY_LOCATIONS);
-  protected readonly locationsLoading = this.api.locations.isLoading;
-  protected readonly locationsError = this.api.locations.error;
+  protected readonly locations = this.pick(this.api.locations, this.api.locationsFallback, EMPTY_LOCATIONS);
+  protected readonly locationsLoading = this.eitherLoading(this.api.locations, this.api.locationsFallback);
+  protected readonly locationsError = this.bothFailed(this.api.locations, this.api.locationsFallback);
 
-  protected readonly reviews = computed(() => this.api.reviews.value() ?? EMPTY_REVIEWS);
-  protected readonly reviewsLoading = this.api.reviews.isLoading;
-  protected readonly reviewsError = this.api.reviews.error;
+  protected readonly reviews = this.pick(this.api.reviews, this.api.reviewsFallback, EMPTY_REVIEWS);
+  protected readonly reviewsLoading = this.eitherLoading(this.api.reviews, this.api.reviewsFallback);
+  protected readonly reviewsError = this.bothFailed(this.api.reviews, this.api.reviewsFallback);
 
   /** `app-faq-section` needs both `faq` and `publicInsurance` — one section, one combined state. */
-  protected readonly faq = computed(() => this.api.faq.value() ?? EMPTY_FAQ);
-  protected readonly publicInsurance = computed(() => this.api.publicInsurance.value() ?? EMPTY_PUBLIC_INSURANCE);
-  protected readonly faqSectionLoading = computed(() => this.api.faq.isLoading() || this.api.publicInsurance.isLoading());
-  protected readonly faqSectionError = computed(() => this.api.faq.error() ?? this.api.publicInsurance.error());
+  protected readonly faq = this.pick(this.api.faq, this.api.faqFallback, EMPTY_FAQ);
+  protected readonly publicInsurance = this.pick(this.api.publicInsurance, this.api.publicInsuranceFallback, EMPTY_PUBLIC_INSURANCE);
+  protected readonly faqSectionLoading = computed(
+    () => this.eitherLoading(this.api.faq, this.api.faqFallback)()
+      || this.eitherLoading(this.api.publicInsurance, this.api.publicInsuranceFallback)(),
+  );
+  protected readonly faqSectionError = computed(
+    () => this.bothFailed(this.api.faq, this.api.faqFallback)()
+      || this.bothFailed(this.api.publicInsurance, this.api.publicInsuranceFallback)(),
+  );
 
-  protected readonly coverage = computed(() => this.api.coverage.value() ?? EMPTY_COVERAGE);
-  protected readonly coverageLoading = this.api.coverage.isLoading;
-  protected readonly coverageError = this.api.coverage.error;
+  protected readonly coverage = this.pick(this.api.coverage, this.api.coverageFallback, EMPTY_COVERAGE);
+  protected readonly coverageLoading = this.eitherLoading(this.api.coverage, this.api.coverageFallback);
+  protected readonly coverageError = this.bothFailed(this.api.coverage, this.api.coverageFallback);
 
   protected reloadSite(): void {
     this.api.site.reload();
+    this.api.siteFallback.reload();
   }
 
   /**
@@ -132,48 +194,62 @@ export class LandingPage {
    */
   protected reloadFooter(): void {
     this.api.site.reload();
+    this.api.siteFallback.reload();
     this.api.locations.reload();
+    this.api.locationsFallback.reload();
   }
 
   protected reloadHero(): void {
     this.api.hero.reload();
+    this.api.heroFallback.reload();
   }
 
   protected reloadQuickAccess(): void {
     this.api.quickAccess.reload();
+    this.api.quickAccessFallback.reload();
   }
 
   protected reloadStatsBand(): void {
     this.api.stats.reload();
+    this.api.statsFallback.reload();
     this.api.insurers.reload();
+    this.api.insurersFallback.reload();
   }
 
   protected reloadSpecialties(): void {
     this.api.specialties.reload();
+    this.api.specialtiesFallback.reload();
   }
 
   protected reloadHowItWorks(): void {
     this.api.howItWorks.reload();
+    this.api.howItWorksFallback.reload();
   }
 
   protected reloadDoctors(): void {
     this.api.doctors.reload();
+    this.api.doctorsFallback.reload();
   }
 
   protected reloadLocations(): void {
     this.api.locations.reload();
+    this.api.locationsFallback.reload();
   }
 
   protected reloadReviews(): void {
     this.api.reviews.reload();
+    this.api.reviewsFallback.reload();
   }
 
   protected reloadFaqSection(): void {
     this.api.faq.reload();
+    this.api.faqFallback.reload();
     this.api.publicInsurance.reload();
+    this.api.publicInsuranceFallback.reload();
   }
 
   protected reloadCoverage(): void {
     this.api.coverage.reload();
+    this.api.coverageFallback.reload();
   }
 }

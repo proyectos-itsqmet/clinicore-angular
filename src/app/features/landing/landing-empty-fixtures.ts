@@ -57,7 +57,6 @@ export const EMPTY_SITE: Site = {
   nav: { primary: [] },
   footer: {
     description: '',
-    medicalDirector: { label: '', name: '', registrationNumber: '' },
     specialtyLinks: [],
     patientLinks: [],
     legalLinks: [],

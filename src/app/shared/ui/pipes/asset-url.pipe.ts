@@ -1,12 +1,19 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 /**
- * The only place in the codebase that decides where deployed photos
- * live. Contract JSON files (jsons/landing/*.json) intentionally ship
- * bare filenames (e.g. "hero.jpg") — an API contract must not carry a
- * deployment path. `scripts/sync-assets.mjs` is what actually copies
- * design/photos/*.jpg into Frontend/public/img/ at build/serve time;
- * this constant is the single spot that has to agree with it.
+ * The only place in the codebase that decides where deployed photos live.
+ *
+ * The contract ships BARE FILENAMES — `"hero.jpg"`, never `"/img/hero.jpg"` —
+ * and both producers of it agree: the backend's
+ * `src/main/resources/landing/*.json` and the bundled fallback copy in
+ * `public/mock/landing`. That is on purpose: an API contract must not carry a
+ * deployment path, because the same JSON is served to a client that may mount
+ * its images anywhere. This constant is where that decision is made, once.
+ *
+ * The photos themselves live in `public/img`, committed to this repository and
+ * copied verbatim into the build by the `public` asset glob in `angular.json`.
+ * They are NOT synced in from anywhere at build time: what you clone is what
+ * deploys, and `/img/hero.jpg` is same-origin with the app that asks for it.
  */
 export const ASSET_BASE_PATH = '/img';
 

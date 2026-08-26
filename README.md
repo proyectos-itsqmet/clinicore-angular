@@ -44,48 +44,60 @@ npm run test:ci
 
 Same builder, `--watch=false` pinned, so the warning above still holds.
 
-## Sync assets
+## Assets live in this repository
+
+Everything the deployed app serves is committed here, under `public/`:
+
+- `public/img/*.jpg` — the photographs the landing renders
+- `public/mock/landing/*.json` — the landing contract, served as a fallback when
+  the API is unreachable (`LANDING_FALLBACK_BASE_URL`)
+- `public/mock/sala/*.json` — the waiting-room screen's own contract
+- `public/favicon.ico`
+
+`angular.json` copies the whole folder into the build through its `public` asset
+glob, so a clone is a complete, deployable app: no sync step, no npm pre-hooks, no
+path reaching outside the workspace.
+
+### Why there is no longer a sync step
+
+`public/img` and `public/mock` used to be gitignored COPIES, regenerated from
+`../design/photos` and `../jsons/landing` by `scripts/sync-assets.mjs` wired as
+npm pre-hooks. Two things made that a bad trade:
+
+1. **The deployable app depended on folders outside the repository.** Deploying
+   from GitHub — a clone, a CI runner, a `git archive` — produced a build with an
+   empty `public/img` and a landing full of broken image icons. Nothing failed
+   loudly; Angular happily copies an empty folder.
+2. **The refresh was silent when it did not happen.** Invoking `ng serve` instead
+   of `npm start` skipped the hooks and served a stale copy, and `httpResource`
+   casts a parsed body to its model without validating it — so a property that
+   had drifted arrived as `undefined` with no compile error and no console
+   message. It happened: `coverage.backgroundImage`,
+   `medicalRecord.liveScreen.image` and `stats.satisfaccion.percent` all went
+   missing or stale in the served copies.
+
+Both are gone. `public/` is the source now — edit the files in place, and use
+`ng` or `npm` as you like.
+
+`../design/photos` and `../jsons/landing` still exist as the design and contract
+archives for the workspace as a whole. They are NOT read by this build. If a
+photograph changes there, copy it into `public/img` deliberately and commit it.
+
+### Keeping the fallback honest
+
+`public/mock/landing/*.json` and `Backend_QMS/src/main/resources/landing/*.json`
+are the same contract served from two places — the API, and the bundled copy the
+landing falls back to when the API is down. Nothing enforces that they agree, so
+check when you change either:
 
 ```bash
-npm run sync:assets
+for f in public/mock/landing/*.json; do
+  diff -q "$f" "../Backend_QMS/src/main/resources/landing/$(basename "$f")"
+done
 ```
 
-Copies the three single-source-of-truth folders that live outside `Frontend/` into
-the places Angular serves from:
-
-- `design/photos/*.jpg` → `Frontend/public/img/`
-- `jsons/landing/*.json` → `Frontend/public/mock/landing/`
-- `jsons/sala/*.json` → `Frontend/public/mock/sala/`
-
-Both `public/img/` and `public/mock/` are generated (gitignored) — never edit the
-copies, only their sources.
-
-### Always go through npm, never through `ng` directly
-
-The sync is wired as npm pre-hooks (`prestart`, `prebuild`, `prewatch`, `pretest`,
-`pretest:ci`), so `npm start`, `npm run build`, `npm run watch` and `npm run test`
-refresh the copies for you. Invoking the CLI directly — `ng serve`, `ng build`,
-`ng test` — skips the hooks entirely and serves whatever stale copy is already on disk.
-
-That failure mode is **silent**, which is what makes it worth a warning: `httpResource`
-casts the parsed body to its model without validating it, so a served JSON that has
-drifted from `jsons/landing/` behind a required model property produces `undefined` at
-runtime with no compile error and no console message — a photo that quietly stops
-rendering, or a figure that contradicts the ring drawn around it. It has already
-happened once (`coverage.backgroundImage`, `medicalRecord.liveScreen.image` and
-`stats.satisfaccion.percent` all went missing or stale in the served copies).
-
-This cannot be fixed by pointing `angular.json`'s `assets` at `../jsons/landing`
-instead — verified: `@angular/build:application` rejects it with *"The ../jsons/landing
-asset path must be within the workspace root."* The copy step is mandatory, so the
-discipline is: **run npm scripts, not `ng`.** If you must use `ng` directly, run
-`npm run sync:assets` first, and to prove the copies match their sources:
-
-```bash
-for f in ../jsons/landing/*.json; do diff -q "$f" "public/mock/landing/$(basename "$f")"; done
-```
-
-Silence means all fifteen are byte-identical.
+Two files are expected to be missing on the backend side —
+`booking-availability.json` and `medical-record.json` have no endpoint yet.
 
 ## Design system
 

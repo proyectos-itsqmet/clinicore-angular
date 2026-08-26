@@ -52,9 +52,15 @@
         <ng-template>
           @for (insurer of insurers().items; track insurer.id) {
             <span
-              class="flex h-16 w-[140px] flex-shrink-0 items-center justify-center rounded-2xl border border-line bg-surface md:h-[74px] md:w-[168px] md:rounded-[18px]"
+              class="flex h-16 min-w-[140px] flex-shrink-0 items-center justify-center rounded-2xl border border-line bg-surface px-5 md:h-[74px] md:min-w-[168px] md:rounded-[18px] md:px-6"
             >
-              <span class="text-meta font-bold text-ink-2">{{ insurer.name }}</span>
+              <!-- min-w y no w: el ancho era FIJO y funcionaba con los rotulos
+                   de ejemplo ("[ASEGURADORA 1]"), pero los nombres reales son
+                   largos ("ISSFA (Fuerzas Armadas)") y el texto llegaba al borde.
+                   Solo agregar padding sobre un ancho fijo lo apretaria mas: la
+                   pildora tiene que poder crecer. El minimo conserva el ritmo
+                   visual de la banda cuando el nombre es corto. -->
+              <span class="text-meta text-center font-bold leading-tight text-ink-2">{{ insurer.name }}</span>
             </span>
           }
         </ng-template>
