@@ -11,8 +11,8 @@
 
 # Generated assets synced from outside Frontend/ by scripts/sync-assets.mjs
 # (sources of truth: ../design/photos and ../jsons/landing)
-/public/img
-/public/mock
+# /public/img
+# /public/mock
 
 # Node
 /node_modules

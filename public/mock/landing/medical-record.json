@@ -1,0 +1,47 @@
+{
+  "$comment": "GET /api/landing/medical-record — liveScreen es dato vivo (turno en atencion); benefits es contenido estatico",
+  "header": {
+    "kicker": "Historia clínica",
+    "title": "Una sola historia, en todas nuestras sedes."
+  },
+  "liveScreen": {
+    "status": "En vivo",
+    "location": "Pantalla de sala · Sede [NOMBRE]",
+    "image": "waiting.jpg",
+    "currentTicket": "B-042",
+    "office": "Consultorio 3 · [ESPECIALIDAD]",
+    "nextTickets": [
+      { "ticket": "B-043", "time": "09:40" },
+      { "ticket": "B-044", "time": "09:50" },
+      { "ticket": "B-045", "time": "10:00" },
+      { "ticket": "B-046", "time": "10:10" },
+      { "ticket": "B-047", "time": "10:20" }
+    ]
+  },
+  "benefits": [
+    {
+      "id": "historia-viaja-contigo",
+      "title": "Tu historia viaja contigo",
+      "description": "Cambias de sede o de especialista y el consultorio ya tiene tus consultas, estudios y recetas.",
+      "image": "tablet.jpg"
+    },
+    {
+      "id": "recetas-que-farmacia-ya-ve",
+      "title": "Recetas que farmacia ya ve",
+      "description": "Sales de consulta y la indicación está en el sistema. En farmacia solo das tu número.",
+      "image": "pharmacy.jpg"
+    },
+    {
+      "id": "tu-decides-quien-puede-verla",
+      "title": "Tú decides quién puede verla",
+      "description": "Cada acceso queda registrado con fecha, hora y responsable. Autorizas y revocas desde tu perfil, y el trato de datos sigue la [LOPDP].",
+      "image": null
+    },
+    {
+      "id": "estudios-comparables",
+      "title": "Estudios comparables",
+      "description": "Cada control se guarda junto al anterior, así el médico compara en vez de adivinar.",
+      "image": "vitals.jpg"
+    }
+  ]
+}

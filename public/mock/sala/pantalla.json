@@ -1,0 +1,30 @@
+{
+  "$comment": "GET /api/sala/{sedeId}/pantalla — TODO en este archivo es dato vivo salvo `site` y `ticker`. Ver README.md de esta carpeta: `history` NO incluye el llamado actual, la pantalla compone [current, ...history].",
+  "site": {
+    "brand": "CliniCore",
+    "location": "Sede [NOMBRE] · [CIUDAD]"
+  },
+  "current": {
+    "ticket": "B-042",
+    "room": "03",
+    "roomLabel": "Consultorio 3",
+    "specialty": "[ESPECIALIDAD]",
+    "calledAt": "2026-08-21T21:35:12-05:00"
+  },
+  "history": [
+    { "ticket": "B-041", "room": "01", "calledAt": "2026-08-21T21:31:48-05:00" },
+    { "ticket": "B-040", "room": "02", "calledAt": "2026-08-21T21:28:05-05:00" },
+    { "ticket": "B-039", "room": "01", "calledAt": "2026-08-21T21:24:31-05:00" },
+    { "ticket": "B-038", "room": "03", "calledAt": "2026-08-21T21:20:57-05:00" },
+    { "ticket": "B-037", "room": "02", "calledAt": "2026-08-21T21:17:14-05:00" },
+    { "ticket": "B-036", "room": "01", "calledAt": "2026-08-21T21:13:40-05:00" },
+    { "ticket": "B-035", "room": "03", "calledAt": "2026-08-21T21:09:22-05:00" },
+    { "ticket": "B-034", "room": "02", "calledAt": "2026-08-21T21:05:51-05:00" },
+    { "ticket": "B-033", "room": "03", "calledAt": "2026-08-21T21:02:09-05:00" },
+    { "ticket": "B-032", "room": "01", "calledAt": "2026-08-21T20:58:33-05:00" },
+    { "ticket": "B-031", "room": "02", "calledAt": "2026-08-21T20:54:47-05:00" },
+    { "ticket": "B-030", "room": "02", "calledAt": "2026-08-21T20:51:02-05:00" },
+    { "ticket": "B-029", "room": "01", "calledAt": "2026-08-21T20:47:19-05:00" }
+  ],
+  "ticker": "Tu historia clínica viaja contigo entre sedes · En farmacia solo das tu número de turno · [MENSAJE DE LA CLÍNICA]"
+}

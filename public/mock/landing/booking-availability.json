@@ -1,0 +1,46 @@
+{
+  "$comment": "GET /api/landing/booking-availability — dato vivo: dias, horas ocupadas y precios cambian en cada carga",
+  "header": {
+    "kicker": "Agenda en línea",
+    "title": "Elige, mira el valor y confirma.",
+    "lead": "Esta es la reserva real: la agenda de cada médico, los cupos que ya están tomados y el valor de tu plan antes de que confirmes nada."
+  },
+  "badge": "Pruébalo aquí mismo",
+  "doctors": [
+    { "id": "apellido-1", "name": "Dr(a). [APELLIDO 1]" },
+    { "id": "apellido-2", "name": "Dr(a). [APELLIDO 2]" },
+    { "id": "apellido-3", "name": "Dr(a). [APELLIDO 3]" }
+  ],
+  "days": [
+    { "date": "2026-08-10" },
+    { "date": "2026-08-11" },
+    { "date": "2026-08-12" },
+    { "date": "2026-08-13" },
+    { "date": "2026-08-14" },
+    { "date": "2026-08-15" },
+    { "date": "2026-08-17" }
+  ],
+  "slots": [
+    { "time": "08:20", "status": "available" },
+    { "time": "08:40", "status": "booked" },
+    { "time": "09:00", "status": "available" },
+    { "time": "09:20", "status": "available" },
+    { "time": "09:40", "status": "booked" },
+    { "time": "10:00", "status": "available" },
+    { "time": "10:40", "status": "available" },
+    { "time": "11:00", "status": "booked" },
+    { "time": "11:20", "status": "available" },
+    { "time": "15:00", "status": "available" },
+    { "time": "15:20", "status": "booked" },
+    { "time": "16:00", "status": "available" }
+  ],
+  "service": {
+    "name": "Consulta general",
+    "listPrice": { "amount": 30, "currency": "USD" },
+    "insurancePrice": { "amount": 12, "currency": "USD" },
+    "insurerLabel": "[ASEGURADORA]"
+  },
+  "slotsLegend": "Los cupos tachados están ocupados.",
+  "priceDisclaimer": "Valores aproximados. El monto exacto se confirma al reservar.",
+  "confirmationNote": "Te llega la confirmación y el recordatorio 24 h antes."
+}
