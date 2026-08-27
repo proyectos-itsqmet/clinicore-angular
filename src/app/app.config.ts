@@ -6,7 +6,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
-import { apiInterceptor } from './core/interceptors/api.interceptor';
+import { apiInterceptor, cacheInterceptor } from './core/interceptors';
 
 // Several organisms format money/numbers through `CurrencyPipe`/`DecimalPipe`
 // at the `es-EC` locale (see e.g. `app-price-row`, `app-closing-cta`,
@@ -32,6 +32,6 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(),
     // `withFetch()` is requested explicitly even though `FetchBackend` is
     // already the default backend, to keep the intent visible in config.
-    provideHttpClient(withFetch(), withInterceptors([apiInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([apiInterceptor, cacheInterceptor])),
   ]
 };
