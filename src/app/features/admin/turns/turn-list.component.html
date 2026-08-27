@@ -371,18 +371,13 @@
                 </span>
               }
 
-              <select
+              <app-select-field
+                class="min-w-44"
+                inputId="turn-status-filter"
                 [value]="statusFilter()"
-                (change)="onStatusFilterChange($any($event.target).value)"
-                class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
-              >
-                <option value="">Todos los Estados</option>
-                <option value="TURN_PENDING">Pendiente</option>
-                <option value="TURN_WAITNG">En Espera</option>
-                <option value="TURN_IN_TREATMENT">En Atención</option>
-                <option value="TURN_TREATED">Atendido</option>
-                <option value="TURN_CANCELLED">Cancelado</option>
-              </select>
+                [options]="TURN_STATUS_FILTER_OPTIONS"
+                (valueChange)="onStatusFilterChange($event)"
+              />
 
               <button
                 type="button"
@@ -843,21 +838,24 @@
             </p>
           } @else {
             <!--
-              (change) + [selected], NO [ngModel] ni [value] en el <select>: dos
-              trampas conocidas de este proyecto, un select con [value] pierde el
-              prefill cuando sus options vienen de un @for que todavía no renderizó,
-              y [ngModel] dentro de un form no dispara en Angular 22 + vitest.
+              Acá `[value]` ya es seguro, y conviene decir por qué: el
+              comentario que estaba en este lugar advertía que un
+              `<select [value]>` pierde el prefill cuando sus options vienen de
+              un `@for` que todavía no renderizó. Era exacto — los consultorios
+              de la sede llegan en su propia petición, después del modal.
+
+              `app-select-field` guarda el valor tal cual y resuelve la
+              etiqueta con un `computed` contra `options()`, así que la
+              selección aparece cuando el catálogo llega. Por eso desaparecen
+              también los `[selected]` por opción.
             -->
-            <select
-              id="call_room"
-              (change)="callRoomId.set($any($event.target).value ? +$any($event.target).value : null)"
-              class="w-full rounded-pill border border-line bg-field px-3 py-2 text-xs font-bold text-ink focus:border-blue focus:outline-none"
-            >
-              <option value="" [selected]="callRoomId() === null">Usar el del horario</option>
-              @for (room of callRooms(); track room.id) {
-                <option [value]="room.id" [selected]="callRoomId() === room.id">{{ room.label }}</option>
-              }
-            </select>
+            <app-select-field
+              inputId="call_room"
+              [value]="callRoomId() ?? ''"
+              placeholder="Usar el del horario"
+              [options]="callRoomOptions()"
+              (valueChange)="callRoomId.set($event ? +$event : null)"
+            />
             <p class="mt-2 text-[11px] text-ink-3">
               "Usar el del horario" toma el consultorio que un administrador asignó a esa jornada.
               Cambialo sólo si hoy el médico está atendiendo en otro.

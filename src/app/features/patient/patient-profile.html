@@ -167,15 +167,11 @@
 
               <div>
                 <label for="prof_gender" class="block text-[11px] font-semibold text-ink mb-1">Género</label>
-                <select
-                  id="prof_gender"
-                  formControlName="gender"
-                  class="block w-full rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="GENDER_MALE">Masculino</option>
-                  <option value="GENDER_FEMALE">Femenino</option>
-                  <option value="GENDER_OTHER">Otro</option>
-                </select>
+                <app-select-field
+                inputId="prof_gender"
+                formControlName="gender"
+                [options]="GENDER_OPTIONS"
+                />
               </div>
 
               <div>
@@ -356,16 +352,12 @@
           <!-- Barra de Filtros -->
           <div class="flex flex-wrap items-center gap-3 bg-field p-3 rounded-2xl border border-line">
             <!-- Filtro Estado -->
-            <select
-              [value]="filterStatus()"
-              (change)="onStatusChange($any($event.target).value)"
-              class="rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-            >
-              <option value="">Todos los Estados</option>
-              <option value="TURN_PENDING">Pendiente</option>
-              <option value="TURN_TREATED">Atendido</option>
-              <option value="TURN_CANCELLED">Cancelado</option>
-            </select>
+            <app-select-field
+            inputId="patient-turn-status"
+            [value]="filterStatus()"
+            [options]="TURN_STATUS_FILTER_OPTIONS"
+            (valueChange)="onStatusChange($event)"
+            />
 
             <!-- Filtro Fecha Desde -->
             <div class="flex items-center gap-1.5 text-xs text-ink-3">

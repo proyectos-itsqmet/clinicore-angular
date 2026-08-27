@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 
 import { DoctorApiService } from '../../../core/api/doctor-api.service';
@@ -64,7 +65,7 @@ const DAY_OF_WEEK_OPTIONS: ReadonlyArray<{ value: DayOfWeek; label: string }> = 
  */
 @Component({
   selector: 'app-schedule-template-list',
-  imports: [FormsModule],
+  imports: [FormsModule, SelectField],
   templateUrl: './schedule-template-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -75,6 +76,55 @@ export class ScheduleTemplateListComponent implements OnInit {
   private readonly scheduleApi = inject(ScheduleApiService);
 
   protected readonly DAY_OF_WEEK_OPTIONS = DAY_OF_WEEK_OPTIONS;
+
+  /** Los días, como opciones del desplegable del sistema de diseño. */
+  protected readonly DAY_OF_WEEK_SELECT_OPTIONS: readonly SelectOption[] = DAY_OF_WEEK_OPTIONS.map(
+    (d) => ({ value: d.value, label: d.label }),
+  );
+
+  // Catálogos como opciones. Van todos por `computed` porque se cargan por red
+  // y cambian: el de doctores y el de servicios además se vacían cada vez que
+  // cambia el establecimiento elegido.
+  protected readonly establishmentOptions = computed<readonly SelectOption[]>(() =>
+    this.establishments().map((e) => ({ value: String(e.id), label: e.name })),
+  );
+
+  /** El del filtro suma "Todos": no filtrar es una elección válida. */
+  protected readonly establishmentFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos los establecimientos' },
+    ...this.establishmentOptions(),
+  ]);
+
+  /**
+   * Los doctores del formulario, con "Cualquier doctor" ADELANTE.
+   *
+   * Acá la opción vacía sí corresponde y no es el placeholder: dejar la
+   * plantilla sin doctor es una decisión real del usuario — significa "pool",
+   * cualquiera disponible — y no la ausencia de una respuesta.
+   */
+  protected readonly formDoctorOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Cualquier doctor disponible (pool)' },
+    ...this.formDoctors().map((d) => ({
+      value: d.uuid,
+      label: `${d.firstName} ${d.lastName}`,
+    })),
+  ]);
+
+  protected readonly formServiceOptions = computed<readonly SelectOption[]>(() =>
+    this.formServices().map((s) => ({ value: String(s.id), label: s.name })),
+  );
+
+  protected readonly genDoctorOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Cualquier doctor (pool)' },
+    ...this.genDoctors().map((d) => ({
+      value: d.uuid,
+      label: `${d.firstName} ${d.lastName}`,
+    })),
+  ]);
+
+  protected readonly genServiceOptions = computed<readonly SelectOption[]>(() =>
+    this.genServices().map((s) => ({ value: String(s.id), label: s.name })),
+  );
 
   protected readonly data = signal<Page<ScheduleTemplate> | null>(null);
   protected readonly loading = signal<boolean>(true);
@@ -196,8 +246,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     });
   }
 
-  onFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFilterChange(value: string): void {
     this.filterStablishmentId.set(value ? Number(value) : null);
     this.loadPage(0);
   }
@@ -304,8 +353,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     this.formDoctors.set([]);
   }
 
-  onFormStablishmentChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFormStablishmentChange(value: string): void {
     const stablishmentId = value ? Number(value) : null;
     this.formStablishmentId.set(stablishmentId);
     this.formDoctorUuid.set('');
@@ -319,8 +367,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     }
   }
 
-  onFormDoctorChange(event: Event): void {
-    const doctorUuid = (event.target as HTMLSelectElement).value;
+  onFormDoctorChange(doctorUuid: string): void {
     this.formDoctorUuid.set(doctorUuid);
     this.formServiceId.set(null);
     this.formServices.set([]);
@@ -339,13 +386,12 @@ export class ScheduleTemplateListComponent implements OnInit {
     }
   }
 
-  onFormServiceChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFormServiceChange(value: string): void {
     this.formServiceId.set(value ? Number(value) : null);
   }
 
-  onFormDayOfWeekChange(event: Event): void {
-    this.formDayOfWeek.set((event.target as HTMLSelectElement).value as DayOfWeek | '');
+  onFormDayOfWeekChange(value: string): void {
+    this.formDayOfWeek.set(value as DayOfWeek | '');
   }
 
   onFormStartTimeInput(event: Event): void {
@@ -518,8 +564,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     });
   }
 
-  onGenStablishmentChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onGenStablishmentChange(value: string): void {
     const stablishmentId = value ? Number(value) : null;
     this.genStablishmentId.set(stablishmentId);
     this.genDoctorUuid.set('');
@@ -533,8 +578,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     }
   }
 
-  onGenDoctorChange(event: Event): void {
-    const doctorUuid = (event.target as HTMLSelectElement).value;
+  onGenDoctorChange(doctorUuid: string): void {
     this.genDoctorUuid.set(doctorUuid);
     this.genServiceId.set(null);
     this.genServices.set([]);
@@ -553,8 +597,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     }
   }
 
-  onGenServiceChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onGenServiceChange(value: string): void {
     this.genServiceId.set(value ? Number(value) : null);
   }
 

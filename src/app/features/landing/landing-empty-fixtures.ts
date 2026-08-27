@@ -10,7 +10,6 @@ import type {
   MedicalRecord,
   PublicInsurance,
   QuickAccess,
-  Reviews,
   Site,
   Specialties,
   Stats,
@@ -71,7 +70,7 @@ export const EMPTY_HERO: Hero = {
   trustPills: [],
   ctas: {
     primary: { label: '', href: '#' },
-    whatsapp: { label: '', href: '#' },
+    contact: { label: '', href: '#' },
   },
   images: { background: '', inset: '' },
   availability: { label: '', count: 0, unit: '', specialty: '', location: '' },
@@ -134,12 +133,6 @@ export const EMPTY_LOCATIONS: Locations = {
   header: { kicker: '', title: '' },
   gallery: [],
   items: [],
-};
-
-export const EMPTY_REVIEWS: Reviews = {
-  aggregate: { source: '', rating: 0, totalCount: 0 },
-  items: [],
-  quotes: [],
 };
 
 export const EMPTY_FAQ: Faq = {

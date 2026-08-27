@@ -29,6 +29,19 @@ export interface AdminNavEntry {
   readonly path: string;
   readonly children: readonly AdminNavLeaf[];
   readonly allowedRoles?: readonly string[];
+
+  /**
+   * Saca la fila del menu Y cierra su ruta, para todos los roles.
+   *
+   * Existe porque `allowedRoles: []` NO sirve para esto: `roleGuard` trata el
+   * arreglo vacio como "sin restricciones" y deja pasar a cualquiera. Usarlo
+   * para ocultar algo daba una fila invisible con la URL todavia abierta —
+   * exactamente lo contrario de lo que uno cree estar configurando.
+   *
+   * Es un interruptor temporal, no una politica: para esconder algo por
+   * permisos estan los `allowedRoles`. Esto es para "todavia no lo mostramos".
+   */
+  readonly hidden?: boolean;
 }
 
 /**

@@ -11,7 +11,6 @@ import { HeroSection } from '../../shared/ui/organisms/hero-section/hero-section
 import { HowItWorksSection } from '../../shared/ui/organisms/how-it-works/how-it-works';
 import { LocationsSection } from '../../shared/ui/organisms/locations-section/locations-section';
 import { QuickAccessRail } from '../../shared/ui/organisms/quick-access-rail/quick-access-rail';
-import { ReviewsSection } from '../../shared/ui/organisms/reviews-section/reviews-section';
 import { SiteFooter } from '../../shared/ui/organisms/site-footer/site-footer';
 import { SiteHeader } from '../../shared/ui/organisms/site-header/site-header';
 import { SpecialtiesSection } from '../../shared/ui/organisms/specialties-section/specialties-section';
@@ -26,7 +25,6 @@ import {
   EMPTY_LOCATIONS,
   EMPTY_PUBLIC_INSURANCE,
   EMPTY_QUICK_ACCESS,
-  EMPTY_REVIEWS,
   EMPTY_SITE,
   EMPTY_SPECIALTIES,
   EMPTY_STATS,
@@ -60,7 +58,6 @@ import {
     HowItWorksSection,
     DoctorsSection,
     LocationsSection,
-    ReviewsSection,
     FaqSection,
     ClosingCta,
     SiteFooter,
@@ -161,10 +158,6 @@ export class LandingPage {
   protected readonly locationsLoading = this.eitherLoading(this.api.locations, this.api.locationsFallback);
   protected readonly locationsError = this.bothFailed(this.api.locations, this.api.locationsFallback);
 
-  protected readonly reviews = this.pick(this.api.reviews, this.api.reviewsFallback, EMPTY_REVIEWS);
-  protected readonly reviewsLoading = this.eitherLoading(this.api.reviews, this.api.reviewsFallback);
-  protected readonly reviewsError = this.bothFailed(this.api.reviews, this.api.reviewsFallback);
-
   /** `app-faq-section` needs both `faq` and `publicInsurance` — one section, one combined state. */
   protected readonly faq = this.pick(this.api.faq, this.api.faqFallback, EMPTY_FAQ);
   protected readonly publicInsurance = this.pick(this.api.publicInsurance, this.api.publicInsuranceFallback, EMPTY_PUBLIC_INSURANCE);
@@ -236,11 +229,6 @@ export class LandingPage {
   protected reloadLocations(): void {
     this.api.locations.reload();
     this.api.locationsFallback.reload();
-  }
-
-  protected reloadReviews(): void {
-    this.api.reviews.reload();
-    this.api.reviewsFallback.reload();
   }
 
   protected reloadFaqSection(): void {

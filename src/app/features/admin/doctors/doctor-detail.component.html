@@ -262,26 +262,33 @@
                     </span>
                   } @else {
                     <!--
-                      (change) + [selected], deliberately NOT [ngModel] and NOT
-                      [value] on the <select>. Two known traps in this codebase:
-                      a <select [value]> loses its prefill when its options come
-                      from a @for that had not rendered yet, and [ngModel] with
-                      (ngModelChange) inside a form never fires under Angular 22
-                      + vitest.
+                      Acá SÍ se puede usar `[value]`, y vale explicar por qué,
+                      porque el `<select>` que había antes lo evitaba a
+                      propósito.
+
+                      La trampa que documentaba ese comentario era real: un
+                      `<select [value]>` PIERDE el prellenado cuando sus
+                      opciones vienen de un `@for` que todavía no se renderizó
+                      — el navegador descarta un `value` que no corresponde a
+                      ninguna `<option>` existente en ese instante, y no lo
+                      reintenta cuando las opciones llegan. Acá pasaba seguido:
+                      los consultorios de cada sede se cargan en peticiones
+                      aparte, después de las jornadas.
+
+                      `app-select-field` no delega en el navegador: guarda el
+                      valor tal cual y resuelve la etiqueta con un `computed`
+                      contra `options()`, así que cuando los consultorios
+                      terminan de llegar, la selección aparece sola. Por eso
+                      tampoco quedan `[selected]` por opción.
                     -->
-                    <select
+                    <app-select-field
+                      [value]="tpl.consultorio?.id ?? ''"
+                      placeholder="Sin asignar"
+                      [options]="consultorioOptions(tpl)"
                       [disabled]="savingTemplateId() === tpl.id"
-                      (change)="onConsultorioChange(tpl, $any($event.target).value)"
-                      class="rounded-pill border border-line bg-field px-3 py-1.5 text-xs font-bold text-ink focus:border-blue focus:outline-none disabled:opacity-50"
-                      [attr.aria-label]="'Consultorio para ' + tpl.stablishment.name + ' ' + DAY_LABELS[tpl.dayOfWeek]"
-                    >
-                      <option value="" [selected]="!tpl.consultorio">Sin asignar</option>
-                      @for (room of roomsFor(tpl); track room.id) {
-                        <option [value]="room.id" [selected]="tpl.consultorio?.id === room.id">
-                          {{ room.label }}
-                        </option>
-                      }
-                    </select>
+                      [inputId]="'consultorio-' + tpl.id"
+                      (valueChange)="onConsultorioChange(tpl, $event)"
+                    />
                   }
 
                   @if (savingTemplateId() === tpl.id) {
@@ -366,11 +373,7 @@
 
               <div>
                 <label for="edit_gender" class="block text-xs font-bold text-ink mb-1">Género</label>
-                <select id="edit_gender" formControlName="gender" class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none">
-                  <option [value]="'GENDER_MALE'">Masculino</option>
-                  <option [value]="'GENDER_FEMALE'">Femenino</option>
-                  <option [value]="'GENDER_OTHER'">Otro</option>
-                </select>
+                <app-select-field inputId="edit_gender" formControlName="gender" [options]="GENDER_OPTIONS" />
               </div>
             </div>
 

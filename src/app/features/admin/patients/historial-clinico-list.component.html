@@ -234,19 +234,12 @@
                     clínica a partir de un turno atendido.
                   </p>
                 } @else {
-                  <select
-                    id="encounterTurn"
+                  <app-select-field
+                    inputId="encounterTurn"
                     formControlName="turnId"
-                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                  >
-                    <option value="" disabled>Selecciona un turno atendido...</option>
-                    @for (t of treatedTurns(); track t.id) {
-                      <option [value]="t.id">
-                        Turno #{{ t.order }} · {{ t.schedule?.date }} {{ t.schedule?.hour }} · Dr.
-                        {{ t.schedule?.doctor?.firstName }} {{ t.schedule?.doctor?.lastName }}
-                      </option>
-                    }
-                  </select>
+                    placeholder="Selecciona un turno atendido..."
+                    [options]="treatedTurnOptions()"
+                  />
                   @if (treatedTurnsIncomplete()) {
                     <p class="mt-1 text-[11px] text-red-700">No se pudo cargar la lista completa de turnos atendidos; puede haber más.</p>
                   }

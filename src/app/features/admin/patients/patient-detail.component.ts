@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -18,7 +19,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-patient-detail',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, SelectField],
   templateUrl: './patient-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -139,6 +140,52 @@ export class PatientDetailComponent implements OnInit {
 
   // Catálogo de planes de cobertura para el <select> del modal de asignación.
   protected readonly coveragePlansCatalog = signal<CoveragePlan[]>([]);
+
+  // ==========================================================================
+  // Opciones de los desplegables.
+  // ==========================================================================
+
+  protected readonly TURN_STATUS_FILTER_OPTIONS: readonly SelectOption[] = [
+    { value: '', label: 'Todos los estados' },
+    { value: 'TURN_PENDING', label: 'Pendiente' },
+    { value: 'TURN_WAITNG', label: 'En Espera' },
+    { value: 'TURN_IN_TREATMENT', label: 'En Atención' },
+    { value: 'TURN_TREATED', label: 'Atendido' },
+    { value: 'TURN_CANCELLED', label: 'Cancelado' },
+  ];
+
+  protected readonly SORT_OPTIONS: readonly SelectOption[] = [
+    { value: 'createdAt,desc', label: 'Más recientes primero' },
+    { value: 'createdAt,asc', label: 'Más antiguos primero' },
+    { value: 'id,desc', label: 'ID Descendente' },
+    { value: 'id,asc', label: 'ID Ascendente' },
+  ];
+
+  protected readonly establishmentFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todas las sedes' },
+    ...this.establishments().map((e) => ({ value: String(e.id), label: e.name })),
+  ]);
+
+  protected readonly serviceFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos los servicios' },
+    ...this.services().map((s) => ({ value: String(s.id), label: s.name })),
+  ]);
+
+  /**
+   * Los planes de cobertura.
+   *
+   * La aseguradora pasa al renglón secundario en vez de ir pegada al nombre
+   * con un guion: dos planes distintos suelen llamarse igual ("Plan Básico")
+   * y lo que los separa es justamente la aseguradora, que en una sola línea
+   * angosta era lo primero que se cortaba.
+   */
+  protected readonly coveragePlanOptions = computed<readonly SelectOption[]>(() =>
+    this.coveragePlansCatalog().map((p) => ({
+      value: String(p.id),
+      label: p.name,
+      hint: p.insurer.name,
+    })),
+  );
   protected readonly coveragePlansCatalogLoading = signal<boolean>(false);
   protected readonly coveragePlansCatalogError = signal<string | null>(null);
   protected readonly coveragePlansCatalogIncomplete = signal<boolean>(false);
@@ -682,8 +729,7 @@ export class PatientDetailComponent implements OnInit {
     this.editingCoverage.set(null);
   }
 
-  onCoveragePlanChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onCoveragePlanChange(value: string): void {
     this.coverageFormPlanId.set(value ? Number(value) : null);
   }
 

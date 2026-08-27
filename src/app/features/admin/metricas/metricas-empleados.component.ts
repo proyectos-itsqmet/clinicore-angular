@@ -83,6 +83,64 @@ export class MetricasEmpleadosComponent implements OnInit {
     });
   });
 
+  // ==========================================================================
+  // Cifras del equipo completo, derivadas de las mismas dos tablas.
+  // ==========================================================================
+
+  protected readonly totalAttended = computed(() =>
+    this.doctorRows().reduce((sum, d) => sum + d.attended, 0),
+  );
+
+  protected readonly totalNoShows = computed(() =>
+    this.doctorRows().reduce((sum, d) => sum + d.noShows, 0),
+  );
+
+  protected readonly totalCancelled = computed(() =>
+    this.doctorRows().reduce((sum, d) => sum + d.cancelled, 0),
+  );
+
+  /** Base de todos los porcentajes: solo lo que este DTO realmente reporta. */
+  private readonly trackedTotal = computed(() =>
+    this.totalAttended() + this.totalCancelled() + this.totalNoShows(),
+  );
+
+  /**
+   * Inasistencias sobre el total seguido, en porcentaje.
+   *
+   * Es la cifra que más cuesta ver en la tabla y la que más plata mueve: una
+   * inasistencia es un cupo que no se puede revender porque nadie avisó.
+   * Distinta de una cancelación, que al menos libera el horario.
+   */
+  protected readonly noShowRate = computed(() => {
+    const total = this.trackedTotal();
+    return total === 0 ? 0 : Math.round((this.totalNoShows() / total) * 1000) / 10;
+  });
+
+  protected readonly attendedRate = computed(() => {
+    const total = this.trackedTotal();
+    return total === 0 ? 0 : Math.round((this.totalAttended() / total) * 1000) / 10;
+  });
+
+  protected readonly hasTrackedTurns = computed(() => this.trackedTotal() > 0);
+
+  /**
+   * Los doctores con más inasistencias, no con peor proporción.
+   *
+   * A propósito: una proporción castiga a quien tiene pocos turnos — un
+   * médico con 1 atendido y 1 inasistencia da 50% y no es el problema. Lo que
+   * duele en la agenda es el volumen absoluto de cupos perdidos.
+   */
+  protected readonly topNoShowDoctors = computed(() =>
+    this.doctorRows()
+      .filter((d) => d.noShows > 0)
+      .sort((a, b) => b.noShows - a.noShows)
+      .slice(0, 3),
+  );
+
+  protected readonly totalTurnsHandled = computed(() =>
+    this.operatorRows().reduce((sum, o) => sum + o.turnsHandled, 0),
+  );
+
   ngOnInit(): void {
     this.load();
   }

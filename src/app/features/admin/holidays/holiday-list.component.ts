@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -29,7 +30,7 @@ import type { BlockReason, Establishment, Holiday, Page } from '../../../core/mo
  */
 @Component({
   selector: 'app-holiday-list',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, SelectField],
   templateUrl: './holiday-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -40,6 +41,19 @@ export class HolidayListComponent implements OnInit {
 
   protected readonly establishments = signal<Establishment[]>([]);
   protected readonly reasons = signal<BlockReason[]>([]);
+
+  protected readonly establishmentOptions = computed<readonly SelectOption[]>(() =>
+    this.establishments().map((e) => ({ value: String(e.id), label: e.name })),
+  );
+
+  protected readonly establishmentFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todas las sedes' },
+    ...this.establishmentOptions(),
+  ]);
+
+  protected readonly reasonOptions = computed<readonly SelectOption[]>(() =>
+    this.reasons().map((r) => ({ value: String(r.id), label: r.description })),
+  );
 
   protected readonly data = signal<Page<Holiday> | null>(null);
   protected readonly loading = signal<boolean>(true);
@@ -102,8 +116,7 @@ export class HolidayListComponent implements OnInit {
     });
   }
 
-  onFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFilterChange(value: string): void {
     this.filterStablishmentId.set(value ? Number(value) : null);
     this.loadPage(0);
   }
@@ -144,13 +157,11 @@ export class HolidayListComponent implements OnInit {
     this.editingItem.set(null);
   }
 
-  onFormStablishmentChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFormStablishmentChange(value: string): void {
     this.formStablishmentId.set(value ? Number(value) : null);
   }
 
-  onFormReasonChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFormReasonChange(value: string): void {
     this.formReasonId.set(value ? Number(value) : null);
   }
 

@@ -284,18 +284,11 @@
       <!-- Estado -->
       <div>
         <label for="status" class="block text-[11px] font-bold text-ink mb-1">Estado</label>
-        <select
-          id="status"
-          formControlName="status"
-          class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-        >
-          <option value="">Todos los estados</option>
-          <option value="TURN_PENDING">Pendiente</option>
-          <option value="TURN_WAITNG">En Espera</option>
-          <option value="TURN_IN_TREATMENT">En Atención</option>
-          <option value="TURN_TREATED">Atendido</option>
-          <option value="TURN_CANCELLED">Cancelado</option>
-        </select>
+        <app-select-field
+        inputId="status"
+        formControlName="status"
+        [options]="TURN_STATUS_FILTER_OPTIONS"
+        />
       </div>
 
       <!-- Desde -->
@@ -323,16 +316,11 @@
       <!-- Orden -->
       <div>
         <label for="sort" class="block text-[11px] font-bold text-ink mb-1">Ordenamiento</label>
-        <select
-          id="sort"
-          formControlName="sort"
-          class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-        >
-          <option value="createdAt,desc">Más recientes primero</option>
-          <option value="createdAt,asc">Más antiguos primero</option>
-          <option value="id,desc">ID Descendente</option>
-          <option value="id,asc">ID Ascendente</option>
-        </select>
+        <app-select-field
+        inputId="sort"
+        formControlName="sort"
+        [options]="SORT_OPTIONS"
+        />
       </div>
 
       <!-- Botones de Acción -->
@@ -656,30 +644,22 @@
 
             <div class="sm:col-span-3">
               <label class="block text-[11px] font-bold text-ink mb-1">🏥 Por Sede</label>
-              <select
-                [ngModel]="scheduleSearchForm.get('stablishmentId')?.value"
-                (ngModelChange)="scheduleSearchForm.patchValue({ stablishmentId: $event })"
-                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-              >
-                <option value="">Todas las sedes</option>
-                @for (est of establishments(); track est.id) {
-                  <option [value]="est.id">{{ est.name }}</option>
-                }
-              </select>
+              <app-select-field
+              inputId="sched-search-est"
+              [ngModel]="scheduleSearchForm.get('stablishmentId')?.value"
+              (ngModelChange)="scheduleSearchForm.patchValue({ stablishmentId: $event })"
+              [options]="establishmentFilterOptions()"
+              />
             </div>
 
             <div class="sm:col-span-3">
               <label class="block text-[11px] font-bold text-ink mb-1">🩺 Por Servicio</label>
-              <select
-                [ngModel]="scheduleSearchForm.get('serviceId')?.value"
-                (ngModelChange)="scheduleSearchForm.patchValue({ serviceId: $event })"
-                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-              >
-                <option value="">Todos los servicios</option>
-                @for (srv of services(); track srv.id) {
-                  <option [value]="srv.id">{{ srv.name }}</option>
-                }
-              </select>
+              <app-select-field
+              inputId="sched-search-svc"
+              [ngModel]="scheduleSearchForm.get('serviceId')?.value"
+              (ngModelChange)="scheduleSearchForm.patchValue({ serviceId: $event })"
+              [options]="serviceFilterOptions()"
+              />
             </div>
 
             <div class="sm:col-span-3 flex items-end gap-2">
@@ -869,30 +849,22 @@
 
             <div class="sm:col-span-3">
               <label class="block text-[11px] font-bold text-ink mb-1">🏥 Sede / Establecimiento</label>
-              <select
-                [ngModel]="reassignSearchForm.get('stablishmentId')?.value"
-                (ngModelChange)="reassignSearchForm.patchValue({ stablishmentId: $event })"
-                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-              >
-                <option value="">Todas las sedes</option>
-                @for (est of establishments(); track est.id) {
-                  <option [value]="est.id">{{ est.name }}</option>
-                }
-              </select>
+              <app-select-field
+              inputId="reassign-search-est"
+              [ngModel]="reassignSearchForm.get('stablishmentId')?.value"
+              (ngModelChange)="reassignSearchForm.patchValue({ stablishmentId: $event })"
+              [options]="establishmentFilterOptions()"
+              />
             </div>
 
             <div class="sm:col-span-3">
               <label class="block text-[11px] font-bold text-ink mb-1">🩺 Servicio</label>
-              <select
-                [ngModel]="reassignSearchForm.get('serviceId')?.value"
-                (ngModelChange)="reassignSearchForm.patchValue({ serviceId: $event })"
-                class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-              >
-                <option value="">Todos los servicios</option>
-                @for (srv of services(); track srv.id) {
-                  <option [value]="srv.id">{{ srv.name }}</option>
-                }
-              </select>
+              <app-select-field
+              inputId="reassign-search-svc"
+              [ngModel]="reassignSearchForm.get('serviceId')?.value"
+              (ngModelChange)="reassignSearchForm.patchValue({ serviceId: $event })"
+              [options]="serviceFilterOptions()"
+              />
             </div>
 
             <div class="sm:col-span-3 flex items-end gap-2">
@@ -1146,18 +1118,13 @@
             <div class="space-y-4">
               <div>
                 <label for="coveragePlan" class="block text-xs font-bold text-ink mb-1">Plan de Cobertura *</label>
-                <select
-                  id="coveragePlan"
-                  [value]="coverageFormPlanId() ?? ''"
-                  (change)="onCoveragePlanChange($event)"
-                  name="coveragePlan"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un plan...</option>
-                  @for (p of coveragePlansCatalog(); track p.id) {
-                    <option [value]="p.id">{{ p.insurer.name }} — {{ p.name }}</option>
-                  }
-                </select>
+                <app-select-field
+                inputId="coveragePlan"
+                [value]="coverageFormPlanId() ?? ''"
+                placeholder="Selecciona un plan..."
+                [options]="coveragePlanOptions()"
+                (valueChange)="onCoveragePlanChange($event)"
+                />
                 @if (coverageSubmitAttempted() && coverageFormPlanId() == null) {
                   <p class="mt-1 text-xs text-red-600">El plan de cobertura es requerido.</p>
                 }

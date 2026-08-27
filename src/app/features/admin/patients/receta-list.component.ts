@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -25,7 +26,7 @@ import type { Encounter, Page, Patient, Prescription, PrescriptionCreate, Prescr
  */
 @Component({
   selector: 'app-receta-list',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, SelectField],
   templateUrl: './receta-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -57,6 +58,25 @@ export class RecetaListComponent implements OnInit {
   protected readonly formError = signal<string | null>(null);
 
   protected readonly encountersForPicker = signal<Encounter[]>([]);
+
+  /**
+   * Las consultas como opciones del desplegable.
+   *
+   * La fecha va de etiqueta y el motivo con el doctor de `hint`, en lugar de
+   * una sola linea con tres separadores: en una lista angosta esa linea se
+   * cortaba con puntos suspensivos justo en el nombre del medico, que es lo
+   * que distingue dos consultas del mismo dia.
+   */
+  protected readonly encounterOptions = computed<readonly SelectOption[]>(() =>
+    this.encountersForPicker().map((e) => ({
+      value: String(e.id),
+      // `visitDate` es opcional en el modelo. Sin respaldo, una consulta sin
+      // fecha rendereaba una opcion SIN etiqueta: una fila en blanco que se
+      // puede elegir y que no dice a que consulta corresponde.
+      label: e.visitDate ?? `Consulta #${e.id}`,
+      hint: `${e.reasonForVisit} · Dr. ${e.doctorFullName}`,
+    })),
+  );
   protected readonly encountersLoading = signal<boolean>(false);
   protected readonly encountersIncomplete = signal<boolean>(false);
 

@@ -53,7 +53,48 @@
       </div>
       <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
         <p class="text-[11px] font-bold text-ink-3">Cancelados en el período</p>
-        <p class="mt-1 font-display text-2xl font-extrabold text-ink">{{ summary.cancelledInPeriod }}</p>
+        <p class="mt-1 font-display text-2xl font-extrabold text-emergency">{{ summary.cancelledInPeriod }}</p>
+      </div>
+    </div>
+
+    <!--
+      Segunda fila: lecturas DERIVADAS de los mismos cuatro números.
+
+      El endpoint de pacientes no trae nada más, y la pantalla ya mostraba los
+      cuatro campos crudos. Lo que faltaba no era dato: era convertirlo en las
+      preguntas que se hacen de verdad.
+    -->
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
+        <p class="text-[11px] font-bold text-ink-3">Turnos efectivos</p>
+        <p class="mt-1 font-display text-2xl font-extrabold text-ok">{{ effectiveTurns() }}</p>
+        <p class="mt-0.5 text-[11px] text-ink-3">
+          Los que no se cancelaron: la atención que la clínica sostuvo de verdad.
+        </p>
+        @if (hasTurnsInPeriod()) {
+          <div class="mt-2 h-2 overflow-hidden rounded-pill bg-field">
+            <div class="h-full rounded-pill bg-ok transition-all" [style.width.%]="effectivePercent()"></div>
+          </div>
+        }
+      </div>
+
+      <div class="bg-surface rounded-2xl border border-line p-4 shadow-sm">
+        <p class="text-[11px] font-bold text-ink-3">Turnos por paciente nuevo</p>
+        @if (turnsPerNewPatient(); as ratio) {
+          <p class="mt-1 font-display text-2xl font-extrabold text-ink">{{ ratio }}</p>
+          <!--
+            La aclaración NO es opcional: el numerador incluye turnos de
+            pacientes que ya existían y el denominador solo cuenta los nuevos.
+            Leído como "turnos por persona" el número miente.
+          -->
+          <p class="mt-0.5 text-[11px] text-ink-3">
+            Indicador de mezcla, no un promedio por persona: los turnos incluyen pacientes
+            que ya estaban.
+          </p>
+        } @else {
+          <p class="mt-1 font-display text-2xl font-extrabold text-ink-3">—</p>
+          <p class="mt-0.5 text-[11px] text-ink-3">Sin pacientes nuevos en el período.</p>
+        }
       </div>
     </div>
 

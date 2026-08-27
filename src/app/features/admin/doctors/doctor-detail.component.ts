@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -19,7 +20,7 @@ import type {
 
 @Component({
   selector: 'app-doctor-detail',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, DecimalPipe],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, DecimalPipe, SelectField],
   templateUrl: './doctor-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -143,9 +144,30 @@ export class DoctorDetailComponent implements OnInit {
     }
   }
 
+  protected readonly GENDER_OPTIONS: readonly SelectOption[] = [
+    { value: 'GENDER_MALE', label: 'Masculino' },
+    { value: 'GENDER_FEMALE', label: 'Femenino' },
+    { value: 'GENDER_OTHER', label: 'Otro' },
+  ];
+
   protected roomsFor(template: ScheduleTemplate): Consultorio[] {
     const estId = template.stablishment?.id;
     return estId == null ? [] : (this.consultoriosByEst()[estId] ?? []);
+  }
+
+  /**
+   * Los consultorios de la sede de ESTA plantilla, como opciones.
+   *
+   * "Sin asignar" es el placeholder y no una opción de la lista: dejar la
+   * plantilla sin consultorio es el estado inicial, y `valueChange` con
+   * cadena vacía ya lo representa — `onConsultorioChange` convierte el vacío
+   * en `null` igual que antes.
+   */
+  protected consultorioOptions(template: ScheduleTemplate): readonly SelectOption[] {
+    return this.roomsFor(template).map((room) => ({
+      value: String(room.id),
+      label: room.label,
+    }));
   }
 
   /**

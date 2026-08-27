@@ -192,14 +192,12 @@
 
               <div>
                 <label for="role" class="block text-xs font-bold text-ink mb-1">Rol *</label>
-                <select
-                  id="role"
+                <app-select-field
+                  inputId="role"
                   formControlName="role"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option [value]="'ROLE_EMPLOYEE'">Operador de Turnos</option>
-                  <option [value]="'ROLE_ADMIN'">Administrador</option>
-                </select>
+                  [options]="ROLE_OPTIONS"
+                  [invalid]="form.controls.role.touched && form.controls.role.invalid"
+                />
                 @if (form.controls.role.touched && form.controls.role.hasError('required')) {
                   <p class="mt-1 text-xs text-red-600">El rol es requerido.</p>
                 }

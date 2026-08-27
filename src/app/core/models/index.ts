@@ -10,7 +10,6 @@ export * from './how-it-works.model';
 export * from './doctors.model';
 export * from './medical-record.model';
 export * from './locations.model';
-export * from './reviews.model';
 export * from './faq.model';
 export * from './public-insurance.model';
 export * from './coverage.model';

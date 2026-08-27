@@ -10,7 +10,17 @@ export interface HeroCta {
 
 export interface HeroCtas {
   primary: HeroCta;
-  whatsapp: HeroCta;
+
+  /**
+   * The secondary CTA. Named for what it DOES, not for a channel: it used to
+   * be `whatsapp` and to carry a WhatsApp deep link, and it now opens the
+   * in-page assistant instead. Leaving the old key would have left the
+   * contract asserting a channel the button does not open.
+   *
+   * `href` is kept in the shape so the CTA can go back to being a link
+   * without a model change, but the hero ignores it — see `hero-section.html`.
+   */
+  contact: HeroCta;
 }
 
 export interface HeroImages {

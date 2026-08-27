@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DoctorApiService } from '../../../core/api/doctor-api.service';
@@ -6,11 +7,17 @@ import type { AdminDoctor, Page } from '../../../core/models';
 
 @Component({
   selector: 'app-doctor-list',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, SelectField],
   templateUrl: './doctor-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DoctorListComponent implements OnInit {
+  protected readonly GENDER_OPTIONS: readonly SelectOption[] = [
+    { value: 'GENDER_MALE', label: 'Masculino' },
+    { value: 'GENDER_FEMALE', label: 'Femenino' },
+    { value: 'GENDER_OTHER', label: 'Otro' },
+  ];
+
   private readonly api = inject(DoctorApiService);
   private readonly fb = inject(FormBuilder);
 

@@ -8,9 +8,6 @@
   <section class="rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
     <p class="text-[11px] font-bold uppercase tracking-wider text-blue-900">Saldo Pendiente Actual</p>
     <p class="mt-1 font-display text-3xl font-extrabold text-blue-900">{{ summary() ? formatMoney(summary()!.outstandingNow) : '—' }}</p>
-    <p class="mt-1 text-[11px] text-blue-800">
-      Este número no depende del rango de fechas: es la deuda total de facturas no anuladas, calculada al instante — no una foto histórica.
-    </p>
   </section>
 
   <!-- Filtro de rango -->
@@ -54,7 +51,7 @@
               @for (row of s.invoicedByStatus; track row.status) {
                 <tr>
                   <td class="py-2 pr-3 text-xs">
-                    <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + INVOICE_STATUS_BADGE_CLASS[row.status]">
+                    <span [class]="'inline-flex items-center whitespace-nowrap rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + INVOICE_STATUS_BADGE_CLASS[row.status]">
                       {{ INVOICE_STATUS_LABELS[row.status] }}
                     </span>
                   </td>
@@ -83,7 +80,7 @@
               @for (row of s.collectedByMethod; track row.method) {
                 <tr>
                   <td class="py-2 pr-3 text-xs">
-                    <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + PAYMENT_METHOD_BADGE_CLASS[row.method]">
+                    <span [class]="'inline-flex items-center whitespace-nowrap rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + PAYMENT_METHOD_BADGE_CLASS[row.method]">
                       {{ PAYMENT_METHOD_LABELS[row.method] }}
                     </span>
                   </td>
@@ -115,7 +112,7 @@
             @for (row of claimsSummary()!.claimsByStatus; track row.status) {
               <tr>
                 <td class="py-2 pr-3 text-xs">
-                  <span [class]="'inline-flex items-center rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + CLAIM_STATUS_BADGE_CLASS[row.status]">
+                  <span [class]="'inline-flex items-center whitespace-nowrap rounded-pill px-2.5 py-0.5 text-[11px] font-bold ' + CLAIM_STATUS_BADGE_CLASS[row.status]">
                     {{ CLAIM_STATUS_LABELS[row.status] }}
                   </span>
                 </td>

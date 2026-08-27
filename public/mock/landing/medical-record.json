@@ -6,10 +6,10 @@
   },
   "liveScreen": {
     "status": "En vivo",
-    "location": "Pantalla de sala · Sede [NOMBRE]",
+    "location": "Pantalla de sala · Sede Norte",
     "image": "waiting.jpg",
     "currentTicket": "B-042",
-    "office": "Consultorio 3 · [ESPECIALIDAD]",
+    "office": "Consultorio 3 · Medicina general",
     "nextTickets": [
       { "ticket": "B-043", "time": "09:40" },
       { "ticket": "B-044", "time": "09:50" },
@@ -34,7 +34,7 @@
     {
       "id": "tu-decides-quien-puede-verla",
       "title": "Tú decides quién puede verla",
-      "description": "Cada acceso queda registrado con fecha, hora y responsable. Autorizas y revocas desde tu perfil, y el trato de datos sigue la [LOPDP].",
+      "description": "Cada acceso queda registrado con fecha, hora y responsable. Autorizas y revocas desde tu perfil, y el trato de datos sigue la Ley Orgánica de Protección de Datos Personales.",
       "image": null
     },
     {

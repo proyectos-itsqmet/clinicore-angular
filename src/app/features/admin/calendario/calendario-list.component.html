@@ -41,66 +41,42 @@
 
     <div class="flex flex-col gap-1">
       <label class="text-[11px] font-bold text-ink-3" for="calendarioEstablecimiento">Establecimiento</label>
-      <select
-        id="calendarioEstablecimiento"
-        name="calendarioEstablecimiento"
-        [value]="filterEstablishmentId() ?? ''"
-        (change)="onEstablishmentFilterChange($event)"
-        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos</option>
-        @for (est of establishments(); track est.id) {
-          <option [value]="est.id">{{ est.name }}</option>
-        }
-      </select>
+      <app-select-field
+      inputId="calendarioEstablecimiento"
+      [value]="filterEstablishmentId() ?? ''"
+      [options]="establishmentFilterOptions()"
+      (valueChange)="onEstablishmentFilterChange($event)"
+      />
     </div>
 
     <div class="flex flex-col gap-1">
       <label class="text-[11px] font-bold text-ink-3" for="calendarioServicio">Servicio</label>
-      <select
-        id="calendarioServicio"
-        name="calendarioServicio"
-        [value]="filterServiceId() ?? ''"
-        (change)="onServiceFilterChange($event)"
-        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos</option>
-        @for (srv of services(); track srv.id) {
-          <option [value]="srv.id">{{ srv.name }}</option>
-        }
-      </select>
+      <app-select-field
+      inputId="calendarioServicio"
+      [value]="filterServiceId() ?? ''"
+      [options]="serviceFilterOptions()"
+      (valueChange)="onServiceFilterChange($event)"
+      />
     </div>
 
     <div class="flex flex-col gap-1">
       <label class="text-[11px] font-bold text-ink-3" for="calendarioDoctor">Doctor</label>
-      <select
-        id="calendarioDoctor"
-        name="calendarioDoctor"
-        [value]="filterDoctorId() ?? ''"
-        (change)="onDoctorFilterChange($event)"
-        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos</option>
-        @for (doc of doctors(); track doc.uuid) {
-          <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
-        }
-      </select>
+      <app-select-field
+      inputId="calendarioDoctor"
+      [value]="filterDoctorId() ?? ''"
+      [options]="doctorFilterOptions()"
+      (valueChange)="onDoctorFilterChange($event)"
+      />
     </div>
 
     <div class="flex flex-col gap-1">
       <label class="text-[11px] font-bold text-ink-3" for="calendarioEstado">Estado</label>
-      <select
-        id="calendarioEstado"
-        name="calendarioEstado"
-        [value]="filterStatus()"
-        (change)="onStatusFilterChange($event)"
-        class="rounded-xl border border-line bg-field py-1.5 px-3 text-xs font-bold text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos</option>
-        <option value="STATUS_FREE">Disponible</option>
-        <option value="STATUS_OCCUPIED">Ocupado</option>
-        <option value="STATUS_UNAVAILABLE">No disponible</option>
-      </select>
+      <app-select-field
+      inputId="calendarioEstado"
+      [value]="filterStatus()"
+      [options]="STATUS_FILTER_OPTIONS"
+      (valueChange)="onStatusFilterChange($event)"
+      />
     </div>
 
     @if (hasActiveFilters()) {

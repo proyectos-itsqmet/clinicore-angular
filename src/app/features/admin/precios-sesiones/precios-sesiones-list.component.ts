@@ -1,4 +1,5 @@
 import { DecimalPipe } from '@angular/common';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -22,7 +23,7 @@ import type { Page, Servicio, SessionPlan, SessionPlanCreate } from '../../../co
  */
 @Component({
   selector: 'app-precios-sesiones-list',
-  imports: [DecimalPipe, FormsModule],
+  imports: [DecimalPipe, FormsModule, SelectField],
   templateUrl: './precios-sesiones-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -43,6 +44,15 @@ export class PreciosSesionesListComponent implements OnInit {
 
   // Catálogo de servicios (todas las páginas) para el filtro y el <select> del formulario.
   protected readonly serviciosCatalog = signal<Servicio[]>([]);
+
+  protected readonly servicioOptions = computed<readonly SelectOption[]>(() =>
+    this.serviciosCatalog().map((s) => ({ value: String(s.id), label: s.name })),
+  );
+
+  protected readonly servicioFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos los servicios' },
+    ...this.servicioOptions(),
+  ]);
   protected readonly serviciosCatalogLoading = signal<boolean>(false);
   protected readonly serviciosCatalogError = signal<string | null>(null);
   protected readonly serviciosCatalogIncomplete = signal<boolean>(false);
@@ -136,8 +146,7 @@ export class PreciosSesionesListComponent implements OnInit {
     });
   }
 
-  onFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFilterChange(value: string): void {
     this.filterServicioId.set(value ? Number(value) : null);
     this.loadPage(0);
   }
@@ -178,8 +187,7 @@ export class PreciosSesionesListComponent implements OnInit {
     this.editingItem.set(null);
   }
 
-  onFormServicioChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFormServicioChange(value: string): void {
     this.formServicioId.set(value ? Number(value) : null);
   }
 

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -30,7 +31,7 @@ function blankLine(): LineItemForm {
  */
 @Component({
   selector: 'app-facturacion-list',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, SelectField],
   templateUrl: './facturacion-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -100,9 +101,25 @@ export class FacturacionListComponent implements OnInit {
     });
   }
 
-  onFilterStatusChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value as InvoiceStatus | '';
-    this.filterStatus.set(value);
+  protected readonly INVOICE_STATUS_FILTER_OPTIONS: readonly SelectOption[] = [
+    { value: '', label: 'Todos' },
+    { value: 'ISSUED', label: 'Emitida' },
+    { value: 'PARTIALLY_PAID', label: 'Pago parcial' },
+    { value: 'PAID', label: 'Pagada' },
+    { value: 'VOID', label: 'Anulada' },
+  ];
+
+  /** Los cuatro origenes posibles de una linea de factura. */
+  protected readonly LINE_SOURCE_OPTIONS: readonly SelectOption[] = [
+    { value: 'FREE_LINE', label: INVOICE_LINE_SOURCE_LABELS.FREE_LINE },
+    { value: 'TURN', label: INVOICE_LINE_SOURCE_LABELS.TURN },
+    { value: 'PACKAGE', label: INVOICE_LINE_SOURCE_LABELS.PACKAGE },
+    { value: 'SESSION_PLAN', label: INVOICE_LINE_SOURCE_LABELS.SESSION_PLAN },
+  ];
+
+  onFilterStatusChange(value: string): void {
+    const status = value as InvoiceStatus | "";
+    this.filterStatus.set(status);
     this.loadPage(0);
   }
 
@@ -174,8 +191,8 @@ export class FacturacionListComponent implements OnInit {
     this.lineItems.update((items) => items.filter((_, i) => i !== index));
   }
 
-  onLineSourceTypeChange(index: number, event: Event): void {
-    const value = (event.target as HTMLSelectElement).value as InvoiceLineSourceType;
+  onLineSourceTypeChange(index: number, raw: string): void {
+    const value = raw as InvoiceLineSourceType;
     this.lineItems.update((items) => items.map((item, i) => (i === index ? { ...item, sourceType: value } : item)));
   }
 

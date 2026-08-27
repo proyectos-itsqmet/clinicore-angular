@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 
 import { DoctorApiService } from '../../../core/api/doctor-api.service';
@@ -43,7 +44,7 @@ function addDays(date: Date, days: number): Date {
  */
 @Component({
   selector: 'app-calendario-list',
-  imports: [FormsModule],
+  imports: [FormsModule, SelectField],
   templateUrl: './calendario-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -57,6 +58,34 @@ export class CalendarioListComponent implements OnInit {
   protected readonly establishments = signal<Establishment[]>([]);
   protected readonly services = signal<Servicio[]>([]);
   protected readonly doctors = signal<AdminDoctor[]>([]);
+
+  // Opciones de los cuatro filtros. Todos llevan "Todos" adelante porque no
+  // filtrar es la posición por defecto y una elección válida, no un hueco.
+  protected readonly STATUS_FILTER_OPTIONS: readonly SelectOption[] = [
+    { value: '', label: 'Todos' },
+    { value: 'STATUS_FREE', label: 'Disponible' },
+    { value: 'STATUS_OCCUPIED', label: 'Ocupado' },
+    { value: 'STATUS_UNAVAILABLE', label: 'No disponible' },
+  ];
+
+  protected readonly establishmentFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos' },
+    ...this.establishments().map((e) => ({ value: String(e.id), label: e.name })),
+  ]);
+
+  protected readonly serviceFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos' },
+    ...this.services().map((s) => ({ value: String(s.id), label: s.name })),
+  ]);
+
+  protected readonly doctorFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos' },
+    ...this.doctors().map((d) => ({
+      value: d.uuid,
+      label: `${d.firstName} ${d.lastName}`,
+      hint: d.speciality,
+    })),
+  ]);
 
   // Date range — both bounds derive from the SAME instant by default, so
   // "today" can never read differently between `rangeFrom` and `rangeTo`.
@@ -219,28 +248,24 @@ export class CalendarioListComponent implements OnInit {
     this.loadSchedules(0);
   }
 
-  onEstablishmentFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onEstablishmentFilterChange(value: string): void {
     const id = value ? Number(value) : null;
     this.filterEstablishmentId.set(id !== null && !isNaN(id) ? id : null);
     this.loadSchedules(0);
   }
 
-  onServiceFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onServiceFilterChange(value: string): void {
     const id = value ? Number(value) : null;
     this.filterServiceId.set(id !== null && !isNaN(id) ? id : null);
     this.loadSchedules(0);
   }
 
-  onDoctorFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onDoctorFilterChange(value: string): void {
     this.filterDoctorId.set(value || null);
     this.loadSchedules(0);
   }
 
-  onStatusFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onStatusFilterChange(value: string): void {
     this.filterStatus.set(value);
     this.loadSchedules(0);
   }

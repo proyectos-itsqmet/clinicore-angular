@@ -207,17 +207,12 @@
 
               <div>
                 <label for="paymentMethod" class="block text-xs font-bold text-ink mb-1">Método de Pago *</label>
-                <select
-                  id="paymentMethod"
-                  name="paymentMethod"
-                  [value]="paymentMethod()"
-                  (change)="onPaymentMethodChange($event)"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  @for (method of PAYMENT_METHODS; track method) {
-                    <option [value]="method">{{ PAYMENT_METHOD_LABELS[method] }}</option>
-                  }
-                </select>
+                <app-select-field
+                inputId="paymentMethod"
+                [value]="paymentMethod()"
+                [options]="paymentMethodOptions"
+                (valueChange)="onPaymentMethodChange($event)"
+                />
               </div>
 
               <div>

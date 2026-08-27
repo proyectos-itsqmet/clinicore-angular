@@ -10,6 +10,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AiApiService } from '../../../../core/api/ai-api.service';
+import { ChatPanelService } from '../../../../core/chat/chat-panel.service';
 
 /** Un mensaje de la conversación. `from` decide de qué lado se dibuja. */
 interface ChatMessage {
@@ -56,7 +57,15 @@ export class ChatWidget {
 
   private readonly scrollArea = viewChild<ElementRef<HTMLElement>>('scrollArea');
 
-  protected readonly open = signal(false);
+  /**
+   * Read from [ChatPanelService], not from a signal of this component's own:
+   * the hero's "Contáctanos" CTA opens this same panel, and it has no path to
+   * a `protected` member in here. See the service for why that indirection is
+   * smaller than the alternatives.
+   */
+  private readonly panel = inject(ChatPanelService);
+  protected readonly open = this.panel.isOpen;
+
   protected readonly sending = signal(false);
   protected readonly draft = signal('');
 
@@ -78,7 +87,7 @@ export class ChatWidget {
   private sessionId: string | null = null;
 
   protected toggle(): void {
-    this.open.update((isOpen) => !isOpen);
+    this.panel.toggle();
     if (this.open()) {
       this.scrollToBottom();
     }

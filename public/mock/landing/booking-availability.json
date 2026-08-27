@@ -7,9 +7,9 @@
   },
   "badge": "Pruébalo aquí mismo",
   "doctors": [
-    { "id": "apellido-1", "name": "Dr(a). [APELLIDO 1]" },
-    { "id": "apellido-2", "name": "Dr(a). [APELLIDO 2]" },
-    { "id": "apellido-3", "name": "Dr(a). [APELLIDO 3]" }
+    { "id": "apellido-1", "name": "Dr(a). Salazar" },
+    { "id": "apellido-2", "name": "Dr(a). Andrade" },
+    { "id": "apellido-3", "name": "Dr(a). Cabrera" }
   ],
   "days": [
     { "date": "2026-08-10" },
@@ -38,7 +38,7 @@
     "name": "Consulta general",
     "listPrice": { "amount": 30, "currency": "USD" },
     "insurancePrice": { "amount": 12, "currency": "USD" },
-    "insurerLabel": "[ASEGURADORA]"
+    "insurerLabel": "Salvia Seguros"
   },
   "slotsLegend": "Los cupos tachados están ocupados.",
   "priceDisclaimer": "Valores aproximados. El monto exacto se confirma al reservar.",

@@ -26,6 +26,7 @@ export type IconName =
   | 'check'
   | 'arrow'
   | 'whatsapp'
+  | 'chat'
   | 'shield'
   | 'star'
   | 'plus'

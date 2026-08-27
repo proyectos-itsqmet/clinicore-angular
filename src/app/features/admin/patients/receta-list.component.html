@@ -312,16 +312,12 @@
                   </a>
                 </p>
               } @else {
-                <select
-                  id="prescriptionEncounter"
+                <app-select-field
+                  inputId="prescriptionEncounter"
                   formControlName="encounterId"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="" disabled>Selecciona una consulta...</option>
-                  @for (e of encountersForPicker(); track e.id) {
-                    <option [value]="e.id">{{ e.visitDate }} · {{ e.reasonForVisit }} · Dr. {{ e.doctorFullName }}</option>
-                  }
-                </select>
+                  placeholder="Selecciona una consulta..."
+                  [options]="encounterOptions()"
+                />
                 @if (encountersIncomplete()) {
                   <p class="mt-1 text-[11px] text-red-700">No se pudo cargar la lista completa de consultas del paciente; puede haber más.</p>
                 }

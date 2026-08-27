@@ -23,8 +23,15 @@ export const roleGuard: CanActivateChildFn = (childRoute, state) => {
   const entry = ADMIN_NAV.find(n => n.path === groupPath);
   if (!entry) return true; // Not found in nav, assume ok or handle otherwise
 
+  // Una fila oculta tambien cierra su ruta. Sin esto, ocultarla del menu
+  // dejaria la URL alcanzable a mano — y una fila invisible pero navegable es
+  // peor que una visible, porque nadie la revisa.
+  if (entry.hidden) {
+    return router.createUrlTree(['/admin/dashboard/resumen']);
+  }
+
   let allowedRoles = entry.allowedRoles;
-  
+
   if (leafPath) {
     const leaf = entry.children.find(c => c.path === leafPath);
     if (leaf && leaf.allowedRoles) {

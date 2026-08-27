@@ -7,19 +7,12 @@
   <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
     <div class="flex-1 max-w-xs">
       <label class="block text-[11px] font-bold text-ink mb-1" for="reclamoEstadoFilter">Estado</label>
-      <select
-        id="reclamoEstadoFilter"
-        name="reclamoEstadoFilter"
-        [value]="filterStatus()"
-        (change)="onFilterStatusChange($event)"
-        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos</option>
-        <option value="SUBMITTED">Presentado</option>
-        <option value="ACCEPTED">Aceptado</option>
-        <option value="REJECTED">Rechazado</option>
-        <option value="PAID">Pagado</option>
-      </select>
+      <app-select-field
+      inputId="reclamoEstadoFilter"
+      [value]="filterStatus()"
+      [options]="CLAIM_STATUS_FILTER_OPTIONS"
+      (valueChange)="onFilterStatusChange($event)"
+      />
     </div>
   </div>
 
