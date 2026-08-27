@@ -14,7 +14,7 @@ import type { ChatResponse, ClinicalSummary } from '../models';
 @Injectable({ providedIn: 'root' })
 export class AiApiService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = '/api';
 
   /**
    * El boton "Generar resumen" de la ficha del paciente.
