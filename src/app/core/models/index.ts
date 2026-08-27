@@ -42,3 +42,4 @@ export * from './finanzas.model';
 export * from './branding.model';
 export * from './admin-module.model';
 export * from './schedule-template.model';
+export * from './ai.model';

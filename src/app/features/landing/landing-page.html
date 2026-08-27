@@ -84,3 +84,8 @@
 } @else {
   <app-site-footer [site]="site()" [locations]="locations().items" [loading]="siteLoading() || locationsLoading()" />
 }
+
+<!-- El asistente de atención al cliente. Solo en páginas públicas: es anónimo
+     por diseño y en /perfil, donde el visitante YA inició sesión, un "por
+     seguridad inicie sesión" se leería como que el chat está roto. -->
+<app-chat-widget />

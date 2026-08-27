@@ -6,6 +6,7 @@ import { EstablishmentApiService } from '../../core/api/establishment-api.servic
 import { ServicioApiService } from '../../core/api/servicio-api.service';
 import { TurnApiService } from '../../core/api/turn-api.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { ChatWidget } from '../../shared/ui/organisms/chat-widget/chat-widget';
 import type { Establishment, Servicio, AdminDoctor, ScheduleDTO, Turn } from '../../core/models';
 
 export interface ServiceWithDoctors {
@@ -15,7 +16,7 @@ export interface ServiceWithDoctors {
 
 @Component({
   selector: 'app-booking-page',
-  imports: [CommonModule, FormsModule, RouterLink, DecimalPipe],
+  imports: [CommonModule, FormsModule, RouterLink, DecimalPipe, ChatWidget],
   templateUrl: './booking-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

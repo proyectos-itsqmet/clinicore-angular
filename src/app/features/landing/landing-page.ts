@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import type { HttpResourceRef } from '@angular/common/http';
 import { LandingApi } from '../../core/api';
 import { ErrorState } from '../../shared/ui/molecules/error-state/error-state';
+import { ChatWidget } from '../../shared/ui/organisms/chat-widget/chat-widget';
 import { ClosingCta } from '../../shared/ui/organisms/closing-cta/closing-cta';
 import { DoctorsSection } from '../../shared/ui/organisms/doctors-section/doctors-section';
 import { FaqSection } from '../../shared/ui/organisms/faq-section/faq-section';
@@ -63,6 +64,7 @@ import {
     FaqSection,
     ClosingCta,
     SiteFooter,
+    ChatWidget,
   ],
   templateUrl: './landing-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

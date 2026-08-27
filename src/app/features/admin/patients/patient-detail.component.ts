@@ -9,6 +9,7 @@ import { EstablishmentApiService } from '../../../core/api/establishment-api.ser
 import { ServicioApiService } from '../../../core/api/servicio-api.service';
 import { CoveragePlanApiService } from '../../../core/api/coverage-plan-api.service';
 import { PatientCoverageApiService } from '../../../core/api/patient-coverage-api.service';
+import { AiApiService } from '../../../core/api/ai-api.service';
 import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { extractApiErrorMessage, formatIsoDateEs, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
 import { coveragePlanPricingSummary } from '../coverage/coverage-plan-pricing.util';
@@ -30,6 +31,7 @@ export class PatientDetailComponent implements OnInit {
   private readonly servicioApi = inject(ServicioApiService);
   private readonly coveragePlanApi = inject(CoveragePlanApiService);
   private readonly patientCoverageApi = inject(PatientCoverageApiService);
+  private readonly aiApi = inject(AiApiService);
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
 
@@ -110,7 +112,19 @@ export class PatientDetailComponent implements OnInit {
   // en ngOnInit — así no se suma una 5ta petición paralela a las cuatro que
   // esta pantalla ya dispara al cargar, y las specs existentes que nunca
   // tocan esta pestaña no necesitan flushear nada nuevo.
-  protected readonly activeSection = signal<'turnos' | 'coberturas'>('turnos');
+  protected readonly activeSection = signal<'turnos' | 'coberturas' | 'resumen'>('turnos');
+
+  // --- Resumen clínico con IA ("Resumen" tab) ---
+  // NO se dispara al entrar a la pestaña, a diferencia de Coberturas: cada
+  // llamada gasta tokens de un proveedor externo y deja un asiento en
+  // ClinicalAccessLog. Entrar a mirar no es lo mismo que pedir un resumen, así
+  // que hace falta un clic explícito en "Generar resumen".
+  protected readonly summary = signal<ClinicalSummary | null>(null);
+  protected readonly summaryLoading = signal<boolean>(false);
+  protected readonly summaryError = signal<string | null>(null);
+  // Los registros de origen arrancan colapsados, pero SIEMPRE disponibles: son
+  // lo que le permite al médico verificar que el resumen no inventó nada.
+  protected readonly showSummarySources = signal<boolean>(false);
 
   protected readonly coverages = signal<PatientCoverage[]>([]);
   protected readonly coveragesLoading = signal<boolean>(false);
@@ -532,7 +546,7 @@ export class PatientDetailComponent implements OnInit {
 
   // --- Lógica de Coberturas de Seguro (GET/POST/PUT/DELETE /api/patient-coverages) ---
 
-  selectSection(section: 'turnos' | 'coberturas'): void {
+  selectSection(section: 'turnos' | 'coberturas' | 'resumen'): void {
     this.activeSection.set(section);
     if (section === 'coberturas') {
       this.loadCoverages();
@@ -540,6 +554,60 @@ export class PatientDetailComponent implements OnInit {
         this.loadCoveragePlansCatalog();
       }
     }
+    // 'resumen' no carga nada solo: ver el comentario del signal `summary`.
+  }
+
+  // --- Resumen clínico con IA (POST /api/patients/{id}/clinical-summary) ---
+
+  /**
+   * Pide el resumen. Lo genera n8n con Gemini a partir de los encuentros y
+   * recetas de este paciente, DE-IDENTIFICADOS por el backend: al proveedor no
+   * le llega nombre, cédula, dirección ni teléfono, solo edad, sexo y los
+   * hechos clínicos.
+   *
+   * Puede tardar unos segundos y el médico está con el paciente enfrente, así
+   * que el estado de carga tiene que ser visible y el botón quedar
+   * deshabilitado: dos clics son dos llamadas pagadas y dos asientos de
+   * auditoría por la misma consulta.
+   */
+  generateSummary(): void {
+    if (this.summaryLoading()) {
+      return;
+    }
+    this.summaryLoading.set(true);
+    this.summaryError.set(null);
+
+    this.aiApi.getClinicalSummary(this.patientId).subscribe({
+      next: (result) => {
+        this.summary.set(result);
+        this.summaryLoading.set(false);
+      },
+      error: (err) => {
+        this.summaryError.set(extractApiErrorMessage(err, 'No se pudo generar el resumen'));
+        this.summaryLoading.set(false);
+      },
+    });
+  }
+
+  toggleSummarySources(): void {
+    this.showSummarySources.update((open) => !open);
+  }
+
+  /**
+   * El modelo devuelve los títulos en markdown (`**Alergias:**`). Se quitan los
+   * asteriscos y se muestra como texto plano con los saltos de línea
+   * preservados, en vez de renderizar HTML con `[innerHTML]`: este texto se
+   * construye a partir de notas clínicas de texto libre, y no hay ninguna razón
+   * para darle a ese contenido un camino hacia el DOM como marcado.
+   */
+  protected summaryText(): string {
+    return (this.summary()?.resumen ?? '').replace(/\*\*/g, '');
+  }
+
+  /** true cuando el tope del servidor dejó encuentros afuera del resumen. */
+  protected summaryTruncated(): boolean {
+    const s = this.summary();
+    return !!s && s.encuentrosResumidos < s.totalEncuentros;
   }
 
   loadCoverages(): void {
