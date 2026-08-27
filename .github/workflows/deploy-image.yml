@@ -2,9 +2,8 @@ name: Despliegue en DockerHub
 
 on:
   push:
-    branches: [main]
     tags:
-      - '*.*.*-*'
+      - "*.*.*-*"
 
 jobs:
   deploy:
