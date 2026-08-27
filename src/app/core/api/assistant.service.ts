@@ -47,7 +47,7 @@ export class AssistantService {
    * entorno local. Al desplegar hay que moverla a la configuración de entorno,
    * junto con los `localhost:8080` del resto de los servicios.
    */
-  private static readonly AI_URL = 'http://localhost:8000';
+  private static readonly AI_URL = '/api';
 
   /** Mensaje de texto. Devuelve los eventos a medida que llegan. */
   async *chat(sessionId: string, mensaje: string): AsyncGenerator<AssistantEvent> {

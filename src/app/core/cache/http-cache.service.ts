@@ -14,8 +14,8 @@ export interface CacheEntry {
  * all associated resources listed in relatedTags will also be invalidated.
  */
 const RELATED_TAGS_MAP: Record<string, string[]> = {
-  turns: ['turns', 'turnos', 'metrics'],
-  turnos: ['turns', 'turnos', 'metrics'],
+  turns: ['turns', 'turnos', 'metrics', 'schedules'],
+  turnos: ['turns', 'turnos', 'metrics', 'schedules'],
   metrics: ['metrics', 'turns', 'turnos'],
   doctors: ['doctors', 'schedules', 'schedule-templates', 'consultorios', 'time-offs'],
   schedules: ['schedules', 'schedule-templates', 'turns', 'turnos'],
