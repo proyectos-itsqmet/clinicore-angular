@@ -14,7 +14,7 @@ import { AiApiService } from '../../../core/api/ai-api.service';
 import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { extractApiErrorMessage, formatIsoDateEs, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
 import { coveragePlanPricingSummary } from '../coverage/coverage-plan-pricing.util';
-import type { ClinicalSummary, CoveragePlan, Page, Patient, PatientCoverage, Turn, TurnFilterParams, TurnStatus, ScheduleDTO, Establishment, Servicio } from '../../../core/models';
+import type { CoveragePlan, Page, Patient, PatientCoverage, Turn, TurnFilterParams, TurnStatus, ScheduleDTO, Establishment, Servicio, ClinicalSummary } from '../../../core/models';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
