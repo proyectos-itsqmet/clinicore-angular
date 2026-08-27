@@ -52,17 +52,11 @@
   <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
     <div class="flex-1 max-w-xs">
       <label class="block text-[11px] font-bold text-ink mb-1">Doctor</label>
-      <select
-        name="timeOffDoctorFilter"
-        [value]="filterDoctorUuid() ?? ''"
-        (change)="onFilterChange($event)"
-        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos los doctores</option>
-        @for (doc of doctors(); track doc.uuid) {
-          <option [value]="doc.uuid">Dr(a). {{ doc.firstName }} {{ doc.lastName }}</option>
-        }
-      </select>
+      <app-select-field
+      [value]="filterDoctorUuid() ?? ''"
+      [options]="doctorFilterOptions()"
+      (valueChange)="onFilterChange($event)"
+      />
     </div>
   </div>
 
@@ -188,18 +182,13 @@
             <div class="space-y-4">
               <div>
                 <label for="timeOffDoctor" class="block text-xs font-bold text-ink mb-1">Doctor *</label>
-                <select
-                  id="timeOffDoctor"
-                  [value]="formDoctorUuid() ?? ''"
-                  (change)="onFormDoctorChange($event)"
-                  name="timeOffDoctor"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un doctor...</option>
-                  @for (doc of doctors(); track doc.uuid) {
-                    <option [value]="doc.uuid">Dr(a). {{ doc.firstName }} {{ doc.lastName }}</option>
-                  }
-                </select>
+                <app-select-field
+                inputId="timeOffDoctor"
+                [value]="formDoctorUuid() ?? ''"
+                placeholder="Selecciona un doctor..."
+                [options]="doctorOptions()"
+                (valueChange)="onFormDoctorChange($event)"
+                />
                 @if (submitAttempted() && !formDoctorUuid()) {
                   <p class="mt-1 text-xs text-red-600">El doctor es requerido.</p>
                 }
@@ -235,18 +224,13 @@
 
               <div>
                 <label for="timeOffReason" class="block text-xs font-bold text-ink mb-1">Motivo *</label>
-                <select
-                  id="timeOffReason"
-                  [value]="formReasonId() ?? ''"
-                  (change)="onFormReasonChange($event)"
-                  name="timeOffReason"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un motivo...</option>
-                  @for (reason of reasons(); track reason.id) {
-                    <option [value]="reason.id">{{ reason.description }}</option>
-                  }
-                </select>
+                <app-select-field
+                inputId="timeOffReason"
+                [value]="formReasonId() ?? ''"
+                placeholder="Selecciona un motivo..."
+                [options]="reasonOptions()"
+                (valueChange)="onFormReasonChange($event)"
+                />
                 @if (submitAttempted() && formReasonId() == null) {
                   <p class="mt-1 text-xs text-red-600">El motivo es requerido.</p>
                 }

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -25,7 +26,7 @@ import type { Encounter, EncounterCreate, Page, Patient, Turn } from '../../../c
  */
 @Component({
   selector: 'app-historial-clinico-list',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, SelectField],
   templateUrl: './historial-clinico-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -58,6 +59,27 @@ export class HistorialClinicoListComponent implements OnInit {
   protected readonly formError = signal<string | null>(null);
 
   protected readonly treatedTurns = signal<Turn[]>([]);
+
+  /**
+   * Los turnos atendidos, como opciones.
+   *
+   * El número de turno y la fecha van de etiqueta; el doctor al renglón de
+   * apoyo. En una sola línea con tres separadores, el nombre del médico — que
+   * es justamente lo que distingue dos turnos del mismo día — era lo primero
+   * que se cortaba con puntos suspensivos.
+   */
+  protected readonly treatedTurnOptions = computed<readonly SelectOption[]>(() =>
+    this.treatedTurns().map((t) => {
+      const schedule = t.schedule;
+      const when = `${schedule?.date ?? ''} ${schedule?.hour ?? ''}`.trim();
+      const doctor = `${schedule?.doctor?.firstName ?? ''} ${schedule?.doctor?.lastName ?? ''}`.trim();
+      return {
+        value: String(t.id),
+        label: when ? `Turno #${t.order} · ${when}` : `Turno #${t.order}`,
+        hint: doctor ? `Dr. ${doctor}` : undefined,
+      };
+    }),
+  );
   protected readonly treatedTurnsLoading = signal<boolean>(false);
   protected readonly treatedTurnsIncomplete = signal<boolean>(false);
 

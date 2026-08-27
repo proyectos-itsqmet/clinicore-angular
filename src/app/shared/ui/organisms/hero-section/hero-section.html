@@ -13,10 +13,28 @@
 <span aria-hidden="true" class="hero-scrim-vertical absolute inset-0 hidden md:block"></span>
 
 <div
-  class="wrap relative z-[1] mx-auto flex h-full w-full max-w-[1240px] flex-col justify-end gap-4 px-5 pt-[104px] pb-[150px] md:grid md:grid-cols-[620px_minmax(0,1fr)] md:items-center md:justify-normal md:gap-0 md:px-0 md:pt-[156px] md:pb-[110px]"
+  class="wrap relative z-[1] mx-auto flex w-full max-w-[1240px] flex-1 flex-col gap-4 px-5 pt-[104px] pb-[150px] md:grid md:grid-cols-[620px_minmax(0,1fr)] md:items-center md:justify-normal md:gap-0 md:px-0 md:pt-[156px] md:pb-[110px]"
 >
   <!-- text column -->
-  <div class="flex flex-col gap-[18px] md:gap-[22px]" [attr.aria-busy]="loading() ? 'true' : null">
+  <!--
+    `mt-auto`, NOT `justify-end` on the parent.
+
+    The two look identical while the content fits and behave oppositely when
+    it does not. `justify-content: flex-end` distributes leftover space, and
+    when there is none to distribute the items overflow the START edge — so a
+    column one line too tall escaped UPWARD, straight through the 104px of top
+    padding and under the floating header, which is what clipped the first
+    line of the title on a phone.
+
+    An `auto` top margin absorbs the same leftover space when there is any and
+    resolves to 0 when there is not, so the column hugs the bottom exactly as
+    before and never crosses its own padding. Reset at `md`, where this is a
+    grid item and an auto margin would override `items-center`.
+  -->
+  <div
+    class="mt-auto flex flex-col gap-[18px] md:mt-0 md:gap-[22px]"
+    [attr.aria-busy]="loading() ? 'true' : null"
+  >
     @if (loading()) {
       <!-- Fixed geometry, never derived from the data: while loading, `hero()` is the
            empty fixture — blank kicker/title/lead/CTA labels and zero trustPills — so
@@ -127,9 +145,26 @@
           <span>{{ hero().ctas.primary.label }}</span>
           <app-icon name="arrow" [size]="18" />
         </app-button>
-        <app-button variant="whatsapp" size="lg" [href]="hero().ctas.whatsapp.href">
-          <app-icon name="whatsapp" [size]="19" />
-          <span>{{ hero().ctas.whatsapp.label }}</span>
+        <!--
+          A button, not a link, and `glass` rather than `whatsapp`.
+
+          It used to be a WhatsApp deep link painted in the WhatsApp brand
+          green. It now opens the in-page assistant, so both of those became
+          claims the control no longer honours: #25D366 is WhatsApp's colour
+          and reads as "this leaves for WhatsApp", and an `href` promises a
+          navigation that no longer happens. `glass` is the variant the design
+          system already has for a secondary action sitting over the hero
+          photograph, and it keeps `primary` as the only loud CTA on screen.
+        -->
+        <!--
+          `(click)` on the host, not an output: `app-button` has none. With no
+          `href` it renders a native `<button>`, and the click bubbles out to
+          this element — which is also why dropping `href` matters beyond
+          honesty, since the `<a>` branch would navigate before this ran.
+        -->
+        <app-button variant="glass" size="lg" (click)="openChat()">
+          <app-icon name="chat" [size]="19" />
+          <span>{{ hero().ctas.contact.label }}</span>
         </app-button>
       </div>
     }

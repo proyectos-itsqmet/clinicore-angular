@@ -6,6 +6,7 @@ import { InsurerApiService } from '../../../core/api/insurer-api.service';
 import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { extractApiErrorMessage, isPermissionDeniedError } from '../metrics-shared/turn-status.util';
 import { COVERAGE_PLAN_PRICING_HINT, coveragePlanPricingSummary } from './coverage-plan-pricing.util';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import type { CoveragePlan, Insurer, InsurerType, Page } from '../../../core/models';
 
 type CoverageTab = 'aseguradoras' | 'planes';
@@ -28,7 +29,7 @@ type CoverageTab = 'aseguradoras' | 'planes';
  */
 @Component({
   selector: 'app-coverage-list',
-  imports: [FormsModule],
+  imports: [FormsModule, SelectField],
   templateUrl: './coverage-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -40,6 +41,33 @@ export class CoverageListComponent implements OnInit {
   protected readonly PRICING_HINT = COVERAGE_PLAN_PRICING_HINT;
 
   protected readonly activeTab = signal<CoverageTab>('aseguradoras');
+
+  /**
+   * Las dos clases de aseguradora, como opciones del desplegable.
+   *
+   * Constante y no `computed`: no dependen de nada cargado. El "Selecciona un
+   * tipo..." que antes era un `<option value="">` NO esta en esta lista — es el
+   * `placeholder` del control, porque una opcion vacia elegible deja al usuario
+   * volver a "nada" en un campo obligatorio.
+   */
+  protected readonly INSURER_TYPE_OPTIONS: readonly SelectOption[] = [
+    { value: 'INSURER_PRIVATE', label: 'Privada' },
+    { value: 'INSURER_PUBLIC', label: 'Pública', hint: 'IESS, ISSFA, ISSPOL, MSP' },
+  ];
+
+  /** El catálogo de aseguradoras, como opciones. */
+  protected readonly insurerOptions = computed<readonly SelectOption[]>(() =>
+    this.insurersCatalog().map((ins) => ({ value: String(ins.id), label: ins.name })),
+  );
+
+  /**
+   * Igual, más "Todas". Acá SI corresponde una opción para el vacío: es un
+   * filtro, y "sin filtrar" es una eleccion valida y la que trae por defecto.
+   */
+  protected readonly insurerFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todas las aseguradoras' },
+    ...this.insurerOptions(),
+  ]);
 
   // --- Aseguradoras: listado ---
   protected readonly insurersData = signal<Page<Insurer> | null>(null);
@@ -204,8 +232,15 @@ export class CoverageListComponent implements OnInit {
     this.insurerFormName.set((event.target as HTMLInputElement).value);
   }
 
-  onInsurerTypeChange(event: Event): void {
-    this.insurerFormType.set((event.target as HTMLSelectElement).value as InsurerType | '');
+  /**
+   * Recibe el VALOR, no un `Event`.
+   *
+   * `app-select-field` emite el string elegido — no hay un `<select>` del que
+   * leer `event.target.value`, porque el desplegable del sistema operativo no
+   * se puede estilar y el control se reconstruyo con divs.
+   */
+  onInsurerTypeChange(value: string): void {
+    this.insurerFormType.set(value as InsurerType | '');
   }
 
   onInsurerFormSubmit(): void {
@@ -292,8 +327,7 @@ export class CoverageListComponent implements OnInit {
     });
   }
 
-  onPlansFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onPlansFilterChange(value: string): void {
     this.plansFilterInsurerId.set(value ? Number(value) : null);
     this.loadPlans(0);
   }
@@ -326,8 +360,7 @@ export class CoverageListComponent implements OnInit {
     this.editingPlan.set(null);
   }
 
-  onPlanInsurerChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onPlanInsurerChange(value: string): void {
     this.planFormInsurerId.set(value ? Number(value) : null);
   }
 

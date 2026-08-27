@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { SelectField, type SelectOption } from '../../shared/ui/molecules/select-field/select-field';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,7 +10,7 @@ import type { Page, Turn, TurnFilterParams, TurnStatus } from '../../core/models
 
 @Component({
   selector: 'app-patient-profile',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, SelectField],
   templateUrl: './patient-profile.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -190,6 +191,19 @@ export class PatientProfileComponent implements OnInit {
   }
 
   // --- Filtros de Turnos ---
+  protected readonly GENDER_OPTIONS: readonly SelectOption[] = [
+    { value: 'GENDER_MALE', label: 'Masculino' },
+    { value: 'GENDER_FEMALE', label: 'Femenino' },
+    { value: 'GENDER_OTHER', label: 'Otro' },
+  ];
+
+  protected readonly TURN_STATUS_FILTER_OPTIONS: readonly SelectOption[] = [
+    { value: '', label: 'Todos los Estados' },
+    { value: 'TURN_PENDING', label: 'Pendiente' },
+    { value: 'TURN_TREATED', label: 'Atendido' },
+    { value: 'TURN_CANCELLED', label: 'Cancelado' },
+  ];
+
   onStatusChange(status: string): void {
     this.filterStatus.set(status);
     this.loadMyTurns(0);

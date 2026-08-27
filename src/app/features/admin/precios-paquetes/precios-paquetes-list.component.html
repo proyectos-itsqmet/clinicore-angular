@@ -233,16 +233,14 @@
                 <div class="space-y-2">
                   @for (row of formItems(); track row.rowId) {
                     <div class="package-item-row flex items-center gap-2 rounded-xl border border-line bg-field p-2">
-                      <select
+                      <app-select-field
+                        class="flex-1"
+                        [inputId]="'packageItem-' + row.rowId"
                         [value]="row.servicioId ?? ''"
-                        (change)="onItemServicioChange(row.rowId, $event)"
-                        class="flex-1 rounded-lg border border-line bg-surface py-1.5 px-2 text-xs text-ink focus:border-blue focus:outline-none"
-                      >
-                        <option value="">Selecciona un servicio...</option>
-                        @for (s of serviciosCatalog(); track s.id) {
-                          <option [value]="s.id" [selected]="s.id === row.servicioId">{{ s.name }}</option>
-                        }
-                      </select>
+                        placeholder="Selecciona un servicio..."
+                        [options]="servicioOptions()"
+                        (valueChange)="onItemServicioChange(row.rowId, $event)"
+                      />
                       <input
                         type="number"
                         min="1"

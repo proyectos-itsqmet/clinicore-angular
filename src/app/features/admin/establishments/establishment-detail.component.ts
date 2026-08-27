@@ -115,6 +115,15 @@ export class EstablishmentDetailComponent implements OnInit {
 
   private establishmentId: number = 0;
 
+  /**
+   * El id de esta sede, para el enlace a su pantalla de sala.
+   *
+   * Existe aparte de `establishmentId` porque ese es privado y el template lo
+   * necesita: `/sala/:sedeId` se arma con el id de la ruta, no con un campo
+   * del objeto cargado, y asi el boton queda disponible sin esperar el GET.
+   */
+  protected readonly establishmentIdSignal = signal<number>(0);
+
   loadConsultorios(): void {
     this.consultoriosLoading.set(true);
     this.consultorioApi.getByEstablishment(this.establishmentId).subscribe({
@@ -213,6 +222,7 @@ export class EstablishmentDetailComponent implements OnInit {
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     this.establishmentId = idParam ? Number(idParam) : 0;
+    this.establishmentIdSignal.set(this.establishmentId);
 
     if (this.establishmentId > 0) {
       this.loadAll();

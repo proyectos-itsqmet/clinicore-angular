@@ -145,17 +145,12 @@
     <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
       <div class="flex-1 max-w-xs">
         <label class="block text-[11px] font-bold text-ink mb-1">Aseguradora</label>
-        <select
-          name="planInsurerFilter"
+        <app-select-field
+          placeholder="Todas las aseguradoras"
           [value]="plansFilterInsurerId() ?? ''"
-          (change)="onPlansFilterChange($event)"
-          class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-        >
-          <option value="">Todas las aseguradoras</option>
-          @for (ins of insurersCatalog(); track ins.id) {
-            <option [value]="ins.id">{{ ins.name }}</option>
-          }
-        </select>
+          [options]="insurerFilterOptions()"
+          (valueChange)="onPlansFilterChange($event)"
+        />
       </div>
     </div>
 
@@ -300,17 +295,14 @@
 
               <div>
                 <label for="insurerType" class="block text-xs font-bold text-ink mb-1">Tipo *</label>
-                <select
-                  id="insurerType"
+                <app-select-field
+                  inputId="insurerType"
                   [value]="insurerFormType()"
-                  (change)="onInsurerTypeChange($event)"
-                  name="insurerType"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un tipo...</option>
-                  <option value="INSURER_PRIVATE">Privada</option>
-                  <option value="INSURER_PUBLIC">Pública (IESS, ISSFA, ISSPOL, MSP)</option>
-                </select>
+                  placeholder="Selecciona un tipo..."
+                  [options]="INSURER_TYPE_OPTIONS"
+                  [invalid]="insurerSubmitAttempted() && !insurerFormType()"
+                  (valueChange)="onInsurerTypeChange($event)"
+                />
                 @if (insurerSubmitAttempted() && !insurerFormType()) {
                   <p class="mt-1 text-xs text-red-600">El tipo es requerido.</p>
                 }
@@ -430,18 +422,14 @@
             <div class="space-y-4">
               <div>
                 <label for="planInsurer" class="block text-xs font-bold text-ink mb-1">Aseguradora *</label>
-                <select
-                  id="planInsurer"
+                <app-select-field
+                  inputId="planInsurer"
                   [value]="planFormInsurerId() ?? ''"
-                  (change)="onPlanInsurerChange($event)"
-                  name="planInsurer"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona una aseguradora...</option>
-                  @for (ins of insurersCatalog(); track ins.id) {
-                    <option [value]="ins.id">{{ ins.name }}</option>
-                  }
-                </select>
+                  placeholder="Selecciona una aseguradora..."
+                  [options]="insurerOptions()"
+                  [invalid]="planSubmitAttempted() && planFormInsurerId() == null"
+                  (valueChange)="onPlanInsurerChange($event)"
+                />
                 @if (planSubmitAttempted() && planFormInsurerId() == null) {
                   <p class="mt-1 text-xs text-red-600">La aseguradora es requerida.</p>
                 }

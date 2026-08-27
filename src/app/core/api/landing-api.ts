@@ -13,7 +13,6 @@ import type {
   Locations,
   PublicInsurance,
   QuickAccess,
-  Reviews,
   Site,
   Specialties,
   Stats,
@@ -120,15 +119,6 @@ export class LandingApi {
   /** Idle unless `locations` failed — see LANDING_FALLBACK_BASE_URL. */
   readonly locationsFallback: HttpResourceRef<Locations | undefined> = httpResource<Locations>(
     () => (this.locations.error() ? `${this.fallbackUrl}/locations.json` : undefined),
-  );
-
-  readonly reviews: HttpResourceRef<Reviews | undefined> = httpResource<Reviews>(
-    () => `${this.baseUrl}/reviews.json`,
-  );
-
-  /** Idle unless `reviews` failed — see LANDING_FALLBACK_BASE_URL. */
-  readonly reviewsFallback: HttpResourceRef<Reviews | undefined> = httpResource<Reviews>(
-    () => (this.reviews.error() ? `${this.fallbackUrl}/reviews.json` : undefined),
   );
 
   readonly faq: HttpResourceRef<Faq | undefined> = httpResource<Faq>(

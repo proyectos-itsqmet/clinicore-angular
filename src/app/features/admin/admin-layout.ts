@@ -91,6 +91,11 @@ export class AdminLayout {
     if (!user) return [];
     
     return ADMIN_NAV.filter(entry => {
+      // `hidden` primero y sin mirar el rol: es "esto no se muestra todavia",
+      // no un permiso. Ver AdminNavEntry.hidden.
+      if (entry.hidden) {
+        return false;
+      }
       if (entry.allowedRoles && !entry.allowedRoles.includes(user.role)) {
         return false;
       }

@@ -34,6 +34,6 @@ export class DoctorCard {
   readonly loading = input(false);
 
   protected readonly portraitAlt = computed(
-    () => `Fotografía de referencia — ${this.doctor().name}, ${this.doctor().specialty}`,
+    () => `${this.doctor().name}, ${this.doctor().specialty}`,
   );
 }

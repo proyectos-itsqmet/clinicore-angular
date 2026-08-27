@@ -215,15 +215,11 @@
 
               <div class="sm:col-span-2">
                 <label for="gender" class="block text-xs font-bold text-ink mb-1">Género *</label>
-                <select
-                  id="gender"
-                  formControlName="gender"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option [value]="'GENDER_MALE'">Masculino</option>
-                  <option [value]="'GENDER_FEMALE'">Femenino</option>
-                  <option [value]="'GENDER_OTHER'">Otro</option>
-                </select>
+                <app-select-field
+                inputId="gender"
+                formControlName="gender"
+                [options]="GENDER_OPTIONS"
+                />
               </div>
             </div>
 

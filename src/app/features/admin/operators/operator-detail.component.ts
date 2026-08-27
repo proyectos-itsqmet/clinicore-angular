@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,11 +9,16 @@ import type { Operator, Establishment, Page } from '../../../core/models';
 
 @Component({
   selector: 'app-operator-detail',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, SelectField],
   templateUrl: './operator-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperatorDetailComponent implements OnInit {
+  protected readonly ROLE_OPTIONS: readonly SelectOption[] = [
+    { value: 'ROLE_EMPLOYEE', label: 'Operador' },
+    { value: 'ROLE_ADMIN', label: 'Administrador' },
+  ];
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly operatorApi = inject(OperatorApiService);

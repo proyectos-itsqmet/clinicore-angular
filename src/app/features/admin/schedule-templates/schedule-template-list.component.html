@@ -44,17 +44,12 @@
   <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
     <div class="flex-1 max-w-xs">
       <label class="block text-[11px] font-bold text-ink mb-1">Establecimiento</label>
-      <select
-        id="filterStablishmentId"
+      <app-select-field
+        inputId="filterStablishmentId"
         [value]="filterStablishmentId() ?? ''"
-        (change)="onFilterChange($event)"
-        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos los establecimientos</option>
-        @for (est of establishments(); track est.id) {
-          <option [value]="est.id">{{ est.name }}</option>
-        }
-      </select>
+        [options]="establishmentFilterOptions()"
+        (valueChange)="onFilterChange($event)"
+      />
     </div>
   </div>
 
@@ -196,18 +191,14 @@
             <div class="space-y-4">
               <div>
                 <label for="templateStablishment" class="block text-xs font-bold text-ink mb-1">Establecimiento *</label>
-                <select
-                  id="templateStablishment"
-                  name="templateStablishment"
+                <app-select-field
+                  inputId="templateStablishment"
                   [value]="formStablishmentId() ?? ''"
-                  (change)="onFormStablishmentChange($event)"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un establecimiento...</option>
-                  @for (est of establishments(); track est.id) {
-                    <option [value]="est.id">{{ est.name }}</option>
-                  }
-                </select>
+                  placeholder="Selecciona un establecimiento..."
+                  [options]="establishmentOptions()"
+                  [invalid]="submitAttempted() && formStablishmentId() == null"
+                  (valueChange)="onFormStablishmentChange($event)"
+                />
                 @if (submitAttempted() && formStablishmentId() == null) {
                   <p class="mt-1 text-xs text-red-600">El establecimiento es requerido.</p>
                 }
@@ -215,19 +206,14 @@
 
               <div>
                 <label for="templateDoctor" class="block text-xs font-bold text-ink mb-1">Doctor</label>
-                <select
-                  id="templateDoctor"
-                  name="templateDoctor"
+                <app-select-field
+                  inputId="templateDoctor"
                   [value]="formDoctorUuid()"
-                  (change)="onFormDoctorChange($event)"
+                  [placeholder]="formStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Cualquier doctor disponible (pool)'"
+                  [options]="formDoctorOptions()"
                   [disabled]="formStablishmentId() == null"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
-                >
-                  <option value="">{{ formStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Cualquier doctor disponible (pool)' }}</option>
-                  @for (doc of formDoctors(); track doc.uuid) {
-                    <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
-                  }
-                </select>
+                  (valueChange)="onFormDoctorChange($event)"
+                />
                 <p class="mt-1 text-[11px] text-ink-3">
                   Si el doctor no tiene asignado el servicio o el establecimiento, el servidor rechazará el guardado.
                 </p>
@@ -235,19 +221,15 @@
 
               <div>
                 <label for="templateService" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
-                <select
-                  id="templateService"
-                  name="templateService"
+                <app-select-field
+                  inputId="templateService"
                   [value]="formServiceId() ?? ''"
-                  (change)="onFormServiceChange($event)"
+                  [placeholder]="formStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Selecciona un servicio...'"
+                  [options]="formServiceOptions()"
                   [disabled]="formStablishmentId() == null"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
-                >
-                  <option value="">{{ formStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Selecciona un servicio...' }}</option>
-                  @for (svc of formServices(); track svc.id) {
-                    <option [value]="svc.id">{{ svc.name }}</option>
-                  }
-                </select>
+                  [invalid]="submitAttempted() && formServiceId() == null"
+                  (valueChange)="onFormServiceChange($event)"
+                />
                 @if (submitAttempted() && formServiceId() == null) {
                   <p class="mt-1 text-xs text-red-600">El servicio es requerido.</p>
                 }
@@ -255,19 +237,15 @@
 
               <div>
                 <label for="templateDayOfWeek" class="block text-xs font-bold text-ink mb-1">Día de la Semana *</label>
-                <select
-                  id="templateDayOfWeek"
-                  name="templateDayOfWeek"
+                <app-select-field
+                  inputId="templateDayOfWeek"
                   [value]="formDayOfWeek()"
-                  (change)="onFormDayOfWeekChange($event)"
+                  placeholder="Selecciona un dÃ­a..."
+                  [options]="DAY_OF_WEEK_SELECT_OPTIONS"
                   [disabled]="formServiceId() == null"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
-                >
-                  <option value="">Selecciona un día...</option>
-                  @for (day of DAY_OF_WEEK_OPTIONS; track day.value) {
-                    <option [value]="day.value">{{ day.label }}</option>
-                  }
-                </select>
+                  [invalid]="submitAttempted() && !formDayOfWeek()"
+                  (valueChange)="onFormDayOfWeekChange($event)"
+                />
                 @if (submitAttempted() && !formDayOfWeek()) {
                   <p class="mt-1 text-xs text-red-600">El día de la semana es requerido.</p>
                 }
@@ -475,52 +453,37 @@
             <div class="space-y-4">
               <div>
                 <label for="genStablishment" class="block text-xs font-bold text-ink mb-1">Establecimiento *</label>
-                <select
-                  id="genStablishment"
-                  name="genStablishment"
+                <app-select-field
+                  inputId="genStablishment"
                   [value]="genStablishmentId() ?? ''"
-                  (change)="onGenStablishmentChange($event)"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un establecimiento...</option>
-                  @for (est of establishments(); track est.id) {
-                    <option [value]="est.id">{{ est.name }}</option>
-                  }
-                </select>
+                  placeholder="Selecciona un establecimiento..."
+                  [options]="establishmentOptions()"
+                  (valueChange)="onGenStablishmentChange($event)"
+                />
               </div>
 
               <div>
                 <label for="genDoctor" class="block text-xs font-bold text-ink mb-1">Doctor</label>
-                <select
-                  id="genDoctor"
-                  name="genDoctor"
+                <app-select-field
+                  inputId="genDoctor"
                   [value]="genDoctorUuid()"
-                  (change)="onGenDoctorChange($event)"
+                  [placeholder]="genStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Cualquier doctor (pool)'"
+                  [options]="genDoctorOptions()"
                   [disabled]="genStablishmentId() == null"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
-                >
-                  <option value="">{{ genStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Cualquier doctor (pool)' }}</option>
-                  @for (doc of genDoctors(); track doc.uuid) {
-                    <option [value]="doc.uuid">{{ doc.firstName }} {{ doc.lastName }}</option>
-                  }
-                </select>
+                  (valueChange)="onGenDoctorChange($event)"
+                />
               </div>
 
               <div>
                 <label for="genService" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
-                <select
-                  id="genService"
-                  name="genService"
+                <app-select-field
+                  inputId="genService"
                   [value]="genServiceId() ?? ''"
-                  (change)="onGenServiceChange($event)"
+                  [placeholder]="genStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Selecciona un servicio...'"
+                  [options]="genServiceOptions()"
                   [disabled]="genStablishmentId() == null"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none disabled:opacity-50"
-                >
-                  <option value="">{{ genStablishmentId() == null ? 'Selecciona primero un establecimiento...' : 'Selecciona un servicio...' }}</option>
-                  @for (svc of genServices(); track svc.id) {
-                    <option [value]="svc.id">{{ svc.name }}</option>
-                  }
-                </select>
+                  (valueChange)="onGenServiceChange($event)"
+                />
               </div>
 
               <div class="grid grid-cols-2 gap-3">

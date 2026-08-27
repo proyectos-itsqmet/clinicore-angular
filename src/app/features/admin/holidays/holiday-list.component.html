@@ -52,17 +52,11 @@
   <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
     <div class="flex-1 max-w-xs">
       <label class="block text-[11px] font-bold text-ink mb-1">Sede</label>
-      <select
-        name="holidayEstablishmentFilter"
-        [value]="filterStablishmentId() ?? ''"
-        (change)="onFilterChange($event)"
-        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todas las sedes</option>
-        @for (est of establishments(); track est.id) {
-          <option [value]="est.id">{{ est.name }}</option>
-        }
-      </select>
+      <app-select-field
+      [value]="filterStablishmentId() ?? ''"
+      [options]="establishmentFilterOptions()"
+      (valueChange)="onFilterChange($event)"
+      />
     </div>
   </div>
 
@@ -229,35 +223,25 @@
 
               <div>
                 <label for="holidayStablishment" class="block text-xs font-bold text-ink mb-1">Sede</label>
-                <select
-                  id="holidayStablishment"
-                  [value]="formStablishmentId() ?? ''"
-                  (change)="onFormStablishmentChange($event)"
-                  name="holidayStablishment"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Todas las sedes (Global)</option>
-                  @for (est of establishments(); track est.id) {
-                    <option [value]="est.id">{{ est.name }}</option>
-                  }
-                </select>
+                <app-select-field
+                inputId="holidayStablishment"
+                [value]="formStablishmentId() ?? ''"
+                placeholder="Todas las sedes (Global)"
+                [options]="establishmentOptions()"
+                (valueChange)="onFormStablishmentChange($event)"
+                />
                 <p class="mt-1 text-[11px] text-ink-3">Deja "Todas las sedes" para un feriado que aplica a toda la clínica.</p>
               </div>
 
               <div>
                 <label for="holidayReason" class="block text-xs font-bold text-ink mb-1">Motivo *</label>
-                <select
-                  id="holidayReason"
-                  [value]="formReasonId() ?? ''"
-                  (change)="onFormReasonChange($event)"
-                  name="holidayReason"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un motivo...</option>
-                  @for (reason of reasons(); track reason.id) {
-                    <option [value]="reason.id">{{ reason.description }}</option>
-                  }
-                </select>
+                <app-select-field
+                inputId="holidayReason"
+                [value]="formReasonId() ?? ''"
+                placeholder="Selecciona un motivo..."
+                [options]="reasonOptions()"
+                (valueChange)="onFormReasonChange($event)"
+                />
                 @if (submitAttempted() && formReasonId() == null) {
                   <p class="mt-1 text-xs text-red-600">El motivo es requerido.</p>
                 }

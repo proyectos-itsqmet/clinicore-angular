@@ -33,14 +33,23 @@ export const ADMIN_NAV: readonly AdminNavEntry[] = [
       { path: 'analytics', label: 'Analytics', allowedRoles: ['ROLE_ADMIN'] },
     ],
   },
+  // Solo ROLE_DOCTOR. "Mis Servicios" son los servicios asignados a QUIEN esta
+  // mirando, asi que para un administrador la pantalla no tiene contenido
+  // propio: no es que vea de mas, es que ve una lista vacia de algo que no le
+  // corresponde. Lo que un admin necesita — quien atiende que — vive en
+  // Administracion > Doctores.
+  //
+  // Quitar ROLE_ADMIN de aca lo saca del menu Y bloquea la ruta: `roleGuard`
+  // lee estos mismos `allowedRoles` desde ADMIN_NAV, con el hijo pisando al
+  // padre. Un solo lugar para las dos cosas.
   {
     id: 'mis-asignaciones',
     label: 'Mis Asignaciones',
     icon: 'calendar',
     path: 'mis-asignaciones',
-    allowedRoles: ['ROLE_DOCTOR', 'ROLE_ADMIN'],
+    allowedRoles: ['ROLE_DOCTOR'],
     children: [
-      { path: 'servicios', label: 'Mis Servicios', allowedRoles: ['ROLE_DOCTOR', 'ROLE_ADMIN'] },
+      { path: 'servicios', label: 'Mis Servicios', allowedRoles: ['ROLE_DOCTOR'] },
     ],
   },
   {
@@ -55,8 +64,16 @@ export const ADMIN_NAV: readonly AdminNavEntry[] = [
       { path: 'pacientes', label: 'Pacientes', allowedRoles: ['ROLE_ADMIN'] },
     ],
   },
-  { id: 'modulos', label: 'Módulos', icon: 'box', path: 'modulos', allowedRoles: ['ROLE_ADMIN'], children: [] },
-  { id: 'personalizacion', label: 'Personalización', icon: 'droplet', path: 'personalizacion', allowedRoles: ['ROLE_ADMIN'], children: [] },
+  // OCULTOS para la presentacion, con `hidden` y no borrando la entrada: las
+  // rutas del panel se GENERAN desde ADMIN_NAV, asi que borrar la fila
+  // tambien borraria la ruta y el modulo entero. Con el flag, el codigo sigue
+  // ahi y volver a mostrarlo es quitar una palabra.
+  //
+  // `personalizacion` ademas no funciona todavia: deberia cambiar el tema y el
+  // logo de la app y no lo hace, asi que mostrarla es ofrecer un control que
+  // no responde.
+  { id: 'modulos', label: 'Módulos', icon: 'box', path: 'modulos', allowedRoles: ['ROLE_ADMIN'], hidden: true, children: [] },
+  { id: 'personalizacion', label: 'Personalización', icon: 'droplet', path: 'personalizacion', allowedRoles: ['ROLE_ADMIN'], hidden: true, children: [] },
   {
     id: 'administracion',
     label: 'Admin',

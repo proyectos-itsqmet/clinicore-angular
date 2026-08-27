@@ -38,17 +38,11 @@
   <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
     <div class="flex-1 max-w-xs">
       <label class="block text-[11px] font-bold text-ink mb-1">Servicio</label>
-      <select
-        name="sessionPlanServicioFilter"
-        [value]="filterServicioId() ?? ''"
-        (change)="onFilterChange($event)"
-        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos los servicios</option>
-        @for (s of serviciosCatalog(); track s.id) {
-          <option [value]="s.id" [selected]="s.id === filterServicioId()">{{ s.name }}</option>
-        }
-      </select>
+      <app-select-field
+      [value]="filterServicioId() ?? ''"
+      [options]="servicioFilterOptions()"
+      (valueChange)="onFilterChange($event)"
+      />
     </div>
   </div>
 
@@ -188,18 +182,13 @@
             <div class="space-y-4">
               <div>
                 <label for="sessionPlanServicio" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
-                <select
-                  id="sessionPlanServicio"
-                  [value]="formServicioId() ?? ''"
-                  (change)="onFormServicioChange($event)"
-                  name="sessionPlanServicio"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un servicio...</option>
-                  @for (s of serviciosCatalog(); track s.id) {
-                    <option [value]="s.id" [selected]="s.id === formServicioId()">{{ s.name }}</option>
-                  }
-                </select>
+                <app-select-field
+                inputId="sessionPlanServicio"
+                [value]="formServicioId() ?? ''"
+                placeholder="Selecciona un servicio..."
+                [options]="servicioOptions()"
+                (valueChange)="onFormServicioChange($event)"
+                />
                 @if (submitAttempted() && formServicioId() == null) {
                   <p class="mt-1 text-xs text-red-600">El servicio es requerido.</p>
                 }

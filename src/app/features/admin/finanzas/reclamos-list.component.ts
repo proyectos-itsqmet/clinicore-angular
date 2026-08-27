@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 
 import { ClaimApiService } from '../../../core/api/claim-api.service';
@@ -15,7 +16,7 @@ import { CLAIM_STATUS_BADGE_CLASS, CLAIM_STATUS_LABELS, formatIsoDateTimeEs, for
  */
 @Component({
   selector: 'app-reclamos-list',
-  imports: [FormsModule],
+  imports: [FormsModule, SelectField],
   templateUrl: './reclamos-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -65,10 +66,18 @@ export class ReclamosListComponent implements OnInit {
     });
   }
 
-  onFilterStatusChange(event: Event): void {
-    this.filterStatus.set((event.target as HTMLSelectElement).value as ClaimStatus | '');
+  onFilterStatusChange(value: string): void {
+    this.filterStatus.set(value as ClaimStatus | '');
     this.loadPage(0);
   }
+
+  protected readonly CLAIM_STATUS_FILTER_OPTIONS: readonly SelectOption[] = [
+    { value: '', label: 'Todos' },
+    { value: 'SUBMITTED', label: 'Presentado' },
+    { value: 'ACCEPTED', label: 'Aceptado' },
+    { value: 'REJECTED', label: 'Rechazado' },
+    { value: 'PAID', label: 'Pagado' },
+  ];
 
   private currentPage(): number {
     return this.data()?.number ?? 0;

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
@@ -37,7 +38,7 @@ import {
  */
 @Component({
   selector: 'app-factura-detail',
-  imports: [FormsModule],
+  imports: [FormsModule, SelectField],
   templateUrl: './factura-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -141,8 +142,14 @@ export class FacturaDetailComponent implements OnInit {
     this.paymentAmount.set((event.target as HTMLInputElement).value);
   }
 
-  onPaymentMethodChange(event: Event): void {
-    this.paymentMethod.set((event.target as HTMLSelectElement).value as PaymentMethod);
+  /** Los metodos de pago, tomados de la misma constante que ya usaba el select. */
+  /** Los metodos de pago, derivados de la misma lista que usaba el select. */
+  protected readonly paymentMethodOptions: readonly SelectOption[] = this.PAYMENT_METHODS.map(
+    (method) => ({ value: method, label: PAYMENT_METHOD_LABELS[method] }),
+  );
+
+  onPaymentMethodChange(value: string): void {
+    this.paymentMethod.set(value as PaymentMethod);
   }
 
   onPaymentReferenceInput(event: Event): void {

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -11,7 +12,7 @@ import type { Servicio, AdminDoctor, ScheduleDTO, ScheduleStatus, Establishment,
 
 @Component({
   selector: 'app-specialty-detail',
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, DecimalPipe],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, DecimalPipe, SelectField],
   templateUrl: './specialty-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -61,6 +62,83 @@ export class SpecialtyDetailComponent implements OnInit {
   // Catálogo Global de Establecimientos (completo: ver `loadEstablishments`)
   protected readonly establishments = signal<Establishment[]>([]);
   protected readonly establishmentsIncomplete = signal<boolean>(false);
+
+  // ==========================================================================
+  // Opciones de los desplegables.
+  // ==========================================================================
+
+  protected readonly STATUS_FILTER_OPTIONS: readonly SelectOption[] = [
+    { value: '', label: 'Todos los Estados' },
+    { value: 'STATUS_FREE', label: 'Disponible', hint: 'Libre' },
+    { value: 'STATUS_OCCUPIED', label: 'Ocupado', hint: 'Reservado' },
+    { value: 'STATUS_UNAVAILABLE', label: 'No disponible' },
+  ];
+
+  /** Los intervalos de la generación por lote, con su uso clínico de apoyo. */
+  protected readonly INTERVAL_OPTIONS: readonly SelectOption[] = [
+    { value: '15', label: 'Cada 15 minutos', hint: 'Consulta rápida / Triaje' },
+    { value: '20', label: 'Cada 20 minutos', hint: 'Consulta estándar' },
+    { value: '30', label: 'Cada 30 minutos', hint: 'Revisión médica habitual — recomendado' },
+    { value: '45', label: 'Cada 45 minutos', hint: 'Evaluación profunda' },
+    { value: '60', label: 'Cada 60 minutos', hint: '1 hora — procedimientos' },
+  ];
+
+  protected readonly establishmentFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos los Establecimientos' },
+    ...this.establishments().map((e) => ({ value: String(e.id), label: e.name })),
+  ]);
+
+  /**
+   * Los doctores del formulario de horario.
+   *
+   * El `<optgroup>` "Doctores Asignados a este Servicio" que había acá se
+   * APLANA: un `listbox` no anida grupos, y el dato que el grupo aportaba —
+   * si el doctor ya está asignado a este servicio — cabe entero en el renglón
+   * secundario de cada opción, donde además se lee sin tener que mirar bajo
+   * qué encabezado cayó la fila.
+   */
+  protected readonly scheduleDoctorOptions = computed<readonly SelectOption[]>(() => {
+    const assigned = this.doctors()?.content ?? [];
+    const assignedIds = new Set(assigned.map((d) => d.uuid));
+    const rest = this.allDoctors().filter((d) => !assignedIds.has(d.uuid));
+
+    const toOption = (d: AdminDoctor, isAssigned: boolean): SelectOption => ({
+      value: d.uuid,
+      label: `Dr. ${d.firstName} ${d.lastName}`,
+      hint: isAssigned ? `${d.speciality} · asignado a este servicio` : d.speciality,
+    });
+
+    return [...assigned.map((d) => toOption(d, true)), ...rest.map((d) => toOption(d, false))];
+  });
+
+  protected readonly scheduleEstablishmentOptions = computed<readonly SelectOption[]>(() =>
+    this.establishments().map((e) => ({
+      value: String(e.id),
+      label: e.name,
+      hint: e.address,
+    })),
+  );
+
+  /** Prefiere los establecimientos ASIGNADOS; cae al catálogo completo si no hay. */
+  protected readonly batchEstablishmentOptions = computed<readonly SelectOption[]>(() => {
+    const assigned = this.assignedEstablishments()?.content ?? [];
+    const source = assigned.length > 0 ? assigned : this.establishments();
+    return source.map((e) => ({ value: String(e.id), label: e.name, hint: e.address }));
+  });
+
+  /** Igual, con "sin doctor" adelante: en un lote es una elección válida. */
+  protected readonly batchDoctorOptions = computed<readonly SelectOption[]>(() => {
+    const scoped = this.doctors()?.content ?? [];
+    const source = scoped.length > 0 ? scoped : this.allDoctors();
+    return [
+      { value: '', label: 'Sin doctor específico', hint: 'Disponible para cualquier médico' },
+      ...source.map((d) => ({
+        value: d.uuid,
+        label: `Dr. ${d.firstName} ${d.lastName}`,
+        hint: d.speciality,
+      })),
+    ];
+  });
 
   // Modales
   protected readonly isEditModalOpen = signal<boolean>(false);
@@ -329,15 +407,13 @@ export class SpecialtyDetailComponent implements OnInit {
     this.loadSchedules(0);
   }
 
-  onEstablishmentFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onEstablishmentFilterChange(value: string): void {
     const estId = value ? Number(value) : null;
     this.filterStablishmentId.set(estId && !isNaN(estId) ? estId : null);
     this.loadSchedules(0);
   }
 
-  onStatusFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onStatusFilterChange(value: string): void {
     this.filterStatus.set(value);
     this.loadSchedules(0);
   }

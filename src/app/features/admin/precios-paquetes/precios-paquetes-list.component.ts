@@ -1,4 +1,5 @@
 import { DecimalPipe } from '@angular/common';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -27,7 +28,7 @@ interface PackageItemRow {
  */
 @Component({
   selector: 'app-precios-paquetes-list',
-  imports: [DecimalPipe, FormsModule],
+  imports: [DecimalPipe, FormsModule, SelectField],
   templateUrl: './precios-paquetes-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -49,6 +50,10 @@ export class PreciosPaquetesListComponent implements OnInit {
 
   // Catálogo de servicios (todas las páginas) para el <select> de cada línea del paquete.
   protected readonly serviciosCatalog = signal<Servicio[]>([]);
+
+  protected readonly servicioOptions = computed<readonly SelectOption[]>(() =>
+    this.serviciosCatalog().map((s) => ({ value: String(s.id), label: s.name })),
+  );
   protected readonly serviciosCatalogLoading = signal<boolean>(false);
   protected readonly serviciosCatalogError = signal<string | null>(null);
   protected readonly serviciosCatalogIncomplete = signal<boolean>(false);
@@ -205,8 +210,7 @@ export class PreciosPaquetesListComponent implements OnInit {
     this.formItems.update((rows) => rows.filter((row) => row.rowId !== rowId));
   }
 
-  onItemServicioChange(rowId: number, event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onItemServicioChange(rowId: number, value: string): void {
     const servicioId = value ? Number(value) : null;
     this.formItems.update((rows) => rows.map((row) => (row.rowId === rowId ? { ...row, servicioId } : row)));
   }

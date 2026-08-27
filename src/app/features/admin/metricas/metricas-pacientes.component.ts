@@ -30,6 +30,43 @@ export class MetricasPacientesComponent implements OnInit {
 
   protected readonly hasTurnsInPeriod = computed(() => (this.data()?.turnsInPeriod ?? 0) > 0);
 
+  // ==========================================================================
+  // Lecturas derivadas.
+  //
+  // `PatientsMetrics` trae CUATRO números y esta pantalla ya los mostraba los
+  // cuatro: no hay más dato que traer de ese endpoint. Lo que faltaba era
+  // convertirlos en las preguntas que un gerente hace de verdad — cuántos
+  // turnos se sostuvieron, y cuántos trae cada paciente nuevo.
+  // ==========================================================================
+
+  /** Turnos que NO se cancelaron. La cifra que sostiene la operación. */
+  protected readonly effectiveTurns = computed(() => {
+    const data = this.data();
+    if (!data) return 0;
+    return Math.max(0, data.turnsInPeriod - data.cancelledInPeriod);
+  });
+
+  protected readonly effectivePercent = computed(() => {
+    const data = this.data();
+    if (!data || data.turnsInPeriod === 0) return 0;
+    return (this.effectiveTurns() / data.turnsInPeriod) * 100;
+  });
+
+  /**
+   * Turnos por paciente nuevo del período.
+   *
+   * NO es "turnos por paciente": el denominador son solo los pacientes
+   * NUEVOS, y el numerador incluye turnos de pacientes que ya existían. Es un
+   * indicador de mezcla, no un promedio por persona — sirve para ver si el
+   * período se sostuvo con gente nueva o con la cartera de siempre, y la
+   * pantalla lo dice con esas palabras para que nadie lo lea como otra cosa.
+   */
+  protected readonly turnsPerNewPatient = computed(() => {
+    const data = this.data();
+    if (!data || data.newPatients === 0) return null;
+    return Math.round((data.turnsInPeriod / data.newPatients) * 10) / 10;
+  });
+
   protected readonly cancellationLabel = computed(() => {
     const data = this.data();
     if (!data) {

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { OperatorApiService } from '../../../core/api/operator-api.service';
@@ -6,11 +7,16 @@ import type { Operator, Page } from '../../../core/models';
 
 @Component({
   selector: 'app-operator-list',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, SelectField],
   templateUrl: './operator-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperatorListComponent implements OnInit {
+  protected readonly ROLE_OPTIONS: readonly SelectOption[] = [
+    { value: 'ROLE_EMPLOYEE', label: 'Operador de Turnos' },
+    { value: 'ROLE_ADMIN', label: 'Administrador' },
+  ];
+
   private readonly api = inject(OperatorApiService);
   private readonly fb = inject(FormBuilder);
 

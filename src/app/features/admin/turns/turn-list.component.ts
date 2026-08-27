@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnDestroy, OnInit } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import type { Subscription } from 'rxjs';
@@ -53,7 +54,7 @@ export function buildStablishmentTopic(stablishmentId: number, date: string): st
 
 @Component({
   selector: 'app-turn-list',
-  imports: [CommonModule, FormsModule, DecimalPipe, RouterLink],
+  imports: [CommonModule, FormsModule, DecimalPipe, RouterLink, SelectField],
   templateUrl: './turn-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -125,6 +126,26 @@ export class TurnListComponent implements OnInit, OnDestroy {
   protected readonly isCallModalOpen = signal<boolean>(false);
   protected readonly turnToCall = signal<Turn | null>(null);
   protected readonly callRooms = signal<Consultorio[]>([]);
+
+  protected readonly TURN_STATUS_FILTER_OPTIONS: readonly SelectOption[] = [
+    { value: '', label: 'Todos los Estados' },
+    { value: 'TURN_PENDING', label: 'Pendiente' },
+    { value: 'TURN_WAITNG', label: 'En Espera' },
+    { value: 'TURN_IN_TREATMENT', label: 'En Atención' },
+    { value: 'TURN_TREATED', label: 'Atendido' },
+    { value: 'TURN_CANCELLED', label: 'Cancelado' },
+  ];
+
+  /**
+   * Los consultorios activos de la sede, para el modal de llamado.
+   *
+   * "Usar el del horario" queda como placeholder y no como opción de la
+   * lista: no elegir consultorio no es una tercera alternativa, es dejar el
+   * que un administrador ya asignó a esa jornada.
+   */
+  protected readonly callRoomOptions = computed<readonly SelectOption[]>(() =>
+    this.callRooms().map((room) => ({ value: String(room.id), label: room.label })),
+  );
   protected readonly callRoomId = signal<number | null>(null);
   protected readonly callSubmitting = signal<boolean>(false);
 

@@ -4,7 +4,7 @@
     <div>
       <a
         routerLink="/admin/administracion/especialidades"
-        class="inline-flex items-center text-sm font-medium text-text-muted hover:text-text-strong mb-2"
+        class="inline-flex items-center text-sm font-medium text-ink-3 hover:text-ink mb-2"
       >
         <svg
           class="w-4 h-4 mr-1.5"
@@ -22,7 +22,7 @@
         Volver a la lista de servicios
       </a>
       <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-bold text-text-strong">
+        <h1 class="text-2xl font-bold text-ink">
           {{ service()?.name ?? 'Detalle del Servicio' }}
         </h1>
         @if (service()) {
@@ -56,10 +56,10 @@
         <button
           (click)="openEditModal()"
           type="button"
-          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted transition-colors"
+          class="inline-flex items-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-ink shadow-sm ring-1 ring-inset ring-line hover:bg-field transition-colors"
         >
           <svg
-            class="w-4 h-4 mr-2 text-text-muted"
+            class="w-4 h-4 mr-2 text-ink-3"
             fill="none"
             viewBox="0 0 24 24"
             stroke-width="1.5"
@@ -98,41 +98,41 @@
   </div>
 
   @if (loading()) {
-    <div class="p-12 text-center text-text-muted">Cargando información del servicio...</div>
+    <div class="p-12 text-center text-ink-3">Cargando información del servicio...</div>
   } @else if (error()) {
     <div class="rounded-md bg-red-50 p-4">
       <h3 class="text-sm font-medium text-red-800">{{ error() }}</h3>
     </div>
   } @else if (service()) {
     <!-- Información de Precios y Tarifas Card -->
-    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm">
-      <h2 class="text-base font-semibold text-text-strong mb-4">Información Tarifaria</h2>
+    <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm">
+      <h2 class="text-base font-semibold text-ink mb-4">Información Tarifaria</h2>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div class="rounded-lg bg-surface-muted/50 p-4 border border-border">
-          <span class="text-xs font-medium text-text-muted uppercase tracking-wider"
+        <div class="rounded-2xl bg-field/50 p-4 border border-line">
+          <span class="text-xs font-medium text-ink-3 uppercase tracking-wider"
             >Precio Base</span
           >
-          <p class="mt-2 text-2xl font-bold text-text-strong">
+          <p class="mt-2 text-2xl font-bold text-ink">
             ${{ service()?.price | number: '1.2-2' }}
           </p>
-          <span class="text-xs text-text-muted">Tarifa estándar de consulta</span>
+          <span class="text-xs text-ink-3">Tarifa estándar de consulta</span>
         </div>
 
-        <div class="rounded-lg bg-surface-muted/50 p-4 border border-border">
-          <span class="text-xs font-medium text-text-muted uppercase tracking-wider"
+        <div class="rounded-2xl bg-field/50 p-4 border border-line">
+          <span class="text-xs font-medium text-ink-3 uppercase tracking-wider"
             >Descuento Aplicado</span
           >
           <p class="mt-2 text-2xl font-bold text-emerald-600">
             @if (service()?.discount && service()!.discount! > 0) {
               -${{ service()?.discount | number: '1.2-2' }}
             } @else {
-              <span class="text-text-muted text-lg font-normal">Sin descuento</span>
+              <span class="text-ink-3 text-lg font-normal">Sin descuento</span>
             }
           </p>
-          <span class="text-xs text-text-muted">Descuento promocional activo</span>
+          <span class="text-xs text-ink-3">Descuento promocional activo</span>
         </div>
 
-        <div class="rounded-lg bg-blue-50/50 p-4 border border-blue/20">
+        <div class="rounded-2xl bg-blue-50/50 p-4 border border-blue/20">
           <span class="text-xs font-medium text-blue uppercase tracking-wider"
             >Precio Final al Paciente</span
           >
@@ -145,20 +145,20 @@
     </div>
 
     <!-- Sección de Horarios Programados (Visual & Atractivo con Filtros) -->
-    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm space-y-6">
+    <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm space-y-6">
       <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-5"
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line pb-5"
       >
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-lg font-bold text-text-strong">Horarios y Turnos de Atención</h2>
+            <h2 class="text-lg font-bold text-ink">Horarios y Turnos de Atención</h2>
             <span
               class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue ring-1 ring-inset ring-blue/20"
             >
               {{ schedules()?.totalElements ?? 0 }} turnos
             </span>
           </div>
-          <p class="text-xs text-text-muted mt-1">
+          <p class="text-xs text-ink-3 mt-1">
             Horarios generados y disponibilidad para este servicio
           </p>
         </div>
@@ -196,33 +196,33 @@
 
       <!-- Barra de Filtros Interactiva -->
       <div
-        class="flex flex-wrap items-center gap-2.5 bg-surface-muted/30 p-3 rounded-xl border border-border"
+        class="flex flex-wrap items-center gap-2.5 bg-field/30 p-3 rounded-xl border border-line"
       >
         <!-- Botones Rápidos de Fecha -->
         <div
-          class="inline-flex rounded-lg shadow-sm border border-border overflow-hidden bg-surface"
+          class="inline-flex rounded-pill shadow-sm border border-line overflow-hidden bg-surface"
         >
           <button
             type="button"
             (click)="clearDateFilter()"
             [class.bg-blue]="filterDate() === ''"
             [class.text-white]="filterDate() === ''"
-            [class.text-text-muted]="filterDate() !== ''"
-            class="px-2.5 py-1.5 text-xs font-medium hover:bg-surface-muted transition-colors"
+            [class.text-ink-3]="filterDate() !== ''"
+            class="px-2.5 py-1.5 text-xs font-medium hover:bg-field transition-colors"
           >
             Todos
           </button>
           <button
             type="button"
             (click)="setTodayFilter()"
-            class="px-2.5 py-1.5 text-xs font-medium border-l border-border hover:bg-surface-muted transition-colors"
+            class="px-2.5 py-1.5 text-xs font-medium border-l border-line hover:bg-field transition-colors"
           >
             Hoy
           </button>
           <button
             type="button"
             (click)="setTomorrowFilter()"
-            class="px-2.5 py-1.5 text-xs font-medium border-l border-border hover:bg-surface-muted transition-colors"
+            class="px-2.5 py-1.5 text-xs font-medium border-l border-line hover:bg-field transition-colors"
           >
             Mañana
           </button>
@@ -234,21 +234,17 @@
             type="date"
             [ngModel]="filterDate()"
             (ngModelChange)="onDateFilterChange($event)"
-            class="block rounded-lg border-0 py-1.5 px-2.5 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-blue"
+            class="block rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
           />
         </div>
 
         <!-- Filtro Establecimiento -->
-        <select
-          [value]="filterStablishmentId() ?? ''"
-          (change)="onEstablishmentFilterChange($event)"
-          class="block rounded-lg border-0 py-1.5 px-2.5 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-blue"
-        >
-          <option value="">Todos los Establecimientos</option>
-          @for (est of establishments(); track est.id) {
-            <option [value]="est.id">{{ est.name }}</option>
-          }
-        </select>
+        <app-select-field
+        inputId="spec-filter-establishment"
+        [value]="filterStablishmentId() ?? ''"
+        [options]="establishmentFilterOptions()"
+        (valueChange)="onEstablishmentFilterChange($event)"
+        />
         @if (establishmentsIncomplete()) {
           <span class="text-xs text-red-600 font-medium" role="alert">
             No se pudo cargar el catálogo completo de establecimientos; la lista puede estar incompleta.
@@ -256,16 +252,12 @@
         }
 
         <!-- Filtro Estado -->
-        <select
-          [value]="filterStatus()"
-          (change)="onStatusFilterChange($event)"
-          class="block rounded-lg border-0 py-1.5 px-2.5 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-blue"
-        >
-          <option value="">Todos los Estados</option>
-          <option value="STATUS_FREE">Disponible (Libre)</option>
-          <option value="STATUS_OCCUPIED">Ocupado (Reservado)</option>
-          <option value="STATUS_UNAVAILABLE">No disponible</option>
-        </select>
+        <app-select-field
+        inputId="spec-filter-status"
+        [value]="filterStatus()"
+        [options]="STATUS_FILTER_OPTIONS"
+        (valueChange)="onStatusFilterChange($event)"
+        />
 
         @if (filterDate() || filterStablishmentId() || filterStatus()) {
           <button
@@ -280,20 +272,20 @@
 
       <!-- Barra de Acciones Masivas (Horarios) -->
       @if (schedules() && schedules()!.content.length > 0) {
-        <div class="flex items-center gap-4 bg-surface rounded-xl border border-border p-3 shadow-sm">
+        <div class="flex items-center gap-4 bg-surface rounded-2xl border border-line p-3 shadow-sm">
           <label class="flex items-center gap-2 cursor-pointer">
             <input 
               type="checkbox" 
               [checked]="isAllSchedulesSelected()"
               (change)="toggleSelectAllSchedules()"
-              class="rounded border-border text-blue focus:ring-blue cursor-pointer"
+              class="rounded border-line text-blue focus:ring-blue cursor-pointer"
             />
-            <span class="text-xs font-bold text-text-strong">Seleccionar todos</span>
+            <span class="text-xs font-bold text-ink">Seleccionar todos</span>
           </label>
           
           <div class="h-4 w-px bg-border"></div>
           
-          <span class="text-xs text-text-muted font-semibold">{{ selectedScheduleIds().size }} seleccionados</span>
+          <span class="text-xs text-ink-3 font-semibold">{{ selectedScheduleIds().size }} seleccionados</span>
 
           @if (selectedScheduleIds().size > 0) {
             <div class="flex items-center gap-2 ml-auto flex-wrap">
@@ -325,15 +317,15 @@
 
       <!-- Cuadrícula Visual de Horarios -->
       @if (schedulesLoading()) {
-        <div class="py-12 text-center text-sm text-text-muted">
+        <div class="py-12 text-center text-sm text-ink-3">
           Cargando horarios de atención...
         </div>
       } @else if (!schedules()?.content || schedules()!.content!.length === 0) {
         <div
-          class="py-12 text-center rounded-xl border border-dashed border-border bg-surface-muted/30"
+          class="py-12 text-center rounded-xl border border-dashed border-line bg-field/30"
         >
           <svg
-            class="mx-auto h-12 w-12 text-text-muted/60"
+            class="mx-auto h-12 w-12 text-ink-3/60"
             fill="none"
             viewBox="0 0 24 24"
             stroke-width="1"
@@ -345,8 +337,8 @@
               d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <h3 class="mt-2 text-sm font-semibold text-text-strong">No se encontraron horarios</h3>
-          <p class="mt-1 text-xs text-text-muted">
+          <h3 class="mt-2 text-sm font-semibold text-ink">No se encontraron horarios</h3>
+          <p class="mt-1 text-xs text-ink-3">
             No existen turnos generados que coincidan con los filtros seleccionados.
           </p>
         </div>
@@ -354,7 +346,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           @for (sch of schedules()?.content; track sch.id) {
             <div
-              class="group relative rounded-xl border border-border bg-surface p-4 shadow-sm hover:shadow-md transition-all hover:border-blue/40 flex flex-col justify-between cursor-pointer"
+              class="group relative rounded-2xl border border-line bg-surface p-4 shadow-sm hover:shadow-md transition-all hover:border-blue/40 flex flex-col justify-between cursor-pointer"
               [class.ring-2]="selectedScheduleIds().has(sch.id!)"
               [class.ring-blue]="selectedScheduleIds().has(sch.id!)"
               (click)="toggleScheduleSelection(sch.id!)"
@@ -368,10 +360,10 @@
                       [checked]="selectedScheduleIds().has(sch.id!)"
                       (change)="toggleScheduleSelection(sch.id!); $event.stopPropagation()"
                       (click)="$event.stopPropagation()"
-                      class="rounded border-border text-blue focus:ring-blue cursor-pointer"
+                      class="rounded border-line text-blue focus:ring-blue cursor-pointer"
                     />
                     <span
-                      class="inline-flex items-center gap-1.5 font-mono text-base font-bold text-text-strong"
+                      class="inline-flex items-center gap-1.5 font-mono text-base font-bold text-ink"
                     >
                       <svg
                         class="w-4 h-4 text-blue"
@@ -417,9 +409,9 @@
                 </div>
 
                 <!-- Fecha del Turno -->
-                <div class="flex items-center text-xs text-text-muted mb-3">
+                <div class="flex items-center text-xs text-ink-3 mb-3">
                   <svg
-                    class="w-3.5 h-3.5 mr-1.5 text-text-muted shrink-0"
+                    class="w-3.5 h-3.5 mr-1.5 text-ink-3 shrink-0"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
@@ -431,22 +423,22 @@
                       d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
                     />
                   </svg>
-                  <span class="font-medium text-text-strong">{{ sch.date }}</span>
+                  <span class="font-medium text-ink">{{ sch.date }}</span>
                 </div>
 
                 <!-- Doctor asignado -->
                 @if (sch.doctor) {
-                  <div class="flex items-center gap-2 mb-2 p-2 rounded-lg bg-surface-muted/40">
+                  <div class="flex items-center gap-2 mb-2 p-2 rounded-xl bg-field/40">
                     <div
                       class="w-7 h-7 rounded-full bg-blue-100 text-blue font-bold flex items-center justify-center text-xs shrink-0"
                     >
                       {{ sch.doctor.firstName.charAt(0) }}{{ sch.doctor.lastName.charAt(0) }}
                     </div>
                     <div class="min-w-0 flex-1">
-                      <p class="text-xs font-semibold text-text-strong truncate">
+                      <p class="text-xs font-semibold text-ink truncate">
                         Dr. {{ sch.doctor.firstName }} {{ sch.doctor.lastName }}
                       </p>
-                      <p class="text-[11px] text-text-muted truncate">
+                      <p class="text-[11px] text-ink-3 truncate">
                         {{ sch.doctor.speciality }}
                       </p>
                     </div>
@@ -455,9 +447,9 @@
 
                 <!-- Establecimiento / Sede -->
                 @if (sch.stablishment) {
-                  <div class="flex items-center text-xs text-text-muted mt-2">
+                  <div class="flex items-center text-xs text-ink-3 mt-2">
                     <svg
-                      class="w-3.5 h-3.5 mr-1 text-text-muted shrink-0"
+                      class="w-3.5 h-3.5 mr-1 text-ink-3 shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke-width="1.5"
@@ -479,22 +471,22 @@
 
         <!-- Paginación de Horarios -->
         @if (schedules() && schedules()!.totalPages > 1) {
-          <div class="flex items-center justify-between border-t border-border pt-4 mt-4">
-            <p class="text-xs text-text-muted">
+          <div class="flex items-center justify-between border-t border-line pt-4 mt-4">
+            <p class="text-xs text-ink-3">
               Página {{ schedules()!.number + 1 }} de {{ schedules()!.totalPages }}
             </p>
             <div class="flex gap-2">
               <button
                 [disabled]="schedules()!.first"
                 (click)="loadSchedules(schedules()!.number - 1)"
-                class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                class="rounded-md border border-line px-3 py-1 text-xs font-medium text-ink disabled:opacity-50 hover:bg-field"
               >
                 Anterior
               </button>
               <button
                 [disabled]="schedules()!.last"
                 (click)="loadSchedules(schedules()!.number + 1)"
-                class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                class="rounded-md border border-line px-3 py-1 text-xs font-medium text-ink disabled:opacity-50 hover:bg-field"
               >
                 Siguiente
               </button>
@@ -505,18 +497,18 @@
     </div>
 
     <!-- Sección de Doctores Especialistas Card -->
-    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm space-y-4">
+    <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-lg font-bold text-text-strong">Doctores Especialistas</h2>
+            <h2 class="text-lg font-bold text-ink">Doctores Especialistas</h2>
             <span
-              class="inline-flex items-center rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-semibold text-text-strong ring-1 ring-inset ring-border"
+              class="inline-flex items-center rounded-full bg-field px-2.5 py-0.5 text-xs font-semibold text-ink ring-1 ring-inset ring-line"
             >
               {{ doctors()?.totalElements ?? 0 }}
             </span>
           </div>
-          <p class="text-xs text-text-muted mt-0.5">
+          <p class="text-xs text-ink-3 mt-0.5">
             Profesionales médicos capacitados para este servicio
           </p>
         </div>
@@ -529,7 +521,7 @@
               placeholder="Buscar doctor asignado..."
               [ngModel]="doctorSearch()"
               (ngModelChange)="doctorSearch.set($event); loadDoctors(0)"
-              class="block w-full rounded-md border-0 py-1.5 px-3 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-blue"
+              class="block w-full rounded-md border-0 py-1.5 px-3 text-xs text-ink shadow-sm ring-1 ring-inset ring-line placeholder:text-ink-3 focus:ring-2 focus:ring-blue"
             />
           </div>
 
@@ -548,10 +540,10 @@
 
       <div class="mt-4">
         @if (doctorsLoading()) {
-          <div class="py-8 text-center text-sm text-text-muted">Cargando doctores...</div>
+          <div class="py-8 text-center text-sm text-ink-3">Cargando doctores...</div>
         } @else if (!doctors()?.content || doctors()!.content!.length === 0) {
           <div
-            class="py-8 text-center text-sm text-text-muted rounded-lg border border-border bg-surface-muted/20"
+            class="py-8 text-center text-sm text-ink-3 rounded-2xl border border-line bg-field/20"
           >
             No se encontraron doctores asignados a este servicio.
           </div>
@@ -559,7 +551,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @for (doc of doctors()?.content; track doc.uuid) {
               <div
-                class="rounded-xl border border-border p-4 bg-surface hover:bg-surface-muted/30 transition-colors flex items-center justify-between gap-3"
+                class="rounded-2xl border border-line p-4 bg-surface hover:bg-field/30 transition-colors flex items-center justify-between gap-3"
               >
                 <div class="flex items-center gap-3 min-w-0">
                   <div
@@ -568,10 +560,10 @@
                     {{ doc.firstName.charAt(0) }}{{ doc.lastName.charAt(0) }}
                   </div>
                   <div class="min-w-0">
-                    <h4 class="text-sm font-semibold text-text-strong truncate">
+                    <h4 class="text-sm font-semibold text-ink truncate">
                       Dr. {{ doc.firstName }} {{ doc.lastName }}
                     </h4>
-                    <p class="text-xs text-text-muted truncate">{{ doc.email }}</p>
+                    <p class="text-xs text-ink-3 truncate">{{ doc.email }}</p>
                     <span
                       class="mt-1 inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue ring-1 ring-inset ring-blue/20"
                     >
@@ -615,22 +607,22 @@
 
           <!-- Paginación de Doctores -->
           @if (doctors() && doctors()!.totalPages > 1) {
-            <div class="flex items-center justify-between border-t border-border pt-4 mt-4">
-              <p class="text-xs text-text-muted">
+            <div class="flex items-center justify-between border-t border-line pt-4 mt-4">
+              <p class="text-xs text-ink-3">
                 Página {{ doctors()!.number + 1 }} de {{ doctors()!.totalPages }}
               </p>
               <div class="flex gap-2">
                 <button
                   [disabled]="doctors()!.first"
                   (click)="loadDoctors(doctors()!.number - 1)"
-                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                  class="rounded-md border border-line px-3 py-1 text-xs font-medium text-ink disabled:opacity-50 hover:bg-field"
                 >
                   Anterior
                 </button>
                 <button
                   [disabled]="doctors()!.last"
                   (click)="loadDoctors(doctors()!.number + 1)"
-                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                  class="rounded-md border border-line px-3 py-1 text-xs font-medium text-ink disabled:opacity-50 hover:bg-field"
                 >
                   Siguiente
                 </button>
@@ -642,18 +634,18 @@
     </div>
 
     <!-- Sección de Establecimientos Asignados Card -->
-    <div class="bg-surface rounded-xl border border-border p-6 shadow-sm space-y-4">
+    <div class="bg-surface rounded-2xl border border-line p-6 shadow-sm space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-lg font-bold text-text-strong">Establecimientos Asignados</h2>
+            <h2 class="text-lg font-bold text-ink">Establecimientos Asignados</h2>
             <span
-              class="inline-flex items-center rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-semibold text-text-strong ring-1 ring-inset ring-border"
+              class="inline-flex items-center rounded-full bg-field px-2.5 py-0.5 text-xs font-semibold text-ink ring-1 ring-inset ring-line"
             >
               {{ assignedEstablishments()?.totalElements ?? 0 }}
             </span>
           </div>
-          <p class="text-xs text-text-muted mt-0.5">
+          <p class="text-xs text-ink-3 mt-0.5">
             Sedes y centros de atención donde se brinda este servicio
           </p>
         </div>
@@ -666,7 +658,7 @@
               placeholder="Buscar establecimiento..."
               [ngModel]="establishmentSearch()"
               (ngModelChange)="establishmentSearch.set($event); loadAssignedEstablishments(0)"
-              class="block w-full rounded-md border-0 py-1.5 px-3 text-xs text-text-strong shadow-sm ring-1 ring-inset ring-border placeholder:text-text-muted focus:ring-2 focus:ring-blue"
+              class="block w-full rounded-md border-0 py-1.5 px-3 text-xs text-ink shadow-sm ring-1 ring-inset ring-line placeholder:text-ink-3 focus:ring-2 focus:ring-blue"
             />
           </div>
 
@@ -691,12 +683,12 @@
 
       <div class="mt-4">
         @if (assignedEstablishmentsLoading()) {
-          <div class="py-8 text-center text-sm text-text-muted">Cargando establecimientos...</div>
+          <div class="py-8 text-center text-sm text-ink-3">Cargando establecimientos...</div>
         } @else if (
           !assignedEstablishments()?.content || assignedEstablishments()!.content!.length === 0
         ) {
           <div
-            class="py-8 text-center text-sm text-text-muted rounded-lg border border-border bg-surface-muted/20"
+            class="py-8 text-center text-sm text-ink-3 rounded-2xl border border-line bg-field/20"
           >
             No se encontraron establecimientos asignados a este servicio.
           </div>
@@ -704,7 +696,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @for (est of assignedEstablishments()?.content; track est.id) {
               <div
-                class="rounded-xl border border-border p-4 bg-surface hover:bg-surface-muted/30 transition-colors flex items-center justify-between gap-3"
+                class="rounded-2xl border border-line p-4 bg-surface hover:bg-field/30 transition-colors flex items-center justify-between gap-3"
               >
                 <div class="flex items-center gap-3 min-w-0">
                   <div
@@ -713,10 +705,10 @@
                     🏥
                   </div>
                   <div class="min-w-0">
-                    <h4 class="text-sm font-semibold text-text-strong truncate">
+                    <h4 class="text-sm font-semibold text-ink truncate">
                       {{ est.name }}
                     </h4>
-                    <p class="text-xs text-text-muted truncate">{{ est.address }}</p>
+                    <p class="text-xs text-ink-3 truncate">{{ est.address }}</p>
                     <span
                       class="mt-1 inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20"
                     >
@@ -760,8 +752,8 @@
 
           <!-- Paginación de Establecimientos -->
           @if (assignedEstablishments() && assignedEstablishments()!.totalPages > 1) {
-            <div class="flex items-center justify-between border-t border-border pt-4 mt-4">
-              <p class="text-xs text-text-muted">
+            <div class="flex items-center justify-between border-t border-line pt-4 mt-4">
+              <p class="text-xs text-ink-3">
                 Página {{ assignedEstablishments()!.number + 1 }} de
                 {{ assignedEstablishments()!.totalPages }}
               </p>
@@ -769,14 +761,14 @@
                 <button
                   [disabled]="assignedEstablishments()!.first"
                   (click)="loadAssignedEstablishments(assignedEstablishments()!.number - 1)"
-                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                  class="rounded-md border border-line px-3 py-1 text-xs font-medium text-ink disabled:opacity-50 hover:bg-field"
                 >
                   Anterior
                 </button>
                 <button
                   [disabled]="assignedEstablishments()!.last"
                   (click)="loadAssignedEstablishments(assignedEstablishments()!.number + 1)"
-                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-text-strong disabled:opacity-50 hover:bg-surface-muted"
+                  class="rounded-md border border-line px-3 py-1 text-xs font-medium text-ink disabled:opacity-50 hover:bg-field"
                 >
                   Siguiente
                 </button>
@@ -801,13 +793,13 @@
     <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div
-          class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
+          class="relative transform overflow-hidden rounded-2xl border border-line bg-surface px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
         >
           <form [formGroup]="editForm" (ngSubmit)="onEditSubmit()">
             <div class="sm:flex sm:items-start">
               <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
                 <h3
-                  class="text-lg font-semibold leading-6 text-text-strong"
+                  class="text-lg font-semibold leading-6 text-ink"
                   id="modal-edit-service"
                 >
                   Editar Servicio
@@ -816,7 +808,7 @@
                   <div>
                     <label
                       for="edit_name"
-                      class="block text-sm font-medium leading-6 text-text-strong"
+                      class="block text-sm font-medium leading-6 text-ink"
                       >Nombre del Servicio</label
                     >
                     <div class="mt-2">
@@ -824,7 +816,7 @@
                         type="text"
                         id="edit_name"
                         formControlName="name"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 text-ink shadow-sm ring-1 ring-inset ring-line focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
                       />
                       @if (
                         editForm.controls.name.touched &&
@@ -838,14 +830,14 @@
                   <div>
                     <label
                       for="edit_price"
-                      class="block text-sm font-medium leading-6 text-text-strong"
+                      class="block text-sm font-medium leading-6 text-ink"
                       >Precio Base ($)</label
                     >
                     <div class="mt-2 relative rounded-md shadow-sm">
                       <div
                         class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
                       >
-                        <span class="text-text-muted sm:text-sm">$</span>
+                        <span class="text-ink-3 sm:text-sm">$</span>
                       </div>
                       <input
                         type="number"
@@ -853,7 +845,7 @@
                         formControlName="price"
                         step="0.01"
                         min="0"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 pl-7 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 pl-7 text-ink shadow-sm ring-1 ring-inset ring-line focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
                       />
                       @if (
                         editForm.controls.price.touched &&
@@ -867,14 +859,14 @@
                   <div>
                     <label
                       for="edit_discount"
-                      class="block text-sm font-medium leading-6 text-text-strong"
+                      class="block text-sm font-medium leading-6 text-ink"
                       >Descuento ($) (Opcional)</label
                     >
                     <div class="mt-2 relative rounded-md shadow-sm">
                       <div
                         class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
                       >
-                        <span class="text-text-muted sm:text-sm">$</span>
+                        <span class="text-ink-3 sm:text-sm">$</span>
                       </div>
                       <input
                         type="number"
@@ -882,7 +874,7 @@
                         formControlName="discount"
                         step="0.01"
                         min="0"
-                        class="block w-full rounded-md border-0 bg-surface py-1.5 pl-7 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
+                        class="block w-full rounded-md border-0 bg-surface py-1.5 pl-7 text-ink shadow-sm ring-1 ring-inset ring-line focus:ring-2 focus:ring-inset focus:ring-blue sm:text-sm sm:leading-6"
                       />
                     </div>
                   </div>
@@ -900,7 +892,7 @@
               <button
                 type="button"
                 (click)="closeEditModal()"
-                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+                class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-ink shadow-sm ring-1 ring-inset ring-line hover:bg-field sm:mt-0 sm:w-auto"
               >
                 Cancelar
               </button>
@@ -924,7 +916,7 @@
     <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div
-          class="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
+          class="relative transform overflow-hidden rounded-2xl border border-line bg-surface px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
         >
           <div class="sm:flex sm:items-start">
             <div
@@ -946,13 +938,13 @@
             </div>
             <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
               <h3
-                class="text-base font-semibold leading-6 text-text-strong"
+                class="text-base font-semibold leading-6 text-ink"
                 id="modal-delete-service"
               >
                 Eliminar Servicio
               </h3>
               <div class="mt-2">
-                <p class="text-sm text-text-muted">
+                <p class="text-sm text-ink-3">
                   ¿Estás seguro de que deseas eliminar el servicio
                   <strong>{{ service()?.name }}</strong
                   >? Esta acción no se puede deshacer.
@@ -972,7 +964,7 @@
             <button
               type="button"
               (click)="closeDeleteModal()"
-              class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:mt-0 sm:w-auto"
+              class="mt-3 inline-flex w-full justify-center rounded-pill bg-surface px-3 py-2 text-sm font-semibold text-ink shadow-sm ring-1 ring-inset ring-line hover:bg-field sm:mt-0 sm:w-auto"
             >
               Cancelar
             </button>
@@ -995,12 +987,12 @@
     <div class="fixed inset-0 z-[100] w-screen overflow-y-auto">
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div
-          class="relative transform overflow-hidden rounded-2xl bg-surface px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-border"
+          class="relative transform overflow-hidden rounded-2xl bg-surface px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 border border-line"
         >
           <form [formGroup]="createScheduleForm" (ngSubmit)="onCreateScheduleSubmit()">
             <div class="sm:flex sm:items-start">
               <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                <div class="flex items-center gap-3 border-b border-border pb-3 mb-4">
+                <div class="flex items-center gap-3 border-b border-line pb-3 mb-4">
                   <div
                     class="h-10 w-10 rounded-full bg-blue/10 text-blue flex items-center justify-center font-bold"
                   >
@@ -1019,12 +1011,12 @@
                     </svg>
                   </div>
                   <div>
-                    <h3 class="text-lg font-bold text-text-strong" id="modal-create-schedule">
+                    <h3 class="text-lg font-bold text-ink" id="modal-create-schedule">
                       Crear Nuevo Horario
                     </h3>
-                    <p class="text-xs text-text-muted">
+                    <p class="text-xs text-ink-3">
                       Servicio:
-                      <span class="font-semibold text-text-strong">{{ service()?.name }}</span> (ID:
+                      <span class="font-semibold text-ink">{{ service()?.name }}</span> (ID:
                       #{{ service()?.id }})
                     </p>
                   </div>
@@ -1035,7 +1027,7 @@
                   <div>
                     <label
                       for="sched-date-input"
-                      class="block text-xs font-semibold text-text-strong mb-1"
+                      class="block text-xs font-semibold text-ink mb-1"
                     >
                       Fecha del Horario
                     </label>
@@ -1043,7 +1035,7 @@
                       type="date"
                       id="sched-date-input"
                       formControlName="date"
-                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+                      class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-sm text-ink focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20"
                     />
                     @if (
                       createScheduleForm.controls.date.touched &&
@@ -1057,7 +1049,7 @@
                   <div>
                     <label
                       for="sched-hour-input"
-                      class="block text-xs font-semibold text-text-strong mb-1"
+                      class="block text-xs font-semibold text-ink mb-1"
                     >
                       Hora de Atención
                     </label>
@@ -1066,7 +1058,7 @@
                       id="sched-hour-input"
                       formControlName="hour"
                       step="60"
-                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
+                      class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-sm text-ink focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20"
                     />
                     @if (
                       createScheduleForm.controls.hour.touched &&
@@ -1080,33 +1072,16 @@
                   <div>
                     <label
                       for="sched-doctor-input"
-                      class="block text-xs font-semibold text-text-strong mb-1"
+                      class="block text-xs font-semibold text-ink mb-1"
                     >
                       Doctor Responsable
                     </label>
-                    <select
-                      id="sched-doctor-input"
-                      formControlName="doctorUuid"
-                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
-                    >
-                      <option value="">Selecciona un Doctor</option>
-                      @if (doctors()?.content && doctors()!.content.length > 0) {
-                        <optgroup label="Doctores Asignados a este Servicio">
-                          @for (doc of doctors()?.content; track doc.uuid) {
-                            <option [value]="doc.uuid">
-                              Dr. {{ doc.firstName }} {{ doc.lastName }} ({{ doc.speciality }})
-                            </option>
-                          }
-                        </optgroup>
-                      }
-                      <optgroup label="Todos los Doctores">
-                        @for (doc of allDoctors(); track doc.uuid) {
-                          <option [value]="doc.uuid">
-                            Dr. {{ doc.firstName }} {{ doc.lastName }} - {{ doc.speciality }}
-                          </option>
-                        }
-                      </optgroup>
-                    </select>
+                    <app-select-field
+                    inputId="sched-doctor-input"
+                    formControlName="doctorUuid"
+                    placeholder="Selecciona un Doctor"
+                    [options]="scheduleDoctorOptions()"
+                    />
                     @if (
                       createScheduleForm.controls.doctorUuid.touched &&
                       createScheduleForm.controls.doctorUuid.hasError('required')
@@ -1124,20 +1099,16 @@
                   <div>
                     <label
                       for="sched-est-input"
-                      class="block text-xs font-semibold text-text-strong mb-1"
+                      class="block text-xs font-semibold text-ink mb-1"
                     >
                       Establecimiento / Sede
                     </label>
-                    <select
-                      id="sched-est-input"
-                      formControlName="stablishmentId"
-                      class="block w-full rounded-lg border-0 bg-surface py-2 px-3 text-text-strong shadow-sm ring-1 ring-inset ring-border focus:ring-2 focus:ring-inset focus:ring-blue text-sm"
-                    >
-                      <option [value]="0">Selecciona un Establecimiento</option>
-                      @for (est of establishments(); track est.id) {
-                        <option [value]="est.id">{{ est.name }} - {{ est.address }}</option>
-                      }
-                    </select>
+                    <app-select-field
+                    inputId="sched-est-input"
+                    formControlName="stablishmentId"
+                    placeholder="Selecciona un Establecimiento"
+                    [options]="scheduleEstablishmentOptions()"
+                    />
                     @if (
                       createScheduleForm.controls.stablishmentId.touched &&
                       (createScheduleForm.controls.stablishmentId.hasError('required') ||
@@ -1158,7 +1129,7 @@
             </div>
 
             <!-- Footer Botones -->
-            <div class="mt-6 sm:flex sm:flex-row-reverse gap-2 border-t border-border pt-4">
+            <div class="mt-6 sm:flex sm:flex-row-reverse gap-2 border-t border-line pt-4">
               <button
                 type="submit"
                 [disabled]="createScheduleLoading()"
@@ -1188,7 +1159,7 @@
               <button
                 type="button"
                 (click)="closeCreateScheduleModal()"
-                class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-text-strong shadow-sm ring-1 ring-inset ring-border hover:bg-surface-muted sm:w-auto"
+                class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-pill bg-surface px-4 py-2 text-sm font-semibold text-ink shadow-sm ring-1 ring-inset ring-line hover:bg-field sm:w-auto"
               >
                 Cancelar
               </button>
@@ -1623,17 +1594,11 @@
               <label for="batch_interval" class="block text-xs font-bold text-ink mb-1">
                 Intervalo de Atención por Turno *
               </label>
-              <select
-                id="batch_interval"
-                formControlName="intervalMinutes"
-                class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-              >
-                <option [value]="15">Cada 15 minutos (Consulta rápida / Triaje)</option>
-                <option [value]="20">Cada 20 minutos (Consulta estándar)</option>
-                <option [value]="30">Cada 30 minutos (Revisión médica habitual - Recomendado)</option>
-                <option [value]="45">Cada 45 minutos (Evaluación profunda)</option>
-                <option [value]="60">Cada 60 minutos (1 hora - Procedimientos)</option>
-              </select>
+              <app-select-field
+              inputId="batch_interval"
+              formControlName="intervalMinutes"
+              [options]="INTERVAL_OPTIONS"
+              />
             </div>
 
             <!-- Establecimiento -->
@@ -1641,16 +1606,12 @@
               <label for="batch_establishment" class="block text-xs font-bold text-ink mb-1">
                 Sede / Establecimiento *
               </label>
-              <select
-                id="batch_establishment"
-                formControlName="stablishmentId"
-                class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-              >
-                <option [value]="0" disabled>Selecciona un establecimiento...</option>
-                @for (est of (assignedEstablishments()?.content?.length ? assignedEstablishments()!.content : establishments()); track est.id) {
-                  <option [value]="est.id">{{ est.name }} ({{ est.address }})</option>
-                }
-              </select>
+              <app-select-field
+              inputId="batch_establishment"
+              formControlName="stablishmentId"
+              placeholder="Selecciona un establecimiento..."
+              [options]="batchEstablishmentOptions()"
+              />
               @if (generateBatchForm.controls.stablishmentId.touched && (generateBatchForm.controls.stablishmentId.hasError('required') || generateBatchForm.controls.stablishmentId.hasError('min'))) {
                 <p class="mt-1 text-xs text-red-600">Debes seleccionar un establecimiento.</p>
               }
@@ -1661,16 +1622,12 @@
               <label for="batch_doctor" class="block text-xs font-bold text-ink mb-1">
                 Doctor Asignado (Opcional)
               </label>
-              <select
-                id="batch_doctor"
-                formControlName="doctorUuid"
-                class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-              >
-                <option value="">Sin doctor específico (Disponible para cualquier médico)</option>
-                @for (doc of (doctors()?.content?.length ? doctors()!.content : allDoctors()); track doc.uuid) {
-                  <option [value]="doc.uuid">Dr. {{ doc.firstName }} {{ doc.lastName }} ({{ doc.speciality }})</option>
-                }
-              </select>
+              <app-select-field
+              inputId="batch_doctor"
+              formControlName="doctorUuid"
+              placeholder="Sin doctor especÃ­fico (cualquier mÃ©dico)"
+              [options]="batchDoctorOptions()"
+              />
             </div>
 
             <!-- Explicación de la generación -->

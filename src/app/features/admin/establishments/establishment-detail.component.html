@@ -19,6 +19,33 @@
 
     @if (establishment()) {
       <div class="flex items-center gap-3">
+        <!--
+          Pantalla de sala de esta sede.
+
+          Un <a> con `target="_blank"`, no un boton que navegue: `/sala/:sedeId`
+          es una vista de TELEVISOR — sin chrome, sin scroll, pensada para
+          quedar proyectada en la sala de espera. Navegar dentro de la misma
+          pestana sacaria al administrador del panel y lo dejaria en una
+          pantalla que no tiene como volver.
+
+          El id sale de la RUTA, no de `establishment()`, asi el enlace ya
+          funciona mientras el detalle todavia esta cargando.
+        -->
+        <a
+          [routerLink]="['/sala', establishmentIdSignal()]"
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center rounded-pill bg-navy px-4 py-2 text-xs font-bold text-surface shadow-cta transition-all hover:bg-navy-deep"
+        >
+          <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 5.25h18v10.5H3zM8.25 19.5h7.5M12 15.75v3.75"
+            />
+          </svg>
+          Abrir pantalla de turnos
+        </a>
         <button
           (click)="openAssignPatientModal()"
           type="button"

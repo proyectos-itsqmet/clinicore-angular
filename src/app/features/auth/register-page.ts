@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../shared/ui/molecules/select-field/select-field';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService, PatientRegistrationRequest } from '../../core/auth/auth.service';
@@ -6,11 +7,17 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-register-page',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, SelectField],
   templateUrl: './register-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterPage {
+  protected readonly GENDER_OPTIONS: readonly SelectOption[] = [
+    { value: 'GENDER_MALE', label: 'Masculino' },
+    { value: 'GENDER_FEMALE', label: 'Femenino' },
+    { value: 'GENDER_OTHER', label: 'Otro / Prefiero no decir' },
+  ];
+
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);

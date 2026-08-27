@@ -241,14 +241,11 @@
 
               <div>
                 <label for="edit_role" class="block text-xs font-bold text-ink mb-1">Rol</label>
-                <select
-                  id="edit_role"
-                  formControlName="role"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option [value]="'ROLE_EMPLOYEE'">Operador</option>
-                  <option [value]="'ROLE_ADMIN'">Administrador</option>
-                </select>
+                <app-select-field
+                inputId="edit_role"
+                formControlName="role"
+                [options]="ROLE_OPTIONS"
+                />
               </div>
             </div>
 

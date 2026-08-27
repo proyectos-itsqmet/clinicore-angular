@@ -1,4 +1,16 @@
-<div class="min-h-screen bg-field flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8">
+<!--
+  El tema entero cuelga de `isStaff()`. No es decoración: es la señal de que
+  estas son dos puertas distintas del mismo sistema. Quien ve navy oscuro sabe,
+  antes de leer una palabra, que no está donde entra a pedir turno — y quien
+  llegó por error a la pestaña equivocada lo nota sin tener que fallar un
+  intento de ingreso primero.
+-->
+<div
+  class="flex min-h-screen flex-col justify-between px-4 py-12 transition-colors duration-300 sm:px-6 lg:px-8"
+  [class.bg-field]="!isStaff()"
+  [class.bg-navy-deep]="isStaff()"
+  [class.on-dark]="isStaff()"
+>
   <!-- Brand Header -->
   <div class="max-w-md mx-auto w-full flex items-center justify-between pb-6">
     <a routerLink="/" class="flex items-center gap-2.5 group">
@@ -8,14 +20,30 @@
           <path d="M16 8.5v15M8.5 16h15" stroke="white" stroke-width="3.4" stroke-linecap="round" />
         </svg>
       </div>
-      <span class="font-display text-xl font-extrabold tracking-tight text-ink group-hover:text-blue transition-colors">
+      <span
+        class="font-display text-xl font-extrabold tracking-tight transition-colors group-hover:text-blue"
+        [class.text-ink]="!isStaff()"
+        [class.text-surface]="isStaff()"
+      >
         CliniCore
       </span>
+      @if (isStaff()) {
+        <span
+          class="rounded-pill border border-surface/30 px-2 py-0.5 text-[10px] font-bold tracking-[0.14em] text-surface/80 uppercase"
+        >
+          Personal
+        </span>
+      }
     </a>
 
     <a
       routerLink="/"
-      class="text-xs font-semibold text-ink-3 hover:text-ink transition-colors flex items-center gap-1"
+      class="flex items-center gap-1 text-xs font-semibold transition-colors"
+      [class.text-ink-3]="!isStaff()"
+      [class.hover:text-ink]="!isStaff()"
+      [class.text-surface]="isStaff()"
+      [class.opacity-70]="isStaff()"
+      [class.hover:opacity-100]="isStaff()"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -27,12 +55,57 @@
   <!-- Form Card -->
   <div class="max-w-md mx-auto w-full">
     <div class="bg-surface rounded-card p-6 sm:p-8 shadow-lift-1 border border-line">
+      <!--
+        Selector de perfil.
+
+        `role="tablist"` con botones y `aria-selected`, no dos <a> ni un
+        <select>: no navega a ningún lado y no es un dato del formulario — es
+        una elección que reconfigura la pantalla en el sitio. Las flechas del
+        teclado no se implementan porque son sólo dos opciones y el orden de
+        tabulación ya las alcanza a ambas.
+      -->
+      <div
+        role="tablist"
+        aria-label="Tipo de cuenta"
+        class="mb-6 grid grid-cols-2 gap-1 rounded-pill bg-field p-1"
+      >
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="!isStaff()"
+          (click)="selectProfile('paciente')"
+          class="rounded-pill py-2 text-xs font-bold transition-all"
+          [class.bg-blue]="!isStaff()"
+          [class.text-surface]="!isStaff()"
+          [class.shadow-cta]="!isStaff()"
+          [class.text-ink-3]="isStaff()"
+        >
+          Soy paciente
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="isStaff()"
+          (click)="selectProfile('personal')"
+          class="rounded-pill py-2 text-xs font-bold transition-all"
+          [class.bg-navy]="isStaff()"
+          [class.text-surface]="isStaff()"
+          [class.text-ink-3]="!isStaff()"
+        >
+          Soy personal
+        </button>
+      </div>
+
       <div class="text-center mb-6">
         <h2 class="text-2xl font-display font-bold tracking-tight text-ink">
-          Iniciar Sesión
+          {{ isStaff() ? 'Acceso de personal' : 'Hola de nuevo' }}
         </h2>
         <p class="mt-1 text-sm text-ink-2">
-          Ingresa con tu correo o número de cédula
+          {{
+            isStaff()
+              ? 'Uso interno. Cada acceso queda registrado con fecha, hora y responsable.'
+              : 'Ingresa para agendar y ver tus turnos.'
+          }}
         </p>
       </div>
 
@@ -65,18 +138,20 @@
       <form [formGroup]="form" (ngSubmit)="onLogin()" class="space-y-4">
         <div>
           <label for="identifier" class="block text-xs font-semibold text-ink mb-1">
-            Correo Electrónico o Cédula (CI)
+            {{ identifierLabel() }}
           </label>
           <input
             id="identifier"
             formControlName="identifier"
             type="text"
             autocomplete="username"
-            placeholder="ejemplo@correo.com o 1724037890"
+            [placeholder]="identifierPlaceholder()"
             class="block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3/60 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20 transition-all"
           />
           @if (form.controls.identifier.touched && form.controls.identifier.hasError('required')) {
-            <p class="mt-1 text-xs text-emergency">Ingresa tu correo o cédula.</p>
+            <p class="mt-1 text-xs text-emergency">
+              {{ isStaff() ? 'Ingresa tu correo corporativo.' : 'Ingresa tu correo o cédula.' }}
+            </p>
           }
         </div>
 
@@ -101,7 +176,12 @@
           <button
             type="submit"
             [disabled]="loading()"
-            class="w-full flex items-center justify-center gap-2 rounded-pill bg-blue py-3 px-6 text-sm font-bold text-surface shadow-cta hover:bg-blue-bright active:translate-y-px transition-all disabled:opacity-50"
+            class="flex w-full items-center justify-center gap-2 rounded-pill px-6 py-3 text-sm font-bold text-surface transition-all active:translate-y-px disabled:opacity-50"
+            [class.bg-blue]="!isStaff()"
+            [class.shadow-cta]="!isStaff()"
+            [class.hover:bg-blue-bright]="!isStaff()"
+            [class.bg-navy]="isStaff()"
+            [class.hover:bg-navy-deep]="isStaff()"
           >
             @if (loading()) {
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-surface" fill="none" viewBox="0 0 24 24">
@@ -119,18 +199,33 @@
         </div>
       </form>
 
-      <!-- Enlace a Registro -->
-      <div class="mt-6 pt-6 border-t border-line text-center text-xs text-ink-2">
-        <span>¿Aún no tienes cuenta? </span>
-        <a routerLink="/registro" class="font-bold text-blue hover:text-blue-strong transition-colors">
-          Regístrate aquí para agendar
-        </a>
+      <!--
+        El registro existe SÓLO para pacientes, y por eso el enlace desaparece
+        en la otra pestaña en lugar de quedar deshabilitado: nadie se da de
+        alta a sí mismo como personal — esas cuentas las crea un administrador
+        desde el panel. Un enlace visible que no lleva a nada aplicable es una
+        invitación a intentarlo.
+      -->
+      <div class="mt-6 border-t border-line pt-6 text-center text-xs text-ink-2">
+        @if (isStaff()) {
+          <span>¿Necesitas una cuenta de personal? Solicítala a un administrador.</span>
+        } @else {
+          <span>¿Aún no tienes cuenta? </span>
+          <a routerLink="/registro" class="font-bold text-blue transition-colors hover:text-blue-strong">
+            Regístrate aquí para agendar
+          </a>
+        }
       </div>
     </div>
   </div>
 
   <!-- Footer Info -->
-  <div class="max-w-md mx-auto w-full text-center text-xs text-ink-3 pt-6">
+  <div
+    class="mx-auto w-full max-w-md pt-6 text-center text-xs"
+    [class.text-ink-3]="!isStaff()"
+    [class.text-surface]="isStaff()"
+    [class.opacity-60]="isStaff()"
+  >
     CliniCore © 2026 · Sistema Clínico Integral
   </div>
 </div>

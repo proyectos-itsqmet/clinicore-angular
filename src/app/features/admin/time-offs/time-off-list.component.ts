@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -46,7 +47,7 @@ const TIME_OFF_KIND_META: Record<
  */
 @Component({
   selector: 'app-time-off-list',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, SelectField],
   templateUrl: './time-off-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -61,6 +62,24 @@ export class TimeOffListComponent implements OnInit {
 
   protected readonly doctors = signal<AdminDoctor[]>([]);
   protected readonly reasons = signal<BlockReason[]>([]);
+
+  /** Los doctores como opciones, con la especialidad en el renglón de apoyo. */
+  protected readonly doctorOptions = computed<readonly SelectOption[]>(() =>
+    this.doctors().map((d) => ({
+      value: d.uuid,
+      label: `Dr(a). ${d.firstName} ${d.lastName}`,
+      hint: d.speciality,
+    })),
+  );
+
+  protected readonly doctorFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos los doctores' },
+    ...this.doctorOptions(),
+  ]);
+
+  protected readonly reasonOptions = computed<readonly SelectOption[]>(() =>
+    this.reasons().map((r) => ({ value: String(r.id), label: r.description })),
+  );
 
   protected readonly data = signal<Page<TimeOff> | null>(null);
   protected readonly loading = signal<boolean>(true);
@@ -135,8 +154,7 @@ export class TimeOffListComponent implements OnInit {
     });
   }
 
-  onFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFilterChange(value: string): void {
     this.filterDoctorUuid.set(value || null);
     this.loadPage(0);
   }
@@ -173,8 +191,8 @@ export class TimeOffListComponent implements OnInit {
     this.editingItem.set(null);
   }
 
-  onFormDoctorChange(event: Event): void {
-    this.formDoctorUuid.set((event.target as HTMLSelectElement).value || null);
+  onFormDoctorChange(value: string): void {
+    this.formDoctorUuid.set(value || null);
   }
 
   onFormStartDateInput(event: Event): void {
@@ -185,8 +203,7 @@ export class TimeOffListComponent implements OnInit {
     this.formEndDate.set((event.target as HTMLInputElement).value);
   }
 
-  onFormReasonChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFormReasonChange(value: string): void {
     this.formReasonId.set(value ? Number(value) : null);
   }
 

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 
 import { PromotionApiService } from '../../../core/api/promotion-api.service';
@@ -29,7 +30,7 @@ const MAX_PERCENTAGE = 100;
  */
 @Component({
   selector: 'app-precios-promociones-list',
-  imports: [FormsModule],
+  imports: [FormsModule, SelectField],
   templateUrl: './precios-promociones-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -50,6 +51,15 @@ export class PreciosPromocionesListComponent implements OnInit {
 
   // Catálogo de servicios (todas las páginas) para el filtro y el <select> del formulario.
   protected readonly serviciosCatalog = signal<Servicio[]>([]);
+
+  protected readonly servicioOptions = computed<readonly SelectOption[]>(() =>
+    this.serviciosCatalog().map((s) => ({ value: String(s.id), label: s.name })),
+  );
+
+  protected readonly servicioFilterOptions = computed<readonly SelectOption[]>(() => [
+    { value: '', label: 'Todos los servicios' },
+    ...this.servicioOptions(),
+  ]);
   protected readonly serviciosCatalogLoading = signal<boolean>(false);
   protected readonly serviciosCatalogError = signal<string | null>(null);
   protected readonly serviciosCatalogIncomplete = signal<boolean>(false);
@@ -66,6 +76,18 @@ export class PreciosPromocionesListComponent implements OnInit {
   protected readonly formServicioId = signal<number | null>(null);
   protected readonly formName = signal<string>('');
   protected readonly formDiscountType = signal<DiscountType | ''>('');
+
+  /**
+   * Las dos unidades de descuento.
+   *
+   * El símbolo va en el renglón de apoyo y no pegado a la etiqueta: "%" y "$"
+   * son lo único que distingue las dos opciones, y en un texto corrido se
+   * leen como parte del nombre en lugar de como la unidad.
+   */
+  protected readonly DISCOUNT_TYPE_OPTIONS: readonly SelectOption[] = [
+    { value: 'PERCENTAGE', label: 'Porcentaje', hint: '% sobre el precio' },
+    { value: 'FIXED_AMOUNT', label: 'Monto fijo', hint: '$ que se resta del precio' },
+  ];
   protected readonly formDiscountValue = signal<string>('');
   protected readonly formStartDate = signal<string>('');
   protected readonly formEndDate = signal<string>('');
@@ -153,8 +175,7 @@ export class PreciosPromocionesListComponent implements OnInit {
     });
   }
 
-  onFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFilterChange(value: string): void {
     this.filterServicioId.set(value ? Number(value) : null);
     this.loadPage(0);
   }
@@ -205,8 +226,7 @@ export class PreciosPromocionesListComponent implements OnInit {
     this.editingItem.set(null);
   }
 
-  onFormServicioChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
+  onFormServicioChange(value: string): void {
     this.formServicioId.set(value ? Number(value) : null);
   }
 
@@ -214,8 +234,8 @@ export class PreciosPromocionesListComponent implements OnInit {
     this.formName.set((event.target as HTMLInputElement).value);
   }
 
-  onFormDiscountTypeChange(event: Event): void {
-    this.formDiscountType.set((event.target as HTMLSelectElement).value as DiscountType | '');
+  onFormDiscountTypeChange(value: string): void {
+    this.formDiscountType.set(value as DiscountType | '');
   }
 
   onFormDiscountValueInput(event: Event): void {

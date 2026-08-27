@@ -32,17 +32,11 @@
   <div class="flex items-end gap-2 bg-field p-3.5 rounded-2xl border border-line">
     <div class="flex-1 max-w-xs">
       <label class="block text-[11px] font-bold text-ink mb-1">Servicio</label>
-      <select
-        name="promotionServicioFilter"
-        [value]="filterServicioId() ?? ''"
-        (change)="onFilterChange($event)"
-        class="block w-full rounded-xl border border-line bg-surface py-1.5 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-      >
-        <option value="">Todos los servicios</option>
-        @for (s of serviciosCatalog(); track s.id) {
-          <option [value]="s.id" [selected]="s.id === filterServicioId()">{{ s.name }}</option>
-        }
-      </select>
+      <app-select-field
+      [value]="filterServicioId() ?? ''"
+      [options]="servicioFilterOptions()"
+      (valueChange)="onFilterChange($event)"
+      />
     </div>
   </div>
 
@@ -188,18 +182,13 @@
             <div class="space-y-4">
               <div>
                 <label for="promotionServicio" class="block text-xs font-bold text-ink mb-1">Servicio *</label>
-                <select
-                  id="promotionServicio"
-                  [value]="formServicioId() ?? ''"
-                  (change)="onFormServicioChange($event)"
-                  name="promotionServicio"
-                  class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                >
-                  <option value="">Selecciona un servicio...</option>
-                  @for (s of serviciosCatalog(); track s.id) {
-                    <option [value]="s.id" [selected]="s.id === formServicioId()">{{ s.name }}</option>
-                  }
-                </select>
+                <app-select-field
+                inputId="promotionServicio"
+                [value]="formServicioId() ?? ''"
+                placeholder="Selecciona un servicio..."
+                [options]="servicioOptions()"
+                (valueChange)="onFormServicioChange($event)"
+                />
                 @if (submitAttempted() && formServicioId() == null) {
                   <p class="mt-1 text-xs text-red-600">El servicio es requerido.</p>
                 }
@@ -224,17 +213,13 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label for="promotionDiscountType" class="block text-xs font-bold text-ink mb-1">Tipo de Descuento *</label>
-                  <select
-                    id="promotionDiscountType"
-                    [value]="formDiscountType()"
-                    (change)="onFormDiscountTypeChange($event)"
-                    name="promotionDiscountType"
-                    class="block w-full rounded-xl border border-line bg-surface py-2 px-3 text-xs text-ink focus:border-blue focus:outline-none"
-                  >
-                    <option value="">Selecciona...</option>
-                    <option value="PERCENTAGE">Porcentaje (%)</option>
-                    <option value="FIXED_AMOUNT">Monto Fijo ($)</option>
-                  </select>
+                  <app-select-field
+                  inputId="promotionDiscountType"
+                  [value]="formDiscountType()"
+                  placeholder="Selecciona..."
+                  [options]="DISCOUNT_TYPE_OPTIONS"
+                  (valueChange)="onFormDiscountTypeChange($event)"
+                  />
                 </div>
                 <div>
                   <label for="promotionDiscountValue" class="block text-xs font-bold text-ink mb-1">

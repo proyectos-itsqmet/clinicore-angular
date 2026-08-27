@@ -60,12 +60,6 @@
     }
   </div>
 
-  @if (reviewsError()) {
-    <app-error-state message="No pudimos cargar las reseñas." (retry)="reloadReviews()" />
-  } @else {
-    <app-reviews-section [reviews]="reviews()" [loading]="reviewsLoading()" />
-  }
-
   @if (faqSectionError()) {
     <app-error-state message="No pudimos cargar las preguntas frecuentes." (retry)="reloadFaqSection()" />
   } @else {
