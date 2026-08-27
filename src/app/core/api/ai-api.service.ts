@@ -1,15 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { ChatResponse, ClinicalSummary } from '../models';
+import type { ClinicalSummary } from '../models';
 
 /**
- * Los dos asistentes de IA. Ambos pasan por Backend_QMS, nunca por n8n
- * directamente: n8n no publica puerto al mundo y el navegador no sabe que
- * existe.
+ * El resumen clinico para el medico (Bot 1). Pasa por Backend_QMS, que es
+ * quien verifica que el medico sea el tratante del paciente y deja el asiento
+ * en `ClinicalAccessLog`.
  *
- * Notar la asimetria de `withCredentials` entre los dos metodos. No es un
- * descuido: es el contrato de cada endpoint.
+ * El chat de pacientes (Bot 2) YA NO esta aca: vive en `AssistantService` y le
+ * habla directo al servicio de IA en Python. Ver la nota al final del archivo.
  */
 @Injectable({ providedIn: 'root' })
 export class AiApiService {
@@ -35,20 +35,17 @@ export class AiApiService {
     );
   }
 
-  /**
-   * El chat de atencion al cliente de la landing.
-   *
-   * SIN `withCredentials`, a proposito. El endpoint es publico y anonimo, y el
-   * backend ni siquiera recibe `Authentication` en la firma. Mandar la cookie
-   * seria pedirle al servidor una identidad que este canal no debe usar: si la
-   * tuviera, la tentacion de responder "su turno es el jueves" aparece sola y
-   * el bot pasaria a exponer datos de paciente por una via pensada para
-   * informacion publica.
-   *
-   * El dia que haya un asistente que SI responda por el paciente logueado, va
-   * a ser otro metodo contra otro endpoint, con la cookie puesta.
-   */
-  chat(sessionId: string, mensaje: string): Observable<ChatResponse> {
-    return this.http.post<ChatResponse>(`${this.API_URL}/ai/chat`, { sessionId, mensaje });
-  }
+  // El chat de atencion al cliente YA NO PASA POR ACA.
+  //
+  // Antes era `chat()`, un POST a `/api/ai/chat` de Spring que reenviaba a un
+  // flujo de n8n. Se reemplazo por `AssistantService`, que le habla
+  // directamente al servicio de IA en Python (clinicore-ai), por dos razones:
+  //
+  //  1. La respuesta llega en STREAMING, palabra por palabra. `HttpClient`
+  //     espera el cuerpo completo antes de emitirlo, asi que no sirve: hay que
+  //     leer el `ReadableStream` de la respuesta con `fetch`.
+  //  2. El agente se implemento en codigo Python, no en un flujo visual.
+  //
+  // El endpoint de Spring sigue existiendo, pero el frontend ya no lo llama.
+  // Ver `core/api/assistant.service.ts`.
 }

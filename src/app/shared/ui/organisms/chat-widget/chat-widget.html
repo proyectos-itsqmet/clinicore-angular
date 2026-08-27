@@ -31,7 +31,12 @@
       @for (message of messages(); track $index) {
         @if (message.from === 'bot') {
           <div class="max-w-[85%] whitespace-pre-line rounded-2xl rounded-bl-sm bg-field px-3 py-2 text-xs leading-relaxed text-ink">
-            {{ message.text }}
+            {{ message.text }}<!--
+              Cursor mientras esta burbuja se está escribiendo. Marca que la
+              respuesta todavía está llegando, sin agregar otro elemento aparte.
+            -->@if (sending() && $last && message.text) {
+              <span class="ml-0.5 inline-block h-3 w-[2px] animate-pulse bg-ink-3 align-middle"></span>
+            }
           </div>
         } @else {
           <div class="ml-auto max-w-[85%] whitespace-pre-line rounded-2xl rounded-br-sm bg-blue px-3 py-2 text-xs leading-relaxed text-surface">
@@ -40,42 +45,119 @@
         }
       }
 
-      @if (sending()) {
+      <!-- Indicador de carga. Muestra QUÉ está haciendo el asistente cuando el
+           servidor lo informa ("Consultando la agenda..."), y cae a los tres
+           puntitos mientras no hay nada que decir. Se oculta en cuanto empieza
+           a escribir la respuesta, porque ahí el cursor ya cumple ese rol. -->
+      @if (sending() && status()) {
         <div class="flex max-w-[85%] items-center gap-2 rounded-2xl rounded-bl-sm bg-field px-3 py-2.5">
           <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:0ms]"></span>
           <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:150ms]"></span>
           <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-3 [animation-delay:300ms]"></span>
+          <span class="text-[10px] text-ink-3">{{ status() }}</span>
         </div>
       }
     </div>
 
     <!-- Entrada -->
     <form (ngSubmit)="send()" class="border-t border-line bg-field px-3 py-3">
-      <div class="flex items-end gap-2">
-        <label class="sr-only" for="chat-input">Escriba su consulta</label>
-        <input
-          id="chat-input"
-          name="mensaje"
-          type="text"
-          autocomplete="off"
-          [maxlength]="maxLength"
-          [disabled]="sending()"
-          [ngModel]="draft()"
-          (ngModelChange)="draft.set($event)"
-          placeholder="¿Qué doctores tienen?"
-          class="min-w-0 flex-1 rounded-pill border border-line bg-surface px-3.5 py-2 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none disabled:opacity-60"
-        />
-        <button
-          type="submit"
-          [disabled]="sending() || !draft().trim()"
-          aria-label="Enviar consulta"
-          class="flex-none rounded-pill bg-blue p-2 text-surface shadow-cta transition-all hover:bg-blue-bright disabled:opacity-40"
-        >
-          <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M2.5 8h11M9 3.5L13.5 8L9 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-      </div>
+      @if (recording()) {
+        <!-- Grabando: se reemplaza la caja de texto por el estado del
+             micrófono. DOS botones a propósito: descartar y enviar. Con uno
+             solo, quien se equivocaba al hablar quedaba obligado a mandar el
+             audio, y cada audio enviado es una transcripción que se paga. -->
+        <div class="flex items-center gap-2">
+          <div class="flex min-w-0 flex-1 items-center gap-2 rounded-pill border border-red/40 bg-surface px-3.5 py-2">
+            <span class="h-2 w-2 flex-none animate-pulse rounded-full bg-red"></span>
+            <span class="flex-none text-xs font-semibold tabular-nums text-ink">{{ elapsed }}</span>
+            <span class="truncate text-[10px] text-ink-3">Grabando…</span>
+          </div>
+
+          <!-- Descartar. Va PRIMERO y en estilo neutro: el destructivo no
+               debe ser el que queda bajo el pulgar por defecto. -->
+          <button
+            type="button"
+            (click)="cancelRecording()"
+            aria-label="Descartar la grabación"
+            title="Descartar"
+            class="flex-none rounded-pill border border-line bg-surface p-2 text-ink-3 transition-all hover:border-red hover:text-red"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </button>
+
+          <!-- Enviar -->
+          <button
+            type="button"
+            (click)="toggleRecording()"
+            aria-label="Terminar la grabación y enviar el audio"
+            title="Enviar"
+            class="flex-none rounded-pill bg-red p-2 text-surface shadow-cta transition-all hover:opacity-90"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3.5 8.5l3 3l6-6.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+      } @else {
+        <div class="flex items-end gap-2">
+          <label class="sr-only" for="chat-input">Escriba su consulta</label>
+          <input
+            id="chat-input"
+            name="mensaje"
+            type="text"
+            autocomplete="off"
+            [maxlength]="maxLength"
+            [disabled]="sending()"
+            [ngModel]="draft()"
+            (ngModelChange)="draft.set($event)"
+            placeholder="¿Qué doctores tienen?"
+            class="min-w-0 flex-1 rounded-pill border border-line bg-surface px-3.5 py-2 text-xs text-ink placeholder:text-ink-3 focus:border-blue focus:outline-none disabled:opacity-60"
+          />
+
+          <!-- Micrófono. Solo si el navegador puede grabar: en SSR y en
+               navegadores sin MediaRecorder no se dibuja, en lugar de ofrecer
+               un botón que no va a funcionar. -->
+          @if (canRecord()) {
+            <button
+              type="button"
+              (click)="toggleRecording()"
+              [disabled]="sending()"
+              aria-label="Grabar un audio con su consulta"
+              title="Grabar un audio"
+              class="flex-none rounded-pill border border-line bg-surface p-2 text-ink-3 transition-all hover:border-blue hover:text-blue disabled:opacity-40"
+            >
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path
+                  d="M8 2.5a1.75 1.75 0 011.75 1.75v3.5a1.75 1.75 0 11-3.5 0v-3.5A1.75 1.75 0 018 2.5z"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M4 7.5v.5a4 4 0 008 0v-.5M8 12v1.5M6 13.5h4"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          }
+
+          <button
+            type="submit"
+            [disabled]="sending() || !draft().trim()"
+            aria-label="Enviar consulta"
+            class="flex-none rounded-pill bg-blue p-2 text-surface shadow-cta transition-all hover:bg-blue-bright disabled:opacity-40"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M2.5 8h11M9 3.5L13.5 8L9 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+      }
+
       <p class="mt-2 px-1 text-[10px] leading-snug text-ink-3">
         Para agendar o consultar un turno suyo, ingrese a su cuenta.
       </p>
