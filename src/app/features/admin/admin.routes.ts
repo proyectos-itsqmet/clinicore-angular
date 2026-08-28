@@ -216,6 +216,13 @@ export const adminRoutes: Routes = [
       ];
     }
 
+    // mis-asignaciones ya tiene loadChildren explícito más arriba con sus propias
+    // subrutas (servicios, turnos). El redirect que genera este flatMap pisal
+    // esa configuración y causaría conflictos, así que salimos aquí.
+    if (entry.path === 'mis-asignaciones') {
+      return [];
+    }
+
     const filteredChildren = entry.children.filter(child => {
       const fullPath = `${entry.path}/${child.path}`;
       return fullPath !== 'administracion/establecimientos' &&
@@ -246,6 +253,7 @@ export const adminRoutes: Routes = [
              fullPath !== 'finanzas/facturacion' &&
              fullPath !== 'finanzas/contabilidad' &&
              fullPath !== 'mis-asignaciones/servicios' &&
+             fullPath !== 'mis-asignaciones/turnos' &&
              fullPath !== 'finanzas/reclamos';
     });
 
