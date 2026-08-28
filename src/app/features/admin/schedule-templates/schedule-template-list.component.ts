@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { localIsoDate } from '../../../core/date/local-iso-date';
 import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 
@@ -303,7 +304,7 @@ export class ScheduleTemplateListComponent implements OnInit {
     this.formStartTime.set('');
     this.formEndTime.set('');
     this.formSlotIntervalMinutes.set('30');
-    this.formValidFrom.set(new Date().toISOString().split('T')[0]);
+    this.formValidFrom.set(localIsoDate());
     this.formValidUntil.set('');
     this.formServices.set([]);
     this.formDoctors.set([]);
@@ -455,7 +456,7 @@ export class ScheduleTemplateListComponent implements OnInit {
         if (!toDate) {
           const d = new Date(fromDate);
           d.setMonth(d.getMonth() + 1);
-          toDate = d.toISOString().split('T')[0];
+          toDate = localIsoDate(d);
         }
         
         const doctorId = payload.doctor?.uuid;
@@ -521,7 +522,7 @@ export class ScheduleTemplateListComponent implements OnInit {
 
   // --- Modal Generar Horarios desde Plantillas ---
   openGenerateModal(): void {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localIsoDate();
     this.genStablishmentId.set(null);
     this.genServiceId.set(null);
     this.genDoctorUuid.set('');

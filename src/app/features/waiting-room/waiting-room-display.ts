@@ -16,15 +16,22 @@ import { RealtimeService } from '../../core/realtime/realtime.service';
 import type { WaitingRoomScreen } from '../../core/models';
 import { Figure } from '../../shared/ui/atoms/figure/figure';
 import { Kicker } from '../../shared/ui/atoms/kicker/kicker';
-import { LiveDot } from '../../shared/ui/atoms/live-dot/live-dot';
 import { VerticalMarquee } from '../../shared/ui/molecules/vertical-marquee/vertical-marquee';
 
-/** One row of the called-turns column. */
+/** One row of the column: somebody who is in the waiting room right now. */
 interface QueueRow {
   ticket: string;
-  room: string;
+  room: string | null;
   /** The turn in the big panel. Painted gold — same datum, not a coincidence. */
   current: boolean;
+  /**
+   * Checked in and still in the chair: nobody has called this number yet.
+   *
+   * Derived from `calledAt == null` rather than carried as its own field,
+   * because inventing a flag would let the two disagree. A turn nobody called
+   * has no call time — that IS the state.
+   */
+  waiting: boolean;
 }
 
 /**
@@ -66,7 +73,7 @@ interface QueueRow {
  */
 @Component({
   selector: 'app-waiting-room-display',
-  imports: [DatePipe, Figure, Kicker, LiveDot, VerticalMarquee],
+  imports: [DatePipe, Figure, Kicker, VerticalMarquee],
   templateUrl: './waiting-room-display.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
@@ -81,8 +88,28 @@ export class WaitingRoomDisplay {
    * 12 requests a minute per screen, 48 for a clinic with four rooms, all
    * day, to notice a change that the backend already knows about the
    * instant it happens.
+   *
+   * BAJADO A 15s (2026-08-27) como margen, NO por un socket roto.
+   *
+   * Ese dia se perdio una tarde creyendo que el socket no entregaba en esta
+   * pantalla. No era el socket. El panel estaba operando sobre la fecha
+   * 2026-08-28 y la pantalla, como corresponde, sobre HOY: el backend publica
+   * en /topic/stablishment/{id}/{fecha DEL CUPO} y esta pantalla escucha
+   * /topic/stablishment/{id}/{hoy}. Dos dias distintos son dos topics
+   * distintos, y ademas `findBoardTurns` filtra `s.date = LocalDate.now()`,
+   * asi que un turno de manana no puede salir en el tablero de hoy ni aunque el
+   * mensaje llegara.
+   *
+   * Vale la pena dejarlo escrito porque desde afuera se ve identico a un socket
+   * caido: pantalla quieta, indicador en verde, backend sano. Lo que lo delata
+   * es comparar la fecha del panel con la del reloj de la pantalla.
+   *
+   * Sesenta segundos igual era demasiado para una TV de sala de espera: si el
+   * socket se cae de verdad, un minuto de atraso es un paciente que se pierde
+   * su llamado. 15s son 4 pedidos por minuto por pantalla, tres veces mas
+   * barato que los 5s originales, y acotan ese dano a algo que nadie nota.
    */
-  private static readonly POLL_MS = 60_000;
+  private static readonly POLL_MS = 15_000;
 
   /**
    * The clock only renders `HH:mm`, and `minuteTick` stores the epoch
@@ -130,7 +157,25 @@ export class WaitingRoomDisplay {
     this.api.screen.hasValue() ? this.api.screen.value() : this.lastGood(),
   );
 
-  /** Showing real data, but the newest poll failed. */
+  /**
+   * Showing real data, but the newest poll failed.
+   *
+   * DELIBERADAMENTE NO mira `RealtimeService.status`, y eso cambio dos veces el
+   * mismo dia. Vale la pena dejar escrito por que:
+   *
+   * El indicador tiene que reflejar el mecanismo que MANTIENE FRESCA la
+   * pantalla. Cuando el socket era ese mecanismo y el sondeo corria cada 60s,
+   * un socket caido si significaba "atrasada hasta un minuto" y el punto verde
+   * mentia. Con el sondeo de vuelta cada 5s, un socket caido no atrasa nada:
+   * la pantalla sigue al dia. Pintar "Sin conexion" ahi seria mentir en la
+   * otra direccion, y ademas alarmar a un paciente por un detalle de
+   * infraestructura que no le cambia el turno.
+   *
+   * Si algun dia el sondeo vuelve a ser la red de seguridad y no el mecanismo,
+   * este computed tiene que volver a mirar el estado del socket. Los dos van
+   * juntos: el indicador y el mecanismo se cambian en el mismo commit o queda
+   * mintiendo.
+   */
   protected readonly stale = computed(() => !!this.api.screen.error() && !!this.data());
 
   /** Failed before ever getting a payload — nothing to show at all. */
@@ -139,14 +184,19 @@ export class WaitingRoomDisplay {
   protected readonly now = computed(() => new Date(this.minuteTick()));
 
   /**
-   * `[current, ...history]`, which is why the queue's first row is always the
+   * `[current, ...history]`, which is why the column's first row is always the
    * turn in the big panel.
    *
+   * NO re-sorting here. The server ships the column already ordered — the ones
+   * already called first, newest call at the top, then the ones still waiting
+   * by their appointment hour — and sorting it again on the client would mean
+   * two definitions of the queue, drifting apart. See `SalaService`.
+   *
    * The dedupe is defensive, and worth its three lines: the contract says
-   * `history` excludes `current` (`jsons/sala/README.md`), but if a backend
-   * ever ships it in both, `@for`'s `track row.ticket` sees a duplicate key
-   * and Angular throws — which on this surface means a BLANK TV in a waiting
-   * room. Keeping the first occurrence keeps `current` and renders correctly.
+   * `history` excludes `current`, but if a backend ever ships it in both,
+   * `@for`'s `track row.ticket` sees a duplicate key and Angular throws —
+   * which on this surface means a BLANK TV in a waiting room. Keeping the
+   * first occurrence keeps `current` and renders correctly.
    */
   protected readonly rows = computed<QueueRow[]>(() => {
     const data = this.data();
@@ -159,9 +209,14 @@ export class WaitingRoomDisplay {
     // throw out of this computed and blank the TV.
     const composed: QueueRow[] = [
       ...(data.current
-        ? [{ ticket: data.current.ticket, room: data.current.room, current: true }]
+        ? [{ ticket: data.current.ticket, room: data.current.room, current: true, waiting: false }]
         : []),
-      ...(data.history ?? []).map((call) => ({ ticket: call.ticket, room: call.room, current: false })),
+      ...(data.history ?? []).map((call) => ({
+        ticket: call.ticket,
+        room: call.room,
+        current: false,
+        waiting: call.calledAt == null,
+      })),
     ];
 
     const seen = new Set<string>();

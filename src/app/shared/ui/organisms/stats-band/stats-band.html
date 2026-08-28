@@ -1,33 +1,31 @@
 <div class="wrap mx-auto w-full max-w-[1240px] px-5 md:px-0">
-  <div class="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5" [attr.aria-busy]="loading() ? true : null">
+  <div
+    class="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5"
+    [attr.aria-busy]="loading() ? true : null"
+  >
     @if (loading()) {
       @for (i of skeletonStats; track i) {
-        <app-stat-card [stat]="emptyStat" [ringColor]="ringColorFor(emptyStat)" [delayMs]="ringDelayFor(i)" [loading]="true" />
+        <app-stat-card
+          [stat]="emptyStat"
+          [ringColor]="ringColorFor(emptyStat)"
+          [delayMs]="ringDelayFor(i)"
+          [loading]="true"
+        />
       }
     } @else {
       @for (stat of stats().items; track stat.id; let i = $index) {
-        <app-stat-card [stat]="stat" [ringColor]="ringColorFor(stat)" [delayMs]="ringDelayFor(i)" [loading]="false" />
+        <app-stat-card
+          [stat]="stat"
+          [ringColor]="ringColorFor(stat)"
+          [delayMs]="ringDelayFor(i)"
+          [loading]="false"
+        />
       }
     }
   </div>
 
-
-  <!-- `aria-busy` belongs on this whole region, not on the marquee strips alone: the
-       stats grid above carries its own, but it is a SIBLING of the kicker + ribbon,
-       so with `app-skeleton` unconditionally `aria-hidden` the entire "Convenios"
-       block was silent to a screen reader while loading. Same shape site-footer uses. -->
   <div class="mt-8 md:mt-14" [attr.aria-busy]="loading() ? true : null">
     <div class="mb-3.5 flex items-baseline justify-between gap-6">
-      <!-- Guarded like the marquee below it: the empty fixture's kicker is '', and
-           `app-kicker` is an inline span on a `display: contents` host, so it would
-           lose its whole line box and shift the marquee down on load. The bar is 20px,
-           not 13px: `.text-kicker` is a 13px font size and theme.css declares NO
-           `--text-kicker--line-height`, so the utility emits font-size only, nothing
-           declares a line-height on the element, and preflight's unitless
-           `html { line-height: 1.5 }` inherits and re-resolves — 13 x 1.5 = 19.50px,
-           measured. (An earlier comment here claimed ~15.6px; that is the inline span's
-           own content box, which is what `getBoundingClientRect()` returns for an inline
-           element — not the line box this baseline-aligned flex row actually reserves.) -->
       @if (loading()) {
         <app-skeleton variant="text" width="160px" height="20px" />
       } @else {
@@ -53,13 +51,9 @@
             <span
               class="flex h-16 min-w-[140px] flex-shrink-0 items-center justify-center rounded-2xl border border-line bg-surface px-5 md:h-[74px] md:min-w-[168px] md:rounded-[18px] md:px-6"
             >
-              <!-- min-w y no w: el ancho era FIJO y funcionaba con los rotulos
-                   de ejemplo ("[ASEGURADORA 1]"), pero los nombres reales son
-                   largos ("ISSFA (Fuerzas Armadas)") y el texto llegaba al borde.
-                   Solo agregar padding sobre un ancho fijo lo apretaria mas: la
-                   pildora tiene que poder crecer. El minimo conserva el ritmo
-                   visual de la banda cuando el nombre es corto. -->
-              <span class="text-meta text-center font-bold leading-tight text-ink-2">{{ insurer.name }}</span>
+              <span class="text-meta text-center font-bold leading-tight text-ink-2">{{
+                insurer.name
+              }}</span>
             </span>
           }
         </ng-template>

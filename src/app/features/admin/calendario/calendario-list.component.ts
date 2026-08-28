@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { localIsoDate } from '../../../core/date/local-iso-date';
 import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { FormsModule } from '@angular/forms';
 
@@ -19,7 +20,7 @@ const WEEKDAY_LABELS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'V
 const DAYS_IN_DEFAULT_RANGE = 6;
 
 function isoDate(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return localIsoDate(date);
 }
 
 function addDays(date: Date, days: number): Date {

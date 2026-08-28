@@ -7,6 +7,7 @@ import { ServicioApiService } from '../../core/api/servicio-api.service';
 import { TurnApiService } from '../../core/api/turn-api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { ChatWidget } from '../../shared/ui/organisms/chat-widget/chat-widget';
+import { localIsoDate, localIsoTomorrow } from '../../core/date/local-iso-date';
 import type { Establishment, Servicio, AdminDoctor, ScheduleDTO, Turn } from '../../core/models';
 
 export interface ServiceWithDoctors {
@@ -156,6 +157,10 @@ export class BookingPage implements OnInit {
         if (doc) {
           content = content.filter((sch) => sch.doctor?.uuid === doc.uuid);
         }
+        // Nada que ya empezó. El endpoint devuelve cupos libres de todo el
+        // rango sembrado, mayo incluido, y "Todos los días" los mostraba tal
+        // cual: el paciente veía un turno del 4 de mayo como opción válida.
+        content = content.filter((sch) => BookingPage.isUpcoming(sch, new Date()));
         this.schedules.set(content);
         this.schedulesLoading.set(false);
       },
@@ -165,18 +170,70 @@ export class BookingPage implements OnInit {
     });
   }
 
+  /**
+   * ¿El cupo todavía no empezó?
+   *
+   * Compara contra la HORA, no sólo contra el día: a las 15:00 un cupo de las
+   * 09:00 de hoy ya pasó, aunque su fecha sea la de hoy. Es la misma regla que
+   * aplican el backend y la app de Flutter; esta página era la única punta que
+   * no la tenía y ofrecía turnos de meses anteriores como reservables.
+   *
+   * ESTRICTO (`>`, no `>=`): el cupo que arranca exactamente ahora ya empezó.
+   *
+   * La fecha se arma con componentes LOCALES (`new Date(y, m-1, d, hh, mm)`) y
+   * nunca parseando la cadena ISO completa: `new Date('2026-08-27')` se
+   * interpreta como UTC y en UTC-5 retrocede al día anterior, que es
+   * exactamente el error que este filtro tiene que evitar.
+   *
+   * Un cupo sin fecha u hora NO se oculta: no se puede afirmar que ya pasó, y
+   * esconder algo por falta de datos es peor que mostrarlo.
+   */
+  private static isUpcoming(schedule: ScheduleDTO, now: Date): boolean {
+    if (!schedule.date || !schedule.hour) {
+      return true;
+    }
+
+    const [year, month, day] = schedule.date.split('-').map(Number);
+    const [hour, minute] = schedule.hour.split(':').map(Number);
+
+    if ([year, month, day, hour].some((part) => Number.isNaN(part))) {
+      return true;
+    }
+
+    return new Date(year, month - 1, day, hour, minute || 0, 0, 0).getTime() > now.getTime();
+  }
+
+  /**
+   * El estado del turno en castellano.
+   *
+   * La pantalla de confirmación mostraba el enum crudo del backend
+   * ("TURN_PENDING") a un paciente. `TURN_WAITNG` está mal escrito en el enum
+   * fuente y ASÍ llega: se mapea igual, porque corregir la clave acá sólo
+   * lograría que este caso no matchee y el paciente vuelva a ver la constante.
+   */
+  statusLabel(status?: string): string {
+    const etiquetas: Record<string, string> = {
+      TURN_PENDING: 'Pendiente',
+      TURN_WAITNG: 'En sala de espera',
+      TURN_IN_TREATMENT: 'En atención',
+      TURN_TREATED: 'Atendido',
+      TURN_CANCELLED: 'Cancelado',
+    };
+    return status ? (etiquetas[status] ?? status) : '';
+  }
+
   // --- Filtros de Fecha para Horarios ---
+  // `localIsoDate` y NO `toISOString()`: este último devuelve el día en UTC, y
+  // en Ecuador (UTC-5) eso significa que desde las 19:00 "Hoy" filtraba el día
+  // SIGUIENTE. Un paciente agendando a las nueve de la noche apretaba "Hoy" y
+  // veía mañana, sin ningún error a la vista. Ver core/date/local-iso-date.ts.
   setTodayFilter(): void {
-    const today = new Date().toISOString().split('T')[0];
-    this.filterDate.set(today);
+    this.filterDate.set(localIsoDate());
     this.loadAvailableSchedules();
   }
 
   setTomorrowFilter(): void {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-    this.filterDate.set(tomorrowStr);
+    this.filterDate.set(localIsoTomorrow());
     this.loadAvailableSchedules();
   }
 

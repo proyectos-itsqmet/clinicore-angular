@@ -172,7 +172,21 @@ export class MisTurnosPage implements OnInit {
     this.subscribeToWebSocket();
   }
 
-  protected markAsInTreatment(turn: Turn): void {
+  /**
+   * Check-in: el paciente llegó y se registró.
+   *
+   * FALTABA, y era el único paso de la máquina de estados sin botón acá.
+   * `markAsInTreatment` exige TURN_WAITNG (`TurnService.java:335`), así que un
+   * turno "Pendiente" no tenía forma de avanzar desde esta pantalla: el médico
+   * dependía de que recepción lo moviera antes de poder llamarlo. En una
+   * consulta donde el paciente ya está en la puerta, eso es una llamada de
+   * teléfono para mover un dato que el médico tiene delante.
+   */
+  markAsWaiting(turn: Turn): void {
+    this.executeAction(turn.id, () => this.turnApi.markAsWaiting(turn.id), 'Ingreso registrado');
+  }
+
+  markAsInTreatment(turn: Turn): void {
     this.executeAction(turn.id, () => this.turnApi.markAsInTreatment(turn.id), 'Turno marcado como En Atención');
   }
 
@@ -227,11 +241,34 @@ export class MisTurnosPage implements OnInit {
     return map[status] ?? 'bg-slate-100 text-slate-700';
   }
 
-  protected canMarkInTreatment(turn: Turn): boolean {
+  // Las tres guardas replican EXACTAMENTE las del backend, no una idea propia
+  // de lo que debería poder hacerse:
+  //   markAsWaiting      exige TURN_PENDING          (TurnService.java:301)
+  //   markAsInTreatment  exige TURN_WAITNG           (TurnService.java:335)
+  //   markAsTreated      exige TURN_IN_TREATMENT
+  // Ofrecer un botón que el servidor va a rechazar convierte una regla clara
+  // en un error genérico a mitad de consulta.
+
+  canMarkWaiting(turn: Turn): boolean {
+    return turn.status === 'TURN_PENDING';
+  }
+
+  canMarkInTreatment(turn: Turn): boolean {
     return turn.status === 'TURN_WAITNG';
   }
 
-  protected canMarkTreated(turn: Turn): boolean {
+  canMarkTreated(turn: Turn): boolean {
     return turn.status === 'TURN_IN_TREATMENT';
+  }
+
+  /**
+   * El número que el paciente escucha, con el orden como respaldo.
+   *
+   * `order` solo es el contador interno: se cuenta por servicio y por fecha, así
+   * que otro paciente en otro consultorio también es el 3 hoy. El ticket lleva
+   * el prefijo del servicio y es el que sale en la pantalla de sala.
+   */
+  ticketOf(turn: Turn): string {
+    return turn.ticket ?? String(turn.order);
   }
 }

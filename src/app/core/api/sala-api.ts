@@ -1,7 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { httpResource, type HttpResourceRef } from '@angular/common/http';
+import { HttpContext, httpResource, type HttpResourceRef } from '@angular/common/http';
 
 import { SALA_SCREEN_URL } from './sala-screen-url';
+import { CACHE_ENABLED } from '../cache/cache.tokens';
 import type { WaitingRoomScreen } from '../models';
 
 /**
@@ -32,10 +33,35 @@ export class SalaApi {
   /** Written by `app-waiting-room-screen` from the `:sedeId` route param. */
   readonly sedeId = signal<string | null>(null);
 
+  /**
+   * FUERA DEL CACHÉ, y esa es la línea más importante de este archivo.
+   *
+   * `CACHE_ENABLED` viene en `true` por defecto y `CACHE_TTL` en 5 minutos
+   * (`core/cache/cache.tokens.ts`), así que este GET se cacheaba como cualquier
+   * otro. Cada `reload()` — el que dispara el socket cuando llaman a alguien y
+   * el del sondeo — recibía `of(cachedResponse)` del interceptor SIN salir a la
+   * red. Resultado: el tablero mostraba los mismos turnos durante cinco
+   * minutos, con el socket conectado, el topic correcto y los mensajes
+   * llegando. Sólo un F5 lo arreglaba, porque creaba una aplicación nueva con
+   * el caché vacío.
+   *
+   * El panel de administración no sufre esto porque cada PUT invalida el caché
+   * (`cacheInterceptor`, rama de mutaciones). Esta pantalla NUNCA escribe: sólo
+   * lee. Nada invalida su entrada jamás.
+   *
+   * Un tablero cuyo único trabajo es estar al día no puede pasar por un caché.
+   */
   readonly screen: HttpResourceRef<WaitingRoomScreen | undefined> = httpResource<WaitingRoomScreen>(
     () => {
       const sedeId = this.sedeId();
-      return sedeId ? this.urlFor(sedeId) : undefined;
+      if (!sedeId) {
+        return undefined;
+      }
+
+      return {
+        url: this.urlFor(sedeId),
+        context: new HttpContext().set(CACHE_ENABLED, false),
+      };
     },
   );
 }

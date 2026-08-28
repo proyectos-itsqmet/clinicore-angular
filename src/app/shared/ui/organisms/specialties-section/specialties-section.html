@@ -1,24 +1,11 @@
-<section class="bg-cream px-5 py-12 md:px-0 md:py-[88px]" [attr.aria-busy]="loading() ? true : null">
+<section
+  class="bg-cream px-5 py-12 md:px-0 md:py-[88px]"
+  [attr.aria-busy]="loading() ? true : null"
+>
   <div class="mx-auto flex w-full max-w-[1240px] flex-col gap-5 md:gap-[34px]">
     <div class="flex flex-col gap-3.5 md:flex-row md:items-end md:justify-between md:gap-12">
       <div class="flex max-w-[620px] flex-col gap-3.5">
         @if (loading()) {
-          <!-- 20px kicker / 49px heading lines, both measured off the real line boxes:
-               `text-kicker` declares no line-height, so the preflight's
-               `html { line-height: 1.5 }` gives 13 x 1.5 = 19.5px, and `text-h2` is
-               44 x 1.12 = 49.28px at every breakpoint (there is no responsive
-               override of the token). "¿Qué necesitas atender hoy?" is TWO of those
-               lines in the 350px mobile box (a 390px viewport minus `px-5`) and ONE
-               in the 620px md: column, so the second bar is `md:hidden` — 98.53px
-               reserved at mobile, 49.28px at md:. The pair sits in a GAPLESS
-               `flex-col`, the shape `booking-section.html` already ships, because
-               consecutive line boxes are contiguous; the atom's own `lines` input
-               would insert its 8px `gap-2` between them.
-               Every width lives on a plain wrapper, not on the atom
-               (`display: contents` host) and not as a bare percentage: this column is
-               a flex item of a `md:flex-row` row, so at md: it is shrink-to-fit and a
-               `%`-only bar contributes 0 to max-content — the column would collapse
-               to the kicker's 130px. -->
           <app-skeleton variant="text" width="130px" height="20px" />
           <div class="flex w-full flex-col md:w-[600px]">
             <app-skeleton variant="text" width="100%" height="49px" />
@@ -31,21 +18,7 @@
           <h2 class="text-h2 font-display text-ink">{{ specialties().header.title }}</h2>
         }
       </div>
-      <!-- No wrapper width here on purpose. `md:w-[320px]` used to be, and it was
-           invented — Main.dc.html:389 puts `.seg` in this row as a plain flex item
-           with NO width constraint, and the control's own content width for these
-           three labels is ~442px. Squeezing that into 320px is what pushed
-           "Telemedicina" out through the side of the pill, and at mobile width
-           (`w-full`, 350px) out through the side of the page. `app-segmented` now
-           carries its own `w-full md:w-auto`, so it needs no wrapper at all.
-           The skeleton keeps one, because it still needs a box: a `width: 100%`
-           bar inside a shrink-to-fit flex item contributes 0 to max-content and
-           would collapse to nothing at `md:` — the same trap the heading column
-           above documents. 358px is not a guess: it is the `min-width`
-           app-segmented rests at (3 tracks x 116px + 8px padding + 2px border),
-           so the swap from bar to control is shift-free for these three labels
-           and only ever grows. 54px, not the 52px this used to claim, is the real
-           height: `min-h-11` 44 + `p-1` 8 + border 2. -->
+
       @if (loading()) {
         <div class="w-full md:w-[358px]">
           <app-skeleton variant="pill" width="100%" height="54px" />
@@ -59,7 +32,10 @@
       }
     </div>
 
-    <div class="grid grid-cols-1 gap-3.5 md:grid-cols-3 md:gap-5" [attr.aria-busy]="loading() ? true : null">
+    <div
+      class="grid grid-cols-1 gap-3.5 md:grid-cols-3 md:gap-5"
+      [attr.aria-busy]="loading() ? true : null"
+    >
       @if (loading()) {
         @for (i of skeletonItems; track i) {
           <app-specialty-card [specialty]="emptySpecialty" [loading]="true" />

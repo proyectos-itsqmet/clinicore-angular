@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type { Page, Turn, TurnFilterParams, TurnStatus } from '../models';
+import type { Page, Turn, TurnDailyCounts, TurnFilterParams, TurnStatus } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class TurnApiService {
@@ -101,6 +101,26 @@ export class TurnApiService {
     }
 
     return this.http.get<Page<Turn>>(this.API_URL, {
+      params,
+      withCredentials: true,
+    });
+  }
+
+  /**
+   * Total y pendientes del día, agrupados por sede y por servicio.
+   *
+   * UNA llamada para las dos agrupaciones: el paso 1 del panel elige sede y el
+   * paso 3 elige servicio, con un clic de diferencia sobre la misma fecha.
+   * Partirlo en dos pedidos obliga a un segundo viaje justo cuando el operador
+   * ya eligió sede y está esperando ver los servicios.
+   */
+  getDailyCounts(date?: string): Observable<TurnDailyCounts> {
+    let params = new HttpParams();
+    if (date && date.trim()) {
+      params = params.set('date', date.trim());
+    }
+
+    return this.http.get<TurnDailyCounts>(`${this.API_URL}/daily-counts`, {
       params,
       withCredentials: true,
     });

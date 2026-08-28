@@ -46,7 +46,7 @@ describe('AccountingApiService', () => {
     expect(req.request.withCredentials).toBe(true);
 
     req.flush(summary());
-    // outstandingNow must survive untouched regardless of the from/to sent — it is not period-bound.
+
     expect(result?.outstandingNow).toBe(500);
   });
 
@@ -67,7 +67,11 @@ describe('AccountingApiService', () => {
     const req = httpMock.expectOne((r) => r.url === `${API_URL}/claims-summary`);
     expect(req.request.params.get('from')).toBe('2026-08-01');
 
-    req.flush({ from: '2026-08-01', to: '2026-08-24', claimsByStatus: [{ status: 'SUBMITTED', count: 1, totalAmount: 30 }] });
+    req.flush({
+      from: '2026-08-01',
+      to: '2026-08-24',
+      claimsByStatus: [{ status: 'SUBMITTED', count: 1, totalAmount: 30 }],
+    });
     expect(result?.claimsByStatus[0].status).toBe('SUBMITTED');
   });
 });

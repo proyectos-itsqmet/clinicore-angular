@@ -31,7 +31,14 @@ describe('adminRoutes', () => {
    * loudly when one goes missing or duplicates.
    */
   const resolvedDestinations = adminRoutes.filter(
-    (route) => 'loadComponent' in route || 'loadChildren' in route,
+    (route) =>
+      ('loadComponent' in route || 'loadChildren' in route) &&
+      // Fuera del menú a propósito: "Mi Perfil" se abre desde el avatar de la
+      // cabecera, no desde el sidebar. La excepción se declara en la RUTA
+      // (`data.offNav`), no como una cadena escrita acá: una lista de nombres
+      // dentro del test es justo el segundo lugar que esta suite existe para
+      // evitar, y se desactualiza en silencio.
+      route.data?.['offNav'] !== true,
   );
 
   it('generates exactly one route per destination in the tree, placeholder or implemented', () => {
