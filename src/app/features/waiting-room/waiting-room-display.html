@@ -42,17 +42,21 @@
       </div>
 
       <div class="flex items-center gap-[2.75rem]">
-        <!-- El punto pierde el pulso cuando el feed se cae: un punto que sigue
-             latiendo mientras no llega nada es una mentira, y la quietud es la
-             mitad de este estado que se lee a cuatro metros. -->
-        <div class="flex items-center gap-[0.875rem]">
-          <app-live-dot size="1.125rem" [tone]="stale() ? 'stale' : 'live'" />
-          @if (stale()) {
-            <app-kicker tone="warn" size="1.375rem">Sin conexión</app-kicker>
-          } @else {
-            <app-kicker tone="accent" size="1.375rem">En vivo</app-kicker>
-          }
-        </div>
+        <!-- SIN indicador de "en vivo": ni etiqueta ni punto.
+
+             Los dos afirmaban salud sobre un canal que no miraban. Decían "en
+             vivo" según si el último fetch había fallado, y el fetch venía del
+             CACHÉ: la pantalla podía llevar cinco minutos congelada con el
+             punto en verde. Un indicador que no puede apagarse cuando el
+             problema existe no informa, tranquiliza — y eso es peor que no
+             estar, porque manda a buscar la falla a otro lado.
+
+             Queda SOLO el aviso, y sólo cuando el feed falló de verdad. En una
+             sala de espera eso es lo único que le cambia algo al paciente: si
+             los números están al día o no. -->
+        @if (stale()) {
+          <app-kicker tone="warn" size="1.375rem">Sin conexión</app-kicker>
+        }
         <!-- Reloj del propio kiosco, no del servidor: la sala muestra la hora
              local y el contrato no carga con un campo que envejece en tránsito. -->
         <div class="flex flex-col items-end gap-[0.25rem]">
@@ -71,20 +75,32 @@
         <div
           class="grid h-[4.25rem] shrink-0 grid-cols-[minmax(0,1fr)_12.5rem] items-center rounded-[1.5rem] bg-navy px-[1.75rem]"
         >
-          <app-kicker tone="soft" size="1.375rem">Últimos llamados</app-kicker>
+          <!-- "En sala" y no "Últimos llamados": la columna dejó de ser un
+               historial de llamados. Ahora es quién está adentro — los ya
+               llamados arriba, la cola debajo. Un encabezado que promete otra
+               cosa manda a leer la lista mal. -->
+          <app-kicker tone="soft" size="1.375rem">En sala</app-kicker>
           <span class="text-right"><app-kicker tone="soft" size="1.375rem">Cons.</app-kicker></span>
         </div>
 
         <app-vertical-marquee gap="0.75rem" [durationSeconds]="34" [animate]="animateQueue()">
           <ng-template>
             @for (row of rows(); track row.ticket) {
+              <!-- Tres tratamientos, no dos, porque la columna dice tres cosas
+                   distintas: oro = te están atendiendo AHORA, `bg-tint` frío =
+                   ya te llamaron y tenés consultorio, `bg-field` neutro = hiciste
+                   ingreso y todavía esperás. El que está sentado tiene que
+                   ubicar su número y contar cuántos tiene encima; si la cola y
+                   los llamados se ven igual, esa cuenta no se puede hacer. -->
               <div
                 [class]="
                   'grid h-[6rem] shrink-0 grid-cols-[minmax(0,1fr)_12.5rem] items-center gap-[1rem] rounded-[1.5rem] rounded-br-[0.5rem] px-[1.75rem] ' +
-                  (row.current ? 'bg-gold' : 'bg-tint')
+                  (row.current ? 'bg-gold' : row.waiting ? 'bg-field' : 'bg-tint')
                 "
               >
-                <app-figure size="3.5rem" [tone]="row.current ? 'gold-ink' : 'ink'">{{ row.ticket }}</app-figure>
+                <app-figure size="3.5rem" [tone]="row.current ? 'gold-ink' : row.waiting ? 'ink-3' : 'ink'">{{
+                  row.ticket
+                }}</app-figure>
                 <span class="text-right">
                   <app-figure size="3.5rem" [tone]="row.current ? 'gold-ink' : 'ink-3'">{{
                     row.room
@@ -169,3 +185,4 @@
     <span class="font-display text-[3rem] font-extrabold text-blue-soft">Conectando…</span>
   </div>
 }
+

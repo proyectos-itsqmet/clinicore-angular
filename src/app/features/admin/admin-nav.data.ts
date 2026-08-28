@@ -118,6 +118,15 @@ export const ADMIN_NAV: readonly AdminNavEntry[] = [
     ],
   },
   { id: 'turnos', label: 'Turnos', icon: 'clock', path: 'turnos', allowedRoles: ['ROLE_EMPLOYEE', 'ROLE_ADMIN'], children: [] },
+
+  // Justo debajo de Turnos, y no en Administración, porque no se configura
+  // nada acá: se abre la pantalla de una sala. Es una acción operativa del
+  // mismo turno de trabajo, y quien la necesita ya está mirando esta zona.
+  //
+  // Existe porque la URL de sala lleva el id numérico de la sede
+  // (`/sala/11`) y ese id no se ve en ninguna pantalla. Adivinarlo mal no da
+  // error: da un televisor que parece congelado mostrando otra sede.
+  { id: 'pantalla-turnos', label: 'Pantalla turnos', icon: 'play', path: 'pantalla-turnos', allowedRoles: ['ROLE_EMPLOYEE', 'ROLE_ADMIN'], children: [] },
   { id: 'calendario', label: 'Calendario', icon: 'calendar', path: 'calendario', allowedRoles: ['ROLE_ADMIN', 'ROLE_EMPLOYEE'], children: [] },
   {
     id: 'pacientes',

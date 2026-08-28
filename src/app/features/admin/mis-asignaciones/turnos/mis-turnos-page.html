@@ -202,9 +202,14 @@
               class="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4 transition-colors hover:bg-tint/10"
               [class.opacity-60]="turn.status === 'TURN_CANCELLED'"
             >
-              <!-- Número de orden -->
-              <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-field border border-line font-extrabold text-ink text-sm">
-                {{ turn.order }}
+              <!-- El TICKET, no el contador interno.
+                   Es el número que el paciente escucha y ve en la pantalla de
+                   sala, así que el médico puede nombrarlo en voz alta. `order`
+                   se cuenta por servicio y por fecha: otro paciente en otro
+                   consultorio también es el 3 hoy. Cae a `order` si el backend
+                   todavía no manda el campo. -->
+              <div class="flex-shrink-0 flex items-center justify-center min-w-[3.25rem] h-10 px-2 rounded-full bg-field border border-line font-extrabold text-ink text-sm font-mono">
+                {{ ticketOf(turn) }}
               </div>
 
               <!-- Datos del paciente -->
@@ -240,6 +245,25 @@
 
               <!-- Acciones -->
               <div class="flex-shrink-0 flex items-center gap-2">
+                <!-- Ingreso (PENDIENTE -> EN ESPERA). Va PRIMERO porque es el
+                     primer paso de la máquina de estados, y su ausencia era el
+                     hueco de esta pantalla: sin él un turno pendiente no podía
+                     avanzar y había que pedirle a recepción que lo moviera. -->
+                @if (canMarkWaiting(turn)) {
+                  <button
+                    type="button"
+                    (click)="markAsWaiting(turn)"
+                    [disabled]="actionLoading() === turn.id"
+                    class="flex items-center gap-1.5 rounded-lg border border-line bg-field px-3 py-1.5 text-[12px] font-bold text-ink shadow-sm hover:border-blue/40 disabled:opacity-50 transition-all"
+                  >
+                    @if (actionLoading() === turn.id) {
+                      <span>Procesando...</span>
+                    } @else {
+                      <app-icon name="check" [size]="12" />
+                      <span>Ingreso</span>
+                    }
+                  </button>
+                }
                 @if (canMarkInTreatment(turn)) {
                   <button
                     type="button"
@@ -270,11 +294,14 @@
                     }
                   </button>
                 }
-                @if (turn.status === 'TURN_PENDING' || turn.status === 'TURN_TREATED' || turn.status === 'TURN_CANCELLED') {
+                <!-- "Esperando llegada" ya NO se pinta para TURN_PENDING: ahora
+                     esa fila tiene el botón de Ingreso, y una leyenda al lado de
+                     su propia acción sólo compite con ella. Queda para los dos
+                     estados terminales, que no tienen ninguna acción posible. -->
+                @if (turn.status === 'TURN_TREATED' || turn.status === 'TURN_CANCELLED') {
                   <span class="text-[11px] text-ink-3 italic">
                     @if (turn.status === 'TURN_TREATED') { Completado }
-                    @else if (turn.status === 'TURN_CANCELLED') { Cancelado }
-                    @else { Esperando llegada }
+                    @else { Cancelado }
                   </span>
                 }
               </div>

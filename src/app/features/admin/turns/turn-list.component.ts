@@ -9,7 +9,17 @@ import { ScheduleApiService } from '../../../core/api/schedule-api.service';
 import { fetchAllPages } from '../../../core/api/fetch-all-pages.util';
 import { RealtimeService } from '../../../core/realtime/realtime.service';
 import { ConsultorioApiService } from '../../../core/api/consultorio-api.service';
-import type { Consultorio, Establishment, Servicio, Turn, Page, ScheduleDTO, TurnStatus } from '../../../core/models';
+import type {
+  Consultorio,
+  Establishment,
+  Servicio,
+  Turn,
+  Page,
+  ScheduleDTO,
+  TurnDailyCounts,
+  TurnScopeCount,
+  TurnStatus,
+} from '../../../core/models';
 import { AuthService } from '../../../core/auth/auth.service';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -22,6 +32,17 @@ export interface TurnBoardDTO {
   serviceName: string;
   doctorName: string;
   stablishmentName: string;
+  /**
+   * `"H-003"`: el número que el paciente escucha. El backend ya lo mandaba en
+   * cada mensaje del socket; esta interfaz no lo declaraba, así que la pizarra
+   * pintaba `order` — y con eso dos servicios distintos mostraban un `#5` cada
+   * uno en la misma lista.
+   */
+  ticket?: string;
+  /** Código corto del consultorio (`"03"`). */
+  roomCode?: string;
+  /** Nombre completo (`"Consultorio 3"`), para donde hay lugar. */
+  roomLabel?: string;
 }
 
 /**
@@ -88,6 +109,14 @@ export class TurnListComponent implements OnInit, OnDestroy {
 
   // 2. Fecha de Consulta
   protected readonly selectedDate = signal<string>(localIsoDate());
+
+  /**
+   * Conteos del día para las tarjetas de sede y de servicio.
+   *
+   * `null` mientras carga o si el pedido falló. Las tarjetas distinguen ese
+   * caso de "cero turnos hoy": no son lo mismo y una tarjeta muda los confunde.
+   */
+  protected readonly dailyCounts = signal<TurnDailyCounts | null>(null);
 
   // 3. Servicios del Establecimiento Seleccionado (paginado + búsqueda: antes
   // `getServices(id, 0, 100)` truncaba en el registro 100 sin aviso).
@@ -161,6 +190,32 @@ export class TurnListComponent implements OnInit, OnDestroy {
       this.isLiveMode.set(params['mode'] === 'live');
     });
     this.loadEstablishments();
+    this.loadDailyCounts();
+  }
+
+  /**
+   * Los números de las tarjetas: cuántos turnos tiene hoy cada sede y cada
+   * servicio, y cuántos siguen pendientes.
+   *
+   * Un solo pedido para las dos agrupaciones, y NO bloquea nada: si falla, las
+   * tarjetas quedan sin badge y el panel sigue funcionando entero. Un contador
+   * es información de apoyo — que se caiga no puede impedir elegir una sede.
+   */
+  loadDailyCounts(): void {
+    this.turnApi.getDailyCounts(this.selectedDate()).subscribe({
+      next: (counts) => this.dailyCounts.set(counts),
+      error: () => this.dailyCounts.set(null),
+    });
+  }
+
+  /** Conteo de una sede. `null` = no vino en la respuesta, o sea cero turnos hoy. */
+  countsForEstablishment(id: number): TurnScopeCount | null {
+    return this.dailyCounts()?.byStablishment.find((row) => row.id === id) ?? null;
+  }
+
+  /** Conteo de un servicio, dentro de la fecha elegida. */
+  countsForService(id: number): TurnScopeCount | null {
+    return this.dailyCounts()?.byService.find((row) => row.id === id) ?? null;
   }
 
   loadEstablishments(): void {
@@ -253,7 +308,13 @@ export class TurnListComponent implements OnInit, OnDestroy {
           hour: turn.schedule?.hour || '',
           serviceName: turn.schedule?.service?.name || '',
           doctorName: turn.schedule?.doctor ? `${turn.schedule.doctor.firstName} ${turn.schedule.doctor.lastName}` : '',
-          stablishmentName: est.name
+          stablishmentName: est.name,
+          // El backend ya mandaba estos tres en cada mensaje del socket; la
+          // carga inicial por REST no los traía, así que la pizarra arrancaba
+          // sin ticket ni consultorio hasta el primer llamado.
+          ticket: turn.ticket,
+          roomCode: turn.consultorio?.code,
+          roomLabel: turn.consultorio?.label,
         }));
         this.liveTurns.set(boardTurns);
         this.liveLoading.set(false);

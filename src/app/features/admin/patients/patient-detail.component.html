@@ -375,7 +375,10 @@
             <tr class="hover:bg-tint/20 transition-colors">
               <td class="whitespace-nowrap py-4 pl-5 pr-3 text-xs font-medium text-ink">
                 <div class="flex items-center gap-2">
-                  <span class="font-extrabold text-sm text-blue">#{{ turn.order }}</span>
+                  <!-- El ticket es el número que se llama; el id sigue visible
+                       porque en la ficha del paciente es lo que se usa para
+                       cruzar contra la base al reportar un problema. -->
+                  <span class="font-extrabold text-sm text-blue font-mono">{{ turn.ticket ?? '#' + turn.order }}</span>
                   <span class="text-[10px] text-ink-3 font-mono">(ID: {{ turn.id }})</span>
                 </div>
               </td>

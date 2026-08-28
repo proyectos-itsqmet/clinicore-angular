@@ -515,11 +515,17 @@
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-emerald-50 text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">
               ¡Cita Agendada con Éxito!
             </span>
+            <!-- El TICKET, no `turn.id`.
+                 Acá decía "#2646", que es la clave primaria de la base: un
+                 número interno que el paciente no va a escuchar nunca en la
+                 sala. El que se llama es el ticket, con el prefijo del
+                 servicio y su orden del día. -->
             <h2 class="text-2xl font-display font-extrabold text-ink">
-              Turno Reservado #{{ confirmedTurn()?.id }}
+              Tu turno es el
+              <span class="font-mono text-blue">{{ confirmedTurn()?.ticket ?? '#' + confirmedTurn()?.order }}</span>
             </h2>
             <p class="text-xs text-ink-2 mt-1">
-              Hemos registrado tu turno exitosamente en nuestro sistema clínico.
+              Es el número que vas a ver en la pantalla de la sala de espera.
             </p>
           </div>
 
@@ -557,8 +563,10 @@
 
             <div class="flex justify-between pt-1">
               <span class="text-xs text-ink-3">Estado del Turno:</span>
+              <!-- Traducido. Acá salía el enum crudo del backend
+                   ("TURN_PENDING") en una pantalla que lee un paciente. -->
               <span class="inline-flex items-center rounded-pill bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue">
-                {{ confirmedTurn()?.status }}
+                {{ statusLabel(confirmedTurn()?.status) }}
               </span>
             </div>
           </div>

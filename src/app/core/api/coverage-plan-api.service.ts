@@ -3,7 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import type { CoveragePlan, CoveragePlanCreate, Page } from '../models';
 
-/** `GET/POST/PUT/DELETE /api/coverage-plans` — writes require ROLE_ADMIN (GlobalConfig); reads are open to any authenticated role. */
 @Injectable({ providedIn: 'root' })
 export class CoveragePlanApiService {
   private readonly http = inject(HttpClient);
@@ -31,7 +30,6 @@ export class CoveragePlanApiService {
     return this.http.put<CoveragePlan>(`${this.API_URL}/${id}`, payload, { withCredentials: true });
   }
 
-  /** Backend rejects this with a message when the plan still has patient coverages (`CoveragePlanService#delete`) — surface `err.error.message` verbatim. */
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/${id}`, { withCredentials: true });
   }

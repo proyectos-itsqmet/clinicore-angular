@@ -3,13 +3,16 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import type { ClinicalAccessLog, Page } from '../models';
 
-/** "reportes/auditoria-hc": `GET /api/clinical-access-logs` (ROLE_ADMIN only, enforced server-side). */
 @Injectable({ providedIn: 'root' })
 export class ClinicalAccessLogApiService {
   private readonly http = inject(HttpClient);
   private readonly API_URL = '/api/clinical-access-logs';
 
-  getAll(patientId?: string, page: number = 0, size: number = 10): Observable<Page<ClinicalAccessLog>> {
+  getAll(
+    patientId?: string,
+    page: number = 0,
+    size: number = 10,
+  ): Observable<Page<ClinicalAccessLog>> {
     let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
 
     if (patientId && patientId.trim()) {

@@ -30,9 +30,20 @@ export const adminRoutes: Routes = [
     redirectTo: ADMIN_DEFAULT_PATH,
   },
   {
+    // `offNav: true` — destino real que NO sale del menú, y a propósito.
+    //
+    // A "Mi Perfil" se llega desde el avatar de la cabecera, no desde el
+    // sidebar: es la cuenta de quien mira, no una sección del panel.
+    //
+    // El flag lo lee `admin.routes.spec.ts`, que verifica que el menú y la
+    // tabla de rutas no se separen. Sin él, esta página aparecía como una ruta
+    // huérfana y hacía fallar esa comparación — y "arreglarlo" excluyendo la
+    // cadena 'perfil' dentro del test habría escondido la excepción en el
+    // lugar donde nadie la busca. Declarada acá, la próxima página fuera del
+    // menú se resuelve agregando el flag y no editando el test.
     path: 'perfil',
     loadComponent: () => import('./profile/admin-profile.component').then(m => m.AdminProfileComponent),
-    data: { crumbGroup: 'Ajustes', crumbLeaf: 'Mi Perfil' },
+    data: { crumbGroup: 'Ajustes', crumbLeaf: 'Mi Perfil', offNav: true },
     title: 'Mi Perfil - CliniCore'
   },
   {
@@ -171,14 +182,26 @@ export const adminRoutes: Routes = [
     data: { crumbGroup: 'Turnos', crumbLeaf: 'Gestión de turnos' }
   },
   {
+    path: 'pantalla-turnos',
+    loadComponent: () =>
+      import('./turns/turn-screen-launcher.component').then(m => m.TurnScreenLauncherComponent),
+    data: { crumbGroup: 'Turnos', crumbLeaf: 'Pantalla turnos' },
+    title: 'Pantalla turnos · Panel · CliniCore'
+  },
+  {
     path: 'calendario',
     loadChildren: () => import('./calendario/calendario.routes').then(m => m.calendarioRoutes),
     data: { crumbGroup: 'Calendario', crumbLeaf: 'Calendario de horarios' }
   },
   {
-    path: 'mis-asignaciones',
-    loadChildren: () => import('./mis-asignaciones/mis-asignaciones.routes').then(m => m.misAsignacionesRoutes),
+    path: 'mis-asignaciones/servicios',
+    loadChildren: () => import('./mis-asignaciones/mis-asignaciones.routes').then(m => m.misServiciosRoutes),
     data: { crumbGroup: 'Mis Asignaciones', crumbLeaf: 'Mis Servicios' }
+  },
+  {
+    path: 'mis-asignaciones/turnos',
+    loadChildren: () => import('./mis-asignaciones/mis-asignaciones.routes').then(m => m.misTurnosRoutes),
+    data: { crumbGroup: 'Mis Asignaciones', crumbLeaf: 'Mis Turnos' }
   },
   {
     path: 'bloqueo-de-citas/motivos',
@@ -203,7 +226,7 @@ export const adminRoutes: Routes = [
 
   ...ADMIN_NAV.flatMap((entry) => {
     if (entry.children.length === 0) {
-      if (entry.path === 'turnos' || entry.path === 'calendario' || entry.path === 'modulos' || entry.path === 'personalizacion') {
+      if (entry.path === 'turnos' || entry.path === 'pantalla-turnos' || entry.path === 'calendario' || entry.path === 'modulos' || entry.path === 'personalizacion') {
         return [];
       }
       return [
@@ -216,12 +239,13 @@ export const adminRoutes: Routes = [
       ];
     }
 
-    // mis-asignaciones ya tiene loadChildren explícito más arriba con sus propias
-    // subrutas (servicios, turnos). El redirect que genera este flatMap pisal
-    // esa configuración y causaría conflictos, así que salimos aquí.
-    if (entry.path === 'mis-asignaciones') {
-      return [];
-    }
+    // La excepción de `mis-asignaciones` se fue con el motivo que la creaba.
+    //
+    // Existía porque el grupo se montaba entero en `mis-asignaciones` con un
+    // `loadChildren`, y el redirect generado acá lo habría pisado. Ahora cada
+    // hijo tiene su ruta con path completo, como todos los demás grupos, así
+    // que este flatMap puede generarle su redirect sin conflicto — y sin él,
+    // entrar a `/admin/mis-asignaciones` pelado no llevaba a ningún lado.
 
     const filteredChildren = entry.children.filter(child => {
       const fullPath = `${entry.path}/${child.path}`;

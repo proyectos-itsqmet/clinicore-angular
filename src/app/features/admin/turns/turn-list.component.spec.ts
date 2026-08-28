@@ -4,7 +4,15 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Observable, Subject } from 'rxjs';
 
-import type { Establishment, Page, ScheduleDTO, Servicio, Turn, TurnStatus } from '../../../core/models';
+import type {
+  Establishment,
+  Page,
+  ScheduleDTO,
+  Servicio,
+  Turn,
+  TurnDailyCounts,
+  TurnStatus,
+} from '../../../core/models';
 import { RealtimeService } from '../../../core/realtime/realtime.service';
 import { buildStablishmentTopic, TurnListComponent } from './turn-list.component';
 import { ActivatedRoute, provideRouter } from '@angular/router';
@@ -133,15 +141,37 @@ describe('TurnListComponent', () => {
   });
 
   afterEach(() => {
+    // El panel pide los conteos del día al iniciar, para las tarjetas. No es el
+    // tema de ningún test de este archivo salvo los de "conteos del día", y
+    // varios arman el componente a mano sin pasar por `create()`. Drenarlo acá
+    // evita agregar una expectativa que no le importa a veintiséis casos —
+    // pero NO lo esconde: los tests de conteos lo contestan ellos mismos con
+    // datos reales y este bloque no encuentra nada que drenar.
+    httpMock
+      .match((req) => req.url === `${TURNS_URL}/daily-counts`)
+      .forEach((req) => req.flush(NO_COUNTS));
+
     httpMock.verify();
   });
 
-  /** Boots the component and drains the establishment auto-select cascade (list -> services). */
-  function create(estList: Establishment[] = [establishment(1)]): Fixture {
+  /** Sin conteos: las tarjetas no pintan badge y ningún test viejo cambia. */
+  const NO_COUNTS: TurnDailyCounts = { date: '2026-08-24', byStablishment: [], byService: [] };
+
+  /**
+   * Boots the component and drains the establishment auto-select cascade
+   * (list -> services) plus the day's counts for the cards.
+   *
+   * `daily-counts` se drena ACÁ y no en cada test porque `afterEach` corre
+   * `httpMock.verify()`: un pedido que el componente hace al iniciar y que
+   * nadie contesta tumba los veintiséis tests del archivo, ninguno de los
+   * cuales es sobre conteos.
+   */
+  function create(estList: Establishment[] = [establishment(1)], counts: TurnDailyCounts = NO_COUNTS): Fixture {
     const fixture = TestBed.createComponent(TurnListComponent);
     fixture.detectChanges();
 
     httpMock.expectOne((req) => req.url === ESTABLISHMENTS_URL).flush(page(estList));
+    httpMock.expectOne((req) => req.url === `${TURNS_URL}/daily-counts`).flush(counts);
 
     if (estList.length > 0) {
       httpMock.expectOne((req) => req.url === `${ESTABLISHMENTS_URL}/${estList[0].id}/services`).flush(page([]));
@@ -172,6 +202,84 @@ describe('TurnListComponent', () => {
       expect(component.canMarkInTreatment(turn(3, 'TURN_IN_TREATMENT'))).toBe(false);
       expect(component.canMarkInTreatment(turn(4, 'TURN_TREATED'))).toBe(false);
     });
+  });
+
+  describe('conteos del día en las tarjetas', () => {
+    it('shows how many turns and how many are pending on each sede card', () => {
+      // Antes había que ENTRAR a cada sede para descubrir si tenía trabajo.
+      // Con seis sedes en la base eso son seis clics para encontrar la única
+      // que tiene turnos hoy.
+      const fixture = create([establishment(1), establishment(2)], {
+        date: '2026-08-24',
+        byStablishment: [{ id: 1, total: 12, pending: 4 }],
+        byService: [],
+      });
+
+      const cards = fixture.nativeElement.querySelectorAll('[data-testid="sede-card"]');
+      expect(cards[0].textContent).toContain('12');
+      expect(cards[0].textContent).toContain('4');
+
+      // La sede 2 no vino en la respuesta: cero turnos hoy. Tiene que decirlo,
+      // no quedarse muda — "sin dato" y "sin turnos" se leen igual en una
+      // tarjeta vacía y no significan lo mismo.
+      expect(cards[1].textContent).toContain('Sin turnos hoy');
+    });
+
+    it('shows the pending count on each service card', () => {
+      const fixture = create([establishment(1)], {
+        date: '2026-08-24',
+        byStablishment: [],
+        byService: [{ id: 1, total: 16, pending: 5 }],
+      });
+
+      // `create()` ya drenó la carga inicial de servicios con una página vacía.
+      // Volver a elegir la sede dispara un pedido NUEVO, y ese es el que trae
+      // el servicio que queremos ver en la tarjeta.
+      fixture.componentInstance.selectEstablishment(establishment(1));
+      httpMock
+        .expectOne((req) => req.url === `${ESTABLISHMENTS_URL}/1/services`)
+        .flush(page([servicio(1)]));
+      fixture.detectChanges();
+
+      const cards = fixture.nativeElement.querySelectorAll('[data-testid="servicio-card"]');
+      expect(cards[0].textContent).toContain('16');
+      expect(cards[0].textContent).toContain('5');
+    });
+  });
+
+  it('shows the ticket the patient will hear, not just the internal order', () => {
+    // Un operador que llama a alguien tiene que poder decirle su número y
+    // verificarlo contra el televisor. Hasta que TurnDTO llevó `ticket`, la
+    // fila mostraba "#3" y el número real ("H-003") existía SOLO en la pantalla
+    // de sala: dos vistas del mismo turno, y la única con el dato que importa
+    // era la que el operador no está mirando.
+    const fixture = create();
+
+    fixture.componentInstance.openTurnModal(servicio(1));
+    httpMock
+      .expectOne((req) => req.url === TURNS_URL)
+      .flush(page([turn(3, 'TURN_WAITNG', { ticket: 'H-003' })]));
+    fixture.detectChanges();
+
+    const rows = Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[];
+    expect(rows[0].textContent).toContain('H-003');
+  });
+
+  it('falls back to the bare order when the backend sent no ticket', () => {
+    // Un backend anterior a `TurnDTO.ticket` devuelve la fila sin el campo. La
+    // fila cae al número pelado en vez de pintar "undefined" — el operador
+    // pierde el prefijo, no la pantalla.
+    const fixture = create();
+
+    fixture.componentInstance.openTurnModal(servicio(1));
+    httpMock
+      .expectOne((req) => req.url === TURNS_URL)
+      .flush(page([turn(7, 'TURN_WAITNG')]));
+    fixture.detectChanges();
+
+    const rows = Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[];
+    expect(rows[0].textContent).toContain('#7');
+    expect(rows[0].textContent).not.toContain('undefined');
   });
 
   it('renders only the legal queue action per row in the turns modal', () => {

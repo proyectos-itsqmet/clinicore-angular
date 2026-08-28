@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
+import { localIsoDate } from '../../../core/date/local-iso-date';
 import { SelectField, type SelectOption } from '../../../shared/ui/molecules/select-field/select-field';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -389,7 +390,7 @@ export class SpecialtyDetailComponent implements OnInit {
   }
 
   setTodayFilter(): void {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localIsoDate();
     this.filterDate.set(today);
     this.loadSchedules(0);
   }
@@ -397,7 +398,7 @@ export class SpecialtyDetailComponent implements OnInit {
   setTomorrowFilter(): void {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const tomorrowStr = localIsoDate(tomorrow);
     this.filterDate.set(tomorrowStr);
     this.loadSchedules(0);
   }
@@ -427,7 +428,7 @@ export class SpecialtyDetailComponent implements OnInit {
 
   // --- Modal Crear Horario ---
   openCreateScheduleModal(): void {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localIsoDate();
     const defaultDoctorUuid = this.doctors()?.content?.[0]?.uuid || this.allDoctors()?.[0]?.uuid || '';
     const defaultEstId = this.assignedEstablishments()?.content?.[0]?.id || this.establishments()?.[0]?.id || 0;
 
@@ -490,7 +491,7 @@ export class SpecialtyDetailComponent implements OnInit {
 
   // --- Modal Generación de Turnos en Lote (/api/schedules/generate) ---
   openGenerateBatchModal(): void {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localIsoDate();
     const firstEstId = this.assignedEstablishments()?.content?.[0]?.id || this.establishments()?.[0]?.id || 0;
     const firstDocUuid = this.doctors()?.content?.[0]?.uuid || '';
 
