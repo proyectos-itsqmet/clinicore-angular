@@ -1,0 +1,288 @@
+<div class="flex flex-col gap-6">
+
+  <!-- Encabezado -->
+  <header class="flex flex-col gap-1">
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col gap-0.5">
+        <h1 class="font-display text-2xl font-extrabold text-ink">Mis Turnos del Día</h1>
+        <p class="text-[14px] text-ink-3">Visualiza y gestiona los turnos asignados a tus servicios en tiempo real.</p>
+      </div>
+      <!-- Indicador de conexión WebSocket -->
+      <div class="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 shadow-sm">
+        @if (connectionStatus() === 'open') {
+          <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[12px] font-bold text-emerald-700">En vivo</span>
+        } @else if (connectionStatus() === 'connecting') {
+          <span class="h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-[12px] font-bold text-amber-700">Conectando...</span>
+        } @else {
+          <span class="h-2 w-2 rounded-full bg-red-400"></span>
+          <span class="text-[12px] font-bold text-red-700">Sin conexión</span>
+        }
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="flex h-48 items-center justify-center">
+      <p class="text-sm text-ink-3">Cargando servicios...</p>
+    </div>
+  } @else if (services().length === 0) {
+    <div class="flex flex-col items-center justify-center gap-3 rounded-xl border border-line bg-surface py-14 text-center">
+      <app-icon name="calendar" [size]="40" class="text-ink-3" />
+      <p class="text-sm font-bold text-ink">No tienes servicios asignados</p>
+      <p class="text-[13px] text-ink-3">Contacta al administrador para que te asigne servicios.</p>
+    </div>
+  } @else {
+
+    <!-- Contadores rápidos -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <button
+        type="button"
+        (click)="selectedStatus.set('TURN_PENDING')"
+        class="flex flex-col items-center gap-1 rounded-xl border bg-surface p-3 shadow-sm transition-all hover:shadow-md"
+        [class.border-slate-400]="selectedStatus() === 'TURN_PENDING'"
+        [class.border-line]="selectedStatus() !== 'TURN_PENDING'"
+      >
+        <span class="text-xl font-extrabold text-ink">{{ counts().pending }}</span>
+        <span class="text-[11px] font-semibold text-slate-600">Pendiente</span>
+      </button>
+      <button
+        type="button"
+        (click)="selectedStatus.set('TURN_WAITNG')"
+        class="flex flex-col items-center gap-1 rounded-xl border bg-surface p-3 shadow-sm transition-all hover:shadow-md"
+        [class.border-amber-400]="selectedStatus() === 'TURN_WAITNG'"
+        [class.border-line]="selectedStatus() !== 'TURN_WAITNG'"
+      >
+        <span class="text-xl font-extrabold text-ink">{{ counts().waiting }}</span>
+        <span class="text-[11px] font-semibold text-amber-700">En espera</span>
+      </button>
+      <button
+        type="button"
+        (click)="selectedStatus.set('TURN_IN_TREATMENT')"
+        class="flex flex-col items-center gap-1 rounded-xl border bg-surface p-3 shadow-sm transition-all hover:shadow-md"
+        [class.border-blue]="selectedStatus() === 'TURN_IN_TREATMENT'"
+        [class.border-line]="selectedStatus() !== 'TURN_IN_TREATMENT'"
+      >
+        <span class="text-xl font-extrabold text-ink">{{ counts().inTreatment }}</span>
+        <span class="text-[11px] font-semibold text-blue">En atención</span>
+      </button>
+      <button
+        type="button"
+        (click)="selectedStatus.set('TURN_TREATED')"
+        class="flex flex-col items-center gap-1 rounded-xl border bg-surface p-3 shadow-sm transition-all hover:shadow-md"
+        [class.border-emerald-400]="selectedStatus() === 'TURN_TREATED'"
+        [class.border-line]="selectedStatus() !== 'TURN_TREATED'"
+      >
+        <span class="text-xl font-extrabold text-ink">{{ counts().treated }}</span>
+        <span class="text-[11px] font-semibold text-emerald-700">Atendidos</span>
+      </button>
+      <button
+        type="button"
+        (click)="selectedStatus.set('TURN_CANCELLED')"
+        class="flex flex-col items-center gap-1 rounded-xl border bg-surface p-3 shadow-sm transition-all hover:shadow-md"
+        [class.border-red-400]="selectedStatus() === 'TURN_CANCELLED'"
+        [class.border-line]="selectedStatus() !== 'TURN_CANCELLED'"
+      >
+        <span class="text-xl font-extrabold text-ink">{{ counts().cancelled }}</span>
+        <span class="text-[11px] font-semibold text-red-600">Cancelados</span>
+      </button>
+    </div>
+
+    <!-- Barra de filtros -->
+    <section class="flex flex-wrap items-end gap-3 rounded-xl border border-line bg-surface p-4 shadow-sm">
+
+      <!-- Servicio -->
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold text-ink-3 uppercase tracking-wide">Servicio</label>
+        <select
+          class="rounded-xl border border-line bg-field py-2 pl-3 pr-8 text-[13px] text-ink focus:border-blue focus:outline-none"
+          (change)="onServiceChange($event)"
+        >
+          <option value="">Todos mis servicios</option>
+          @for (srv of services(); track srv.id) {
+            <option [value]="srv.id" [selected]="selectedServiceId() === srv.id">
+              {{ srv.name }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <!-- Fecha -->
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold text-ink-3 uppercase tracking-wide">Fecha</label>
+        <div class="flex items-center gap-2">
+          <input
+            type="date"
+            [value]="selectedDate()"
+            (change)="onDateChange($event)"
+            class="rounded-xl border border-line bg-field py-2 px-3 text-[13px] text-ink focus:border-blue focus:outline-none"
+          />
+          <button
+            type="button"
+            (click)="setToday()"
+            class="rounded-xl border border-line bg-field px-3 py-2 text-[12px] font-bold text-ink hover:bg-tint/20 transition-colors"
+          >
+            Hoy
+          </button>
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="flex flex-col gap-1">
+        <label class="text-[11px] font-bold text-ink-3 uppercase tracking-wide">Estado</label>
+        <select
+          class="rounded-xl border border-line bg-field py-2 pl-3 pr-8 text-[13px] text-ink focus:border-blue focus:outline-none"
+          (change)="onStatusChange($event)"
+        >
+          @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value" [selected]="selectedStatus() === opt.value">
+              {{ opt.label }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <!-- Botón refrescar manual -->
+      <button
+        type="button"
+        (click)="loadTurns()"
+        [disabled]="turnsLoading()"
+        class="ml-auto flex items-center gap-1.5 rounded-xl border border-line bg-field px-3 py-2 text-[13px] font-bold text-ink hover:bg-tint/20 disabled:opacity-50 transition-colors"
+      >
+        <app-icon name="refresh" [size]="14" />
+        Actualizar
+      </button>
+    </section>
+
+    <!-- Notificaciones de acción -->
+    @if (actionSuccess()) {
+      <div class="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
+        <app-icon name="check" [size]="16" class="text-emerald-600" />
+        <span class="text-[13px] font-bold text-emerald-800">{{ actionSuccess() }}</span>
+      </div>
+    }
+    @if (actionError()) {
+      <div class="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
+        <app-icon name="alert" [size]="16" class="text-red-600" />
+        <span class="text-[13px] font-bold text-red-800">{{ actionError() }}</span>
+      </div>
+    }
+
+    <!-- Lista de turnos -->
+    <section class="rounded-xl border border-line bg-surface shadow-sm overflow-hidden">
+
+      <!-- Encabezado de tabla -->
+      <div class="border-b border-line bg-field px-5 py-3 flex items-center justify-between">
+        <span class="text-[13px] font-bold text-ink">
+          {{ filteredTurns().length }} turno{{ filteredTurns().length !== 1 ? 's' : '' }}
+          @if (selectedStatus() !== 'ALL') {
+            <span class="text-ink-3"> · {{ getStatusLabel(selectedStatus()) }}</span>
+          }
+        </span>
+        @if (turnsLoading()) {
+          <span class="text-[12px] text-ink-3 animate-pulse">Actualizando...</span>
+        }
+      </div>
+
+      @if (turnsLoading() && filteredTurns().length === 0) {
+        <div class="flex h-40 items-center justify-center">
+          <p class="text-sm text-ink-3">Cargando turnos...</p>
+        </div>
+      } @else if (filteredTurns().length === 0) {
+        <div class="flex flex-col items-center justify-center gap-2 py-14 text-center">
+          <app-icon name="clock" [size]="36" class="text-ink-3" />
+          <p class="text-sm font-bold text-ink">No hay turnos</p>
+          <p class="text-[13px] text-ink-3">No se encontraron turnos con los filtros aplicados.</p>
+        </div>
+      } @else {
+        <ul class="divide-y divide-line">
+          @for (turn of filteredTurns(); track turn.id) {
+            <li
+              class="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4 transition-colors hover:bg-tint/10"
+              [class.opacity-60]="turn.status === 'TURN_CANCELLED'"
+            >
+              <!-- Número de orden -->
+              <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-field border border-line font-extrabold text-ink text-sm">
+                {{ turn.order }}
+              </div>
+
+              <!-- Datos del paciente -->
+              <div class="flex-1 min-w-0">
+                <p class="font-bold text-[14px] text-ink truncate">
+                  {{ turn.patient?.firstName }} {{ turn.patient?.lastName }}
+                </p>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                  @if (turn.patient?.ci) {
+                    <span class="text-[12px] text-ink-3">CI: {{ turn.patient?.ci }}</span>
+                  }
+                  @if (turn.schedule?.service?.name) {
+                    <span class="text-[12px] text-ink-3">· {{ turn.schedule?.service?.name }}</span>
+                  }
+                  @if (turn.schedule?.hour) {
+                    <span class="text-[12px] text-ink-3">· {{ turn.schedule?.hour | slice:0:5 }}</span>
+                  }
+                  @if (turn.schedule?.stablishment?.name) {
+                    <span class="text-[12px] text-ink-3">· {{ turn.schedule?.stablishment?.name }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Estado -->
+              <div class="flex-shrink-0">
+                <span
+                  class="rounded-full px-3 py-1 text-[12px] font-bold"
+                  [ngClass]="getStatusClasses(turn.status)"
+                >
+                  {{ getStatusLabel(turn.status) }}
+                </span>
+              </div>
+
+              <!-- Acciones -->
+              <div class="flex-shrink-0 flex items-center gap-2">
+                @if (canMarkInTreatment(turn)) {
+                  <button
+                    type="button"
+                    (click)="markAsInTreatment(turn)"
+                    [disabled]="actionLoading() === turn.id"
+                    class="flex items-center gap-1.5 rounded-lg bg-blue px-3 py-1.5 text-[12px] font-bold text-white shadow-sm hover:bg-blue-dark disabled:opacity-50 transition-all"
+                  >
+                    @if (actionLoading() === turn.id) {
+                      <span>Procesando...</span>
+                    } @else {
+                      <app-icon name="play" [size]="12" />
+                      <span>Atender</span>
+                    }
+                  </button>
+                }
+                @if (canMarkTreated(turn)) {
+                  <button
+                    type="button"
+                    (click)="markAsTreated(turn)"
+                    [disabled]="actionLoading() === turn.id"
+                    class="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[12px] font-bold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 transition-all"
+                  >
+                    @if (actionLoading() === turn.id) {
+                      <span>Procesando...</span>
+                    } @else {
+                      <app-icon name="check" [size]="12" />
+                      <span>Finalizar</span>
+                    }
+                  </button>
+                }
+                @if (turn.status === 'TURN_PENDING' || turn.status === 'TURN_TREATED' || turn.status === 'TURN_CANCELLED') {
+                  <span class="text-[11px] text-ink-3 italic">
+                    @if (turn.status === 'TURN_TREATED') { Completado }
+                    @else if (turn.status === 'TURN_CANCELLED') { Cancelado }
+                    @else { Esperando llegada }
+                  </span>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+  }
+</div>

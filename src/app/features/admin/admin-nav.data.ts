@@ -50,6 +50,7 @@ export const ADMIN_NAV: readonly AdminNavEntry[] = [
     allowedRoles: ['ROLE_DOCTOR'],
     children: [
       { path: 'servicios', label: 'Mis Servicios', allowedRoles: ['ROLE_DOCTOR'] },
+      { path: 'turnos', label: 'Mis Turnos', allowedRoles: ['ROLE_DOCTOR'] },
     ],
   },
   {

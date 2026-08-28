@@ -41,7 +41,10 @@ export type IconName =
   | 'tag'
   | 'ban'
   | 'banknote'
-  | 'chevron';
+  | 'chevron'
+  | 'refresh'
+  | 'play'
+  | 'alert';
 
 /**
  * app-icon — a single component that draws every icon in the system
