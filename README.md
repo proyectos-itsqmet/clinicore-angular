@@ -3,6 +3,56 @@
 Angular 22 standalone app for the clinic landing (Sistema Inteligente de Gestión de
 Turnos, Atención y Experiencia del Cliente).
 
+## Funcionalidades Principales
+
+El proyecto **CliniCore (Frontend QMS)** es una solución integral para la gestión inteligente del flujo de pacientes, turnos, atención médica y experiencia de usuario. Entre sus capacidades más destacadas se encuentran:
+
+### 1. Sistema de Turnos y Gestión de Filas en Tiempo Real (QMS)
+- **Despacho y monitoreo en vivo:** Conexión bidireccional mediante WebSockets (STOMP sobre SockJS) para sincronización instantánea de llamados entre estaciones de atención y pantallas de sala.
+- **Flujo de ciclo de vida del turno:** Transición controlada de estados: `Agendado` $\rightarrow$ `En Espera` (Check-in presencial) $\rightarrow$ `En Atención` (Llamado a consultorio asignado) $\rightarrow$ `Atendido/Finalizado` $\rightarrow$ `Cancelado/Reasignado`.
+- **Métricas diarias en tiempo real:** Contadores de turnos totales, pendientes y completados por sede y especialidad.
+- **Reasignación y reprogramación:** Capacidad de transferir turnos a otros horarios o médicos ante ausencias o demoras.
+
+### 2. Pantalla de Sala de Espera (Digital Signage para TV / Kiosco)
+- **Diseño Kiosco 16:9:** Interfaz sin encabezados ni barras de desplazamiento, escalada dinámicamente mediante unidades tipográficas relativas al viewport (`rem` y función `min()`).
+- **Resiliencia ante desconexiones (Offline-First Visual):** Retiene el último estado válido si la red falla y conmuta el indicador a "Sin conexión", garantizando que los televisores de sala nunca queden en blanco.
+- **Marquesina vertical inteligente:** Si la fila de espera supera la capacidad visual de la pantalla, activa animación continua (`VerticalMarquee`).
+- **Sincronización híbrida:** Eventos instantáneos por topic WebSocket (`/topic/stablishment/{id}/{fecha}`) complementados con sondeo de seguridad periódico sincronizado con el calendario local (`LocalDate`).
+
+### 3. Asistente Virtual Médico con Inteligencia Artificial (Chatbot & Voz)
+- **Atención conversacional en vivo:** Widget flotante para visitantes en landing y flujo de agendamiento.
+- **Streaming de respuestas (SSE):** Generación de respuestas fragmento a fragmento en tiempo real mediante Server-Sent Events.
+- **Interacción por voz:** Grabación directa de notas de voz desde el navegador (formato WebM) con transcripción y procesamiento en el servidor.
+- **Estados contextuales en vivo:** Informa dinámicamente la acción que el asistente realiza (p. ej., *"Consultando la agenda..."*, *"Verificando disponibilidad..."*).
+
+### 4. Portal del Paciente y Agendamiento en Línea
+- **Wizard de reserva en 4 pasos:** Selección guiada de Sede $\rightarrow$ Especialidad y Doctor $\rightarrow$ Horario Disponible $\rightarrow$ Confirmación y emisión de comprobante digital de turno.
+- **Portal de autoservicio:** Consulta de citas históricas y próximas, filtros por estado y rango de fechas.
+- **Gestión de perfil del paciente:** Actualización de datos personales, información de contacto de emergencia y cancelación autónoma de turnos.
+
+### 5. Panel Administrativo y Control de Acceso por Roles (RBAC)
+- **Seguridad y roles:** Autenticación JWT con interceptores HTTP y control de acceso granular mediante `authGuard` y `roleGuard` (`ROLE_ADMIN`, `ROLE_EMPLOYEE`, `ROLE_DOCTOR`, `ROLE_PATIENT`).
+- **Gestión de infraestructura clínica:** Mantenimiento de establecimientos (sedes) y consultorios físicos.
+- **Gestión del talento humano:** Directorio de médicos, especialidades asignadas, operadores y horarios de atención.
+- **Módulo "Mis Asignaciones":** Vista especializada para personal médico y operadores para gestionar sus consultas y turnos del día.
+
+### 6. Historia Clínica Electrónica y Recetas
+- **Expedientes médicos:** Registro y consulta de consultas clínicas (*encounters*), diagnósticos, notas de evolución y recetas médicas emitidas.
+- **Auditoría de historia clínica:** Registro estricto de accesos a datos médicos sensibles para cumplimiento de normativas de privacidad.
+
+### 7. Disponibilidad, Horarios y Bloqueo de Citas
+- **Plantillas de horarios:** Configuración de jornadas de atención recurrentes por profesional y servicio.
+- **Motor de bloqueo de agenda:** Restricción automatizada de citas por días feriados, períodos de vacaciones, permisos y motivos justificados.
+
+### 8. Módulo Financiero, Facturación y Convenios
+- **Facturación y cobranza:** Emisión de comprobantes, control de facturas y métodos de pago.
+- **Planes de cobertura y aseguradoras:** Vinculación de pacientes a aseguradoras y gestión de reclamos (*claims*).
+- **Gestor tarifario:** Configuración de precios por cita, paquetes de servicios, sesiones recurrentes, descuentos y promociones.
+
+### 9. Analítica, Reportes e Indicadores (KPIs)
+- **Dashboards interactivos:** Visualización de métricas de rendimiento por sede, tiempos de espera, volumen de pacientes atendidos e índices de satisfacción.
+- **Reportes generales:** Exportación y análisis de datos de operación clínica y administrativa.
+
 ## Run
 
 ```bash
@@ -113,11 +163,15 @@ Two files are expected to be missing on the backend side —
 
 ## Routes
 
-| Route | Component | Render mode | Data |
+| Route | Component | Render mode | Data / Responsabilidad |
 | --- | --- | --- | --- |
-| `/` | `app-landing-page` | Prerendered | `LandingApi`, one `httpResource` per section of `jsons/landing` |
-| `/sala/:sedeId` | `app-waiting-room-display` | **Client** | `SalaApi`, polling `jsons/sala/pantalla.json` every 5s |
-| `/admin/**` | `app-admin-layout` + 31 child routes | **Client** | none yet — every section is a marked placeholder |
+| `/` | `app-landing-page` | Prerendered | `LandingApi`, una sección por `httpResource` con bento, servicios, coberturas y chat IA |
+| `/login` | `LoginPage` | Client | Autenticación con JWT, control de sesión y redirección según rol |
+| `/registro` | `RegisterPage` | Client | Alta de nuevos pacientes con validaciones en tiempo real |
+| `/agendar` | `BookingPage` | Client | Wizard de 4 pasos (Sede, Servicio/Doctor, Horario libre, Confirmación) |
+| `/perfil` | `PatientProfileComponent` | Client | Portal del paciente: edición de perfil, historial de citas, cancelación de turnos |
+| `/sala/:sedeId` | `app-waiting-room-display` | **Client** | Pantalla de sala 16:9, WebSockets STOMP y polling fallback de 15s |
+| `/admin/**` | `app-admin-layout` + 32 rutas hijas | **Client** | Panel administrativo integral (Dashboard, Turnos, Doctores, Pacientes, Finanzas, etc.) |
 
 ### `/sala/:sedeId` — the waiting-room display
 
@@ -176,6 +230,4 @@ change one and change the other. And the layout closes the drawer itself when th
 window crosses `lg:` — without that, opening the drawer at phone width and widening
 the window leaves the shell `inert` with nothing on screen able to clear it.
 
-Every section is a marked placeholder today: one component, `admin-placeholder-page`,
-reading its own title from the generated route data. No fake tables, no decorative
-charts. Replacing one is a one-line change to that route's `loadComponent`.
+El panel cuenta con integración completa a los servicios de backend para cada sección: gestión operativa de turnos en vivo con STOMP, expedientes clínicos y recetas, facturación y pagos, catálogo tarifario, configuración de horarios/bloqueos, analítica de métricas y gestión de personal y sedes. Las rutas derivan de `ADMIN_NAV` y cuentan con control de acceso por roles (`ROLE_ADMIN`, `ROLE_EMPLOYEE`, `ROLE_DOCTOR`).
